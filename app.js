@@ -39,6 +39,8 @@ const MASCOT = { mark: 'brand/maskot-3d/web/ospalek-mark.webp', head: 'brand/mas
 // každá kategorie má svou pastelovou barvu (brand manuál)
 const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)' };
 const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
+// plyšové ikonky kategorií (brand/ikony)
+const catIcon = (id, cls = 'cat-ico') => (CAT_COLOR[id] ? `<img class="${cls}" src="brand/ikony/kat-${id}.webp" alt="">` : '');
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
 // avatar: první písmeno jména v pastelovém kolečku
 const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
@@ -182,7 +184,7 @@ const screens = {
         <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
       <div class="section-t">Kategorie</div>
       <div class="hscroll">
-        ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${CAT_COLOR[k.id] ? `<span class="dot" style="--c:${CAT_COLOR[k.id]}"></span>` : ''}${k.label}</button>`).join('')}
+        ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${catIcon(k.id)}${k.label}</button>`).join('')}
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age} let` : 'Podle věku'}</button>
       </div>
       ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak od 58 Kč měsíčně</span></div></button>`}
@@ -197,7 +199,7 @@ const screens = {
               ${unlocked(s) ? '' : `<span class="badge lock">${I.lock}Zamčeno</span>`}
             </div>
             <h3>${esc(s.title(c))}</h3>
-            <div class="meta"><span class="dot" style="--c:${catColor(s)}"></span>${minutes(segs)} min · ${s.ages[0]}–${s.ages[1]} let</div>
+            <div class="meta">${catIcon(s.cats[0], 'cat-ico sm')}${minutes(segs)} min · ${s.ages[0]}–${s.ages[1]} let</div>
           </button>`;
         }).join('') || `<div class="empty"><img src="${MASCOT.trip}" alt="">V téhle kategorii zatím nic není.</div>`}
       </div>`;
