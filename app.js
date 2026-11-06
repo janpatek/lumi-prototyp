@@ -124,7 +124,7 @@ const screens = {
     <div class="login">
       <div class="logo">🌙</div>
       <h1>Lumi</h1>
-      <p class="tag">Pohádky, ve kterých hrají hlavní roli vaše děti.</p>
+      <p class="tag">Pohádky, kde hlavní roli hrají vaše děti.</p>
       <button class="btn white" data-a="google">${GOOGLE_SVG} Pokračovat přes Google</button>
       <button class="btn ghost" data-a="guest">Vyzkoušet bez přihlášení</button>
       <p class="fine">Prototyp: přihlášení je zatím jen simulované.</p>
