@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lumi – Pohádky, kde hlavní roli hrají vaše děti</title>
+  <meta name="description" content="Personalizované pohádky, ve kterých je vaše dítě hlavním hrdinou a děj se odehrává v okolí, které zná. Čte je realistický český hlas, s hudbou a zvukovými efekty.">
+  <meta name="theme-color" content="#14112b">
+  <meta property="og:title" content="Pohádky, kde hlavní roli hrají vaše děti">
+  <meta property="og:description" content="Personalizované pohádky čtené českým hlasem. Vaše dítě je hlavní hrdina, děj se odehrává u vás doma.">
+  <meta property="og:image" content="../covers/hvezdicka.jpg">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="landing.css">
+</head>
+<body>
+  <!-- Název aplikace a odkazy do obchodů se nastavují na jednom místě: landing.js → const LANDING -->
+
+  <header class="nav">
+    <div class="wrap nav-in">
+      <a class="brand" href="#top"><span class="brand-moon" aria-hidden="true">🌙</span><span data-app-name>Lumi</span></a>
+      <nav class="nav-links" aria-label="Sekce">
+        <a href="#jak">Jak to funguje</a>
+        <a href="#ukazka">Ukázka</a>
+        <a href="#cenik">Ceník</a>
+        <a href="#faq">Otázky</a>
+      </nav>
+      <a class="nav-cta" href="#stahnout">Stáhnout</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- 1. Hero -->
+    <section class="hero">
+      <div class="stars" aria-hidden="true"></div>
+      <div class="wrap hero-in">
+        <div class="hero-text">
+          <p class="eyebrow">Personalizované audio pohádky</p>
+          <h1>Pohádky, kde hlavní roli hrají vaše děti</h1>
+          <p class="hero-sub">Vaše dítě zachraňuje hvězdičku, krotí draka nebo statečně jde k zubaři. A to všechno v ulicích a místech, která dobře zná. Pohádku vám přečte příjemný český hlas, s hudbou a zvuky.</p>
+          <div class="stores" id="stahnout">
+            <a class="store is-soon" href="#" data-store="appStore" aria-disabled="true" aria-label="Stáhnout na App Store – již brzy">
+              <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M16.37 12.73c-.03-2.87 2.34-4.25 2.45-4.32-1.34-1.95-3.42-2.22-4.16-2.25-1.77-.18-3.45 1.04-4.35 1.04-.9 0-2.28-1.02-3.75-.99-1.93.03-3.71 1.12-4.7 2.85-2 3.48-.51 8.62 1.44 11.44.95 1.38 2.09 2.93 3.58 2.87 1.44-.06 1.98-.93 3.72-.93 1.73 0 2.22.93 3.74.9 1.55-.03 2.53-1.4 3.47-2.79 1.1-1.6 1.55-3.15 1.57-3.23-.03-.02-3.01-1.16-3.02-4.59zM13.52 4.31c.79-.96 1.33-2.29 1.18-3.62-1.14.05-2.53.76-3.35 1.72-.73.85-1.38 2.2-1.2 3.51 1.27.1 2.57-.65 3.37-1.61z"/></svg>
+              <span class="store-txt"><small>Stáhnout na</small><b>App Store</b></span>
+              <span class="soon">Již brzy</span>
+            </a>
+            <a class="store is-soon" href="#" data-store="googlePlay" aria-disabled="true" aria-label="Nyní na Google Play – již brzy">
+              <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#00a0ff" d="M3.6 1.85 13.35 12 3.6 22.15c-.32-.2-.52-.58-.52-1.07V2.92c0-.49.2-.87.52-1.07z"/>
+                <path fill="#00e070" d="M3.6 1.85c.32-.2.74-.2 1.2.06L16.73 8.7 13.35 12z"/>
+                <path fill="#ff3a44" d="M3.6 22.15 13.35 12l3.38 3.3-11.93 6.79c-.46.26-.88.26-1.2.06z"/>
+                <path fill="#ffd400" d="m16.73 8.7 3.5 1.99c1 .57 1 1.5 0 2.06l-3.5 1.99-3.38-3.3z"/>
+              </svg>
+              <span class="store-txt"><small>Nyní na</small><b>Google Play</b></span>
+              <span class="soon">Již brzy</span>
+            </a>
+          </div>
+          <p class="hero-fine">3 pohádky zdarma, bez platební karty.</p>
+        </div>
+        <figure class="hero-art">
+          <img src="../covers/hvezdicka.jpg" width="573" height="768" alt="Ilustrace z pohádky: chlapec v pyžamu u okna drží v dlaních zářící hvězdičku, za oknem noční město.">
+          <figcaption><span aria-hidden="true">🌟</span> Hvězdička, která spadla k Toníkovi</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 2. Jak to funguje -->
+    <section class="sec" id="jak">
+      <div class="wrap">
+        <h2>Jak to funguje</h2>
+        <p class="sec-lead">Nastavení zabere pár minut. Pak už jen vyberete pohádku a posloucháte.</p>
+        <ol class="steps">
+          <li>
+            <span class="step-n">1</span>
+            <div class="step-ico" aria-hidden="true">👧🧒</div>
+            <h3>Přidáte děti</h3>
+            <p>Jméno, oblíbené jídlo a zvíře. Z těchhle drobností vznikají pohádky, ve kterých se dítě hned pozná.</p>
+          </li>
+          <li>
+            <span class="step-n">2</span>
+            <div class="step-ico" aria-hidden="true">🏡</div>
+            <h3>Řeknete, kde bydlíte</h3>
+            <p>Stačí obec. Pohádky se pak odehrávají v okolí, které děti znají: u rybníka za vsí, na náměstí, v nejbližší ZOO.</p>
+          </li>
+          <li>
+            <span class="step-n">3</span>
+            <div class="step-ico" aria-hidden="true">🎧</div>
+            <h3>Pustíte si pohádku</h3>
+            <p>Na dobrou noc, na dlouhou cestu autem nebo před první návštěvou zubaře. Vypravěčka čte, vy můžete odpočívat.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 3. Výhody -->
+    <section class="sec sec-alt" id="vyhody">
+      <div class="wrap">
+        <h2>Proč to děti milují</h2>
+        <div class="features">
+          <article class="feat">
+            <div class="feat-ico" aria-hidden="true">⭐</div>
+            <h3>Vaše dítě je hlavní hrdina</h3>
+            <p>Ne nějaký princ z daleké země. Hvězdičku zachraňuje, draka utěšuje a záhady řeší právě ono.</p>
+          </article>
+          <article class="feat">
+            <div class="feat-ico" aria-hidden="true">👫</div>
+            <h3>Pro jedno dítě i pro sourozence</h3>
+            <p>Pohádku pustíte jen pro jednoho, nebo pro víc sourozenců najednou. Žádné hádky, kdo dnes bude hrdinou.</p>
+          </article>
+          <article class="feat">
+            <div class="feat-ico" aria-hidden="true">👵</div>
+            <h3>Hrají v ní i rodiče a prarodiče</h3>
+            <p>Táta pomáhá s mapou, babička peče buchty na cestu. Celá rodina má v příběhu své místo.</p>
+          </article>
+          <article class="feat">
+            <div class="feat-ico" aria-hidden="true">🎙️</div>
+            <h3>Realistický český hlas</h3>
+            <p>Pohádky čte přirozeně znějící vypravěčka. Klidně, s citem a se správným skloňováním jmen.</p>
+          </article>
+          <article class="feat">
+            <div class="feat-ico" aria-hidden="true">🎶</div>
+            <h3>Hudba a zvukové efekty</h3>
+            <p>Tichá ukolébavka v pozadí, cinknutí hvězdičky, šumění lesa. Poslech jako malé divadlo.</p>
+          </article>
+        </div>
+
+        <h3 class="cats-t">Pohádka na každou chvíli</h3>
+        <ul class="cats">
+          <li><span aria-hidden="true">🌙</span><b>Na dobrou noc</b><small>Klidné příběhy, které pomůžou usnout.</small></li>
+          <li><span aria-hidden="true">🚗</span><b>Do auta</b><small>Hádanky s pauzou na odpověď. Cesta uteče jako nic.</small></li>
+          <li><span aria-hidden="true">🗺️</span><b>Dobrodružství</b><small>Výpravy za pokladem, tajemné lednice i dráčci.</small></li>
+          <li><span aria-hidden="true">🌱</span><b>Ze života</b><small>Třeba návštěva zubaře nebo první den ve školce.</small></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 4. Ukázka -->
+    <section class="sec" id="ukazka">
+      <div class="wrap">
+        <h2>Poslechněte si ukázku</h2>
+        <p class="sec-lead">Takhle zní pohádka připravená pro chlapce jménem Toník. Ve vaší aplikaci v ní budou vaše děti a vaše okolí.</p>
+
+        <div class="player">
+          <img class="player-cover" src="../covers/hvezdicka.jpg" width="573" height="768" alt="" loading="lazy">
+          <div class="player-body">
+            <p class="player-k">Ukázka · Na dobrou noc</p>
+            <h3>Hvězdička, která spadla k Toníkovi</h3>
+            <p class="player-d">Čte vypravěčka Jana, s hudbou a zvukovými efekty.</p>
+            <div class="player-ctrl">
+              <button class="play" id="sample-play" type="button" aria-label="Přehrát ukázku">
+                <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+                <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+              </button>
+              <div class="track-wrap">
+                <div class="track" id="sample-track"><div class="track-bar" id="sample-bar"></div></div>
+                <span class="track-time" id="sample-time">1:40</span>
+              </div>
+            </div>
+            <audio id="sample-audio" src="../audio/hvezdicka-jana.mp3" preload="none"></audio>
+          </div>
+        </div>
+
+        <h3 class="gal-t">Další pohádky v aplikaci</h3>
+        <ul class="gallery">
+          <li><img src="../covers/vyprava.jpg" width="573" height="768" alt="" loading="lazy"><span>Velká výprava</span></li>
+          <li><img src="../covers/hadanky.jpg" width="573" height="768" alt="" loading="lazy"><span>Hádankové auto</span></li>
+          <li><img src="../covers/drak.jpg" width="573" height="768" alt="" loading="lazy"><span>Drak, který se bál tmy</span></li>
+          <li><img src="../covers/lednice.jpg" width="573" height="768" alt="" loading="lazy"><span>Kouzelná lednice</span></li>
+          <li><img src="../covers/zubar-f.jpg" width="573" height="768" alt="" loading="lazy"><span>Statečně k zubaři</span></li>
+          <li><img src="../covers/hvezdicka-f.jpg" width="573" height="768" alt="" loading="lazy"><span>Hvězdička pro holčičky</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 5. Ceník -->
+    <section class="sec sec-alt" id="cenik">
+      <div class="wrap">
+        <h2>Ceník</h2>
+        <p class="sec-lead">Začněte zdarma. Předplatné si pořídíte, až uvidíte, jak se pohádky dětem líbí.</p>
+        <div class="prices">
+          <div class="price">
+            <h3>Na vyzkoušení</h3>
+            <p class="amount">0 Kč</p>
+            <ul>
+              <li>3 pohádky zdarma</li>
+              <li>Pro všechny vaše děti</li>
+              <li>Bez platební karty</li>
+            </ul>
+          </div>
+          <div class="price">
+            <h3>Měsíčně</h3>
+            <p class="amount">99 Kč <small>/ měsíc</small></p>
+            <ul>
+              <li>Neomezeně pohádek</li>
+              <li>Všechny kategorie</li>
+              <li>7 dní zdarma</li>
+            </ul>
+          </div>
+          <div class="price price-top">
+            <span class="ribbon">Nejvýhodnější</span>
+            <h3>Ročně</h3>
+            <p class="amount">699 Kč <small>/ rok</small></p>
+            <p class="per">vychází na 58 Kč měsíčně, ušetříte 41 %</p>
+            <ul>
+              <li>Neomezeně pohádek</li>
+              <li>Všechny kategorie</li>
+              <li>7 dní zdarma</li>
+            </ul>
+          </div>
+        </div>
+        <p class="price-note">Ceny jsou orientační a před spuštěním aplikace se mohou změnit. Předplatné můžete kdykoli zrušit.</p>
+      </div>
+    </section>
+
+    <!-- 6. FAQ -->
+    <section class="sec" id="faq">
+      <div class="wrap wrap-narrow">
+        <h2>Časté otázky</h2>
+        <div class="faq">
+          <details>
+            <summary>Jak chráníte údaje o mých dětech?</summary>
+            <p>Ukládáme jen nutné minimum, které pohádka potřebuje: křestní jméno, pár oblíbených věcí a bydliště, a to pouze na úrovni obce. Žádnou přesnou adresu, fotky ani příjmení nechceme. Údaje nikomu neprodáváme a můžete je kdykoli smazat.</p>
+          </details>
+          <details>
+            <summary>Pro jaký věk jsou pohádky určené?</summary>
+            <p>Pro děti zhruba od 2 do 9 let. Každá pohádka má doporučený věk, takže nejmenší dostanou kratší a klidnější příběhy, starší dobrodružství a hádanky.</p>
+          </details>
+          <details>
+            <summary>Funguje aplikace i bez internetu?</summary>
+            <p>Připravujeme. Brzy si budete moct pohádky stáhnout dopředu a pustit je třeba v autě nebo na chalupě bez signálu.</p>
+          </details>
+          <details>
+            <summary>Na jakých telefonech aplikace poběží?</summary>
+            <p>Chystáme ji pro iPhone (App Store) i pro telefony s Androidem (Google Play). Nejdřív v češtině a slovenštině.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec cta-end">
+      <div class="wrap">
+        <h2>Dnes večer může být hrdinou pohádky vaše dítě</h2>
+        <p class="sec-lead">Aplikace <span data-app-name>Lumi</span> bude brzy ke stažení.</p>
+        <div class="stores stores-center">
+          <a class="store is-soon" href="#" data-store="appStore" aria-disabled="true" aria-label="Stáhnout na App Store – již brzy">
+            <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M16.37 12.73c-.03-2.87 2.34-4.25 2.45-4.32-1.34-1.95-3.42-2.22-4.16-2.25-1.77-.18-3.45 1.04-4.35 1.04-.9 0-2.28-1.02-3.75-.99-1.93.03-3.71 1.12-4.7 2.85-2 3.48-.51 8.62 1.44 11.44.95 1.38 2.09 2.93 3.58 2.87 1.44-.06 1.98-.93 3.72-.93 1.73 0 2.22.93 3.74.9 1.55-.03 2.53-1.4 3.47-2.79 1.1-1.6 1.55-3.15 1.57-3.23-.03-.02-3.01-1.16-3.02-4.59zM13.52 4.31c.79-.96 1.33-2.29 1.18-3.62-1.14.05-2.53.76-3.35 1.72-.73.85-1.38 2.2-1.2 3.51 1.27.1 2.57-.65 3.37-1.61z"/></svg>
+            <span class="store-txt"><small>Stáhnout na</small><b>App Store</b></span>
+            <span class="soon">Již brzy</span>
+          </a>
+          <a class="store is-soon" href="#" data-store="googlePlay" aria-disabled="true" aria-label="Nyní na Google Play – již brzy">
+            <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#00a0ff" d="M3.6 1.85 13.35 12 3.6 22.15c-.32-.2-.52-.58-.52-1.07V2.92c0-.49.2-.87.52-1.07z"/>
+              <path fill="#00e070" d="M3.6 1.85c.32-.2.74-.2 1.2.06L16.73 8.7 13.35 12z"/>
+              <path fill="#ff3a44" d="M3.6 22.15 13.35 12l3.38 3.3-11.93 6.79c-.46.26-.88.26-1.2.06z"/>
+              <path fill="#ffd400" d="m16.73 8.7 3.5 1.99c1 .57 1 1.5 0 2.06l-3.5 1.99-3.38-3.3z"/>
+            </svg>
+            <span class="store-txt"><small>Nyní na</small><b>Google Play</b></span>
+            <span class="soon">Již brzy</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <p class="brand"><span class="brand-moon" aria-hidden="true">🌙</span><span data-app-name>Lumi</span></p>
+      <p>Personalizované pohádky pro děti z Česka a Slovenska.</p>
+      <p class="foot-links"><a href="#jak">Jak to funguje</a><a href="#cenik">Ceník</a><a href="#faq">Otázky</a></p>
+      <p class="foot-fine">© 2026 <span data-app-name>Lumi</span>. Ilustrace a ukázky jsou z prototypu aplikace.</p>
+    </div>
+  </footer>
+
+  <script src="landing.js" defer></script>
+</body>
+</html>

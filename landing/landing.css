@@ -1,0 +1,189 @@
+/* Barvy navazují na aplikaci (../styles.css) */
+:root {
+  --bg: #14112b;
+  --bg2: #1f1a40;
+  --card: #2a2452;
+  --line: #3a3370;
+  --text: #f6f1ff;
+  --muted: #b3a9d9;
+  --accent: #ffcf5c;
+  --accent-ink: #2b1d00;
+  --radius: 20px;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Nunito, system-ui, sans-serif; -webkit-text-size-adjust: 100%; }
+body { font-size: 17px; line-height: 1.55; overflow-x: hidden; }
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+h1, h2, h3 { margin: 0; line-height: 1.15; }
+p { margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+.wrap-narrow { max-width: 760px; }
+
+/* Navigace */
+.nav { position: sticky; top: 0; z-index: 10; background: rgba(20, 17, 43, .82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(58, 51, 112, .6); }
+.nav-in { display: flex; align-items: center; gap: 16px; height: 60px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; font-size: 22px; text-decoration: none; }
+.brand-moon { filter: drop-shadow(0 0 10px rgba(255, 207, 92, .6)); }
+.nav-links { display: none; gap: 24px; margin-left: auto; }
+.nav-links a { text-decoration: none; color: var(--muted); font-weight: 700; font-size: 15px; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { margin-left: auto; background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 800; font-size: 15px; padding: 9px 16px; border-radius: 999px; }
+
+/* Hero */
+.hero { position: relative; overflow: hidden; padding: 40px 0 56px; background: radial-gradient(900px 520px at 50% -10%, #3b2d7a 0%, var(--bg) 70%); }
+.stars { position: absolute; inset: 0; pointer-events: none; opacity: .7;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 62%, #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 44% 12%, #ffe9a8 50%, transparent 51%),
+    radial-gradient(1px 1px at 63% 40%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 78% 22%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 90% 70%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 8% 84%, #ffe9a8 50%, transparent 51%),
+    radial-gradient(1px 1px at 55% 88%, #fff 50%, transparent 51%); }
+.hero-in { position: relative; display: grid; gap: 36px; }
+.eyebrow { color: var(--accent); font-weight: 800; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+.hero h1 { font-size: clamp(34px, 9vw, 60px); font-weight: 900; letter-spacing: -.01em; text-wrap: balance; }
+.hero-sub { color: var(--muted); font-size: 18px; margin-top: 18px; max-width: 34em; }
+.hero-fine { color: var(--muted); font-size: 14px; margin-top: 14px; }
+.hero-art { margin: 0 auto; max-width: 340px; position: relative; }
+.hero-art img { border-radius: 26px; box-shadow: 0 30px 80px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .06); transform: rotate(2deg); }
+.hero-art figcaption { position: absolute; left: -8px; bottom: 22px; background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; font-weight: 800; font-size: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .4); max-width: 85%; }
+
+/* Badge obchodů (černé, ve stylu oficiálních) */
+.stores { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.stores-center { justify-content: center; }
+.store { position: relative; display: inline-flex; align-items: center; gap: 10px; min-width: 186px; height: 56px; padding: 0 18px 0 14px; background: #000; color: #fff; border: 1px solid #a6a6a6; border-radius: 12px; text-decoration: none; transition: transform .12s; }
+.store:hover { transform: translateY(-2px); }
+.store-logo { width: 28px; height: 28px; flex: 0 0 auto; }
+.store-txt { display: flex; flex-direction: column; text-align: left; line-height: 1.1; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+.store-txt small { font-size: 11px; letter-spacing: .02em; }
+.store-txt b { font-size: 21px; font-weight: 600; letter-spacing: -.01em; }
+.soon { display: none; }
+.store.is-soon { cursor: default; }
+.store.is-soon:hover { transform: none; }
+.store.is-soon .soon { display: block; position: absolute; top: -10px; right: -8px; background: var(--accent); color: var(--accent-ink); font-family: Nunito, sans-serif; font-weight: 900; font-size: 11px; letter-spacing: .03em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; transform: rotate(4deg); box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
+
+/* Sekce */
+.sec { padding: 64px 0; }
+.sec-alt { background: linear-gradient(180deg, var(--bg2), var(--bg)); }
+.sec h2 { font-size: clamp(28px, 6.5vw, 42px); font-weight: 900; text-wrap: balance; }
+.sec-lead { color: var(--muted); font-size: 18px; margin-top: 12px; max-width: 38em; }
+
+/* Kroky */
+.steps { list-style: none; padding: 0; margin: 32px 0 0; display: grid; gap: 16px; }
+.steps li { position: relative; background: var(--card); border-radius: var(--radius); padding: 24px 22px 22px; }
+.step-n { position: absolute; top: 18px; right: 20px; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 900; }
+.step-ico { font-size: 40px; line-height: 1; margin-bottom: 14px; }
+.steps h3, .feat h3 { font-size: 21px; font-weight: 800; margin-bottom: 6px; }
+.steps p, .feat p { color: var(--muted); }
+
+/* Výhody */
+.features { display: grid; gap: 14px; margin-top: 32px; }
+.feat { background: rgba(42, 36, 82, .7); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+.feat-ico { width: 52px; height: 52px; border-radius: 16px; background: rgba(255, 207, 92, .14); display: grid; place-items: center; font-size: 28px; margin-bottom: 14px; }
+.cats-t { font-size: 22px; font-weight: 800; margin: 44px 0 16px; }
+.cats { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cats li { background: var(--accent); color: var(--accent-ink); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+.cats li > span { font-size: 28px; line-height: 1; margin-bottom: 4px; }
+.cats b { font-size: 17px; font-weight: 900; }
+.cats small { font-size: 14px; line-height: 1.4; opacity: .85; }
+
+/* Ukázka */
+.player { margin-top: 32px; display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start; background: var(--card); border-radius: 24px; padding: 16px; border: 1px solid var(--line); }
+.player-cover { width: 96px; border-radius: 14px; grid-row: 1 / span 3; }
+.player-k { color: var(--accent); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.player h3 { font-size: 20px; font-weight: 900; margin-top: 4px; }
+.player-d { color: var(--muted); font-size: 15px; margin-top: 4px; }
+.player-ctrl { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+.player-body { display: contents; }
+.player-body > p, .player-body > h3 { grid-column: 2; }
+.play { flex: 0 0 auto; width: 60px; height: 60px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; cursor: pointer; box-shadow: 0 0 0 0 rgba(255, 207, 92, .5); animation: pulse 2.4s infinite; }
+.play svg { width: 28px; height: 28px; fill: currentColor; }
+.play .i-pause { display: none; }
+.play.playing { animation: none; }
+.play.playing .i-play { display: none; }
+.play.playing .i-pause { display: block; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 207, 92, .5); } 70% { box-shadow: 0 0 0 16px rgba(255, 207, 92, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 207, 92, 0); } }
+.track-wrap { flex: 1; display: flex; align-items: center; gap: 12px; }
+.track { flex: 1; height: 8px; background: var(--bg2); border-radius: 9px; overflow: hidden; cursor: pointer; }
+.track-bar { width: 0; height: 100%; background: var(--accent); transition: width .2s linear; }
+.track-time { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gal-t { font-size: 22px; font-weight: 800; margin: 44px 0 16px; }
+.gallery { list-style: none; padding: 0 20px 6px; margin: 0 -20px; display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 20px; scrollbar-width: none; }
+.gallery::-webkit-scrollbar { display: none; }
+.gallery li { flex: 0 0 42%; scroll-snap-align: start; }
+.gallery img { border-radius: 16px; }
+.gallery span { display: block; font-weight: 700; font-size: 15px; margin-top: 8px; }
+
+/* Ceník */
+.prices { display: grid; gap: 14px; margin-top: 32px; }
+.price { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 24px 22px; }
+.price h3 { font-size: 18px; font-weight: 800; color: var(--muted); }
+.amount { font-size: 40px; font-weight: 900; margin-top: 6px; }
+.amount small { font-size: 16px; font-weight: 700; color: var(--muted); }
+.per { color: var(--accent); font-weight: 700; font-size: 15px; }
+.price ul { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 8px; }
+.price li { padding-left: 28px; position: relative; }
+.price li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 900; }
+.price-top { border-color: var(--accent); background: linear-gradient(160deg, #3a2f74, var(--card)); }
+.ribbon { position: absolute; top: -13px; left: 20px; background: var(--accent); color: var(--accent-ink); font-weight: 900; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; padding: 4px 12px; border-radius: 999px; }
+.price-note { color: var(--muted); font-size: 14px; margin-top: 18px; }
+
+/* FAQ */
+.faq { margin-top: 28px; display: grid; gap: 10px; }
+.faq details { background: var(--card); border-radius: 16px; padding: 0 20px; }
+.faq summary { cursor: pointer; list-style: none; padding: 18px 28px 18px 0; font-weight: 800; font-size: 18px; position: relative; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--accent); font-size: 26px; font-weight: 700; }
+.faq details[open] summary::after { content: "–"; }
+.faq details p { color: var(--muted); padding-bottom: 18px; }
+
+/* Závěrečná výzva */
+.cta-end { text-align: center; background: radial-gradient(700px 380px at 50% 100%, #3b2d7a 0%, var(--bg) 70%); }
+.cta-end .sec-lead { margin-left: auto; margin-right: auto; }
+
+/* Patička */
+.foot { border-top: 1px solid var(--line); padding: 36px 0 44px; color: var(--muted); font-size: 15px; }
+.foot-in { display: grid; gap: 10px; }
+.foot .brand { color: var(--text); }
+.foot-links { display: flex; flex-wrap: wrap; gap: 18px; }
+.foot-links a { text-decoration: none; font-weight: 700; }
+.foot-links a:hover { color: var(--text); }
+.foot-fine { font-size: 13px; opacity: .8; }
+
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 8px; }
+
+/* Tablet a výš */
+@media (min-width: 640px) {
+  .steps { grid-template-columns: repeat(3, 1fr); }
+  .features { grid-template-columns: repeat(2, 1fr); }
+  .feat:first-child { grid-column: span 2; background: linear-gradient(135deg, #3a2f74, rgba(42, 36, 82, .7)); border-color: rgba(255, 207, 92, .4); }
+  .cats { grid-template-columns: repeat(4, 1fr); }
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); overflow: visible; padding: 0; margin: 0; }
+  .prices { grid-template-columns: repeat(3, 1fr); align-items: start; }
+  .player { grid-template-columns: 160px 1fr; gap: 24px; padding: 20px; align-items: center; }
+  .player-cover { width: 160px; grid-row: 1 / span 4; }
+  .player-ctrl { grid-column: 2; }
+}
+
+/* Desktop */
+@media (min-width: 960px) {
+  .nav-links { display: flex; }
+  .nav-cta { margin-left: 8px; }
+  .hero { padding: 72px 0 96px; }
+  .hero-in { grid-template-columns: 1.15fr .85fr; align-items: center; gap: 56px; }
+  .hero-art { max-width: 400px; }
+  .sec { padding: 96px 0; }
+  .features { grid-template-columns: repeat(3, 1fr); }
+  .gallery { grid-template-columns: repeat(6, 1fr); }
+  .foot-in { grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
+  .foot-fine { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .play { animation: none; }
+}
