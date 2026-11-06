@@ -1,9 +1,12 @@
-# Lumi – pohádky o tobě (prototyp)
+# Ospalek – pohádky o tobě (prototyp)
 
 Klikací webový prototyp mobilní aplikace s personalizovanými pohádkami pro děti.
 Rodič zadá děti, rodiče a bydliště. Pohádky jsou pak o jeho dětech a odehrávají se v okolí, které znají.
 
-**Vyzkoušet:** https://janpatek.github.io/lumi-prototyp/ (nejlépe na mobilu)
+**Vyzkoušet:** https://janpatek.github.io/lumi-prototyp/ (nejlépe na mobilu)  
+**Web pro rodiče:** https://janpatek.github.io/lumi-prototyp/landing/
+
+Vzhled a texty se řídí brand manuálem Ospalek (pastelová paleta, Fredoka a Nunito, tykání rodičům). Znak a maskot jsou ve složce `brand/` (koncept v SVG).
 
 ## Co prototyp umí
 - Onboarding: děti (jméno, kluk/holka, věk, oblíbené jídlo a zvíře), rodiče a prarodiče, bydliště a místa v okolí (OpenStreetMap).
@@ -16,7 +19,7 @@ Rodič zadá děti, rodiče a bydliště. Pohádky jsou pak o jeho dětech a ode
 ## Poznámky k testování
 - Přihlášení i platba jsou jen simulované. Data rodiny se ukládají jen v daném prohlížeči.
 - Nahrávky z ElevenLabs hrají, jen když je jediným hrdinou dítě jménem Toník. Jinak čte hlas prohlížeče.
-- Začít znovu: ⚙️ → „Smazat všechna data a začít znovu“.
+- Začít znovu: Nastavení (ozubené kolečko) → „Smazat všechna data a začít znovu“.
 
 ## Spuštění lokálně
 Stačí jakýkoli statický server, například:

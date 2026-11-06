@@ -1,8 +1,8 @@
 // ===== Nastavení landing page – vše, co se bude měnit, je tady =====
-// appName: název aplikace (pracovně „Lumi“). Doplní se do všech prvků s atributem data-app-name a do titulku stránky.
+// appName: název aplikace (Ospalek). Doplní se do všech prvků s atributem data-app-name a do titulku stránky.
 // appStoreUrl / googlePlayUrl: odkazy do obchodů. Dokud jsou prázdné, tlačítka vedou na # a ukazují štítek „Již brzy“.
 const LANDING = {
-  appName: 'Lumi',
+  appName: 'Ospalek',
   appStoreUrl: '',
   googlePlayUrl: '',
 };

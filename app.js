@@ -1,7 +1,8 @@
-// Lumi – webový prototyp. Bez buildu, data jen v localStorage tohoto prohlížeče.
+// Ospalek – webový prototyp. Bez buildu, data jen v localStorage tohoto prohlížeče.
 // (cap a listCz pochází ze stories.cs.js)
 
-const LS_KEY = 'lumi.v1';
+const APP_NAME = 'Ospalek';
+const LS_KEY = 'lumi.v1'; // klíč z doby pracovního názvu, ať se neztratí uložené rodiny
 const store = {
   get() { try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch (e) { return null; } },
   set(v) { try { localStorage.setItem(LS_KEY, JSON.stringify(v)); } catch (e) { /* prototyp běží i bez úložiště */ } },
@@ -16,6 +17,36 @@ const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+// ---------- Značka: ikony, maskot, barvy kategorií ----------
+const ico = (d, cls = 'ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const I = {
+  gear: ico('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+  close: ico('<path d="M6 6l12 12M18 6L6 18"/>'),
+  lock: ico('<rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+  book: ico('<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>'),
+  home: ico('<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>'),
+  star: ico('<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/>'),
+  music: ico('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
+  mic: ico('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
+  replay: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>',
+  prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
+  next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
+};
+const MASCOT = { mark: 'brand/ospalek-mark.svg', head: 'brand/ospalek-hlava.svg', sleep: 'brand/ospalek-spi.svg', trip: 'brand/ospalek-vyprava.svg' };
+// každá kategorie má svou pastelovou barvu (brand manuál)
+const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)' };
+const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
+const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
+// avatar: první písmeno jména v pastelovém kolečku
+const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
+const avatar = (p, kind, i = 0) => {
+  const tone = kind === 'child' ? AV_TONES.child[i % 4] : AV_TONES[p.role];
+  const letter = kind === 'child' || p.name ? (p.forms.nom || '?').charAt(0).toUpperCase() : ROLES[p.role].label.charAt(0);
+  return `<div class="av ${tone}" aria-hidden="true">${esc(letter)}</div>`;
+};
 
 // ---------- Skloňování ----------
 const CASES = [['nom', '1. pád – kdo'], ['gen', '2. pád – bez koho'], ['dat', '3. pád – komu'], ['acc', '4. pád – koho vidím'], ['voc', '5. pád – oslovení'], ['ins', '7. pád – s kým']];
@@ -56,10 +87,10 @@ function decline(name, gender) {
 }
 
 const ROLES = {
-  mama: { label: 'Maminka', g: 'f', av: '👩', forms: { nom: 'maminka', gen: 'maminky', dat: 'mamince', acc: 'maminku', voc: 'maminko', ins: 'maminkou' } },
-  tata: { label: 'Tatínek', g: 'm', av: '👨', forms: { nom: 'tatínek', gen: 'tatínka', dat: 'tatínkovi', acc: 'tatínka', voc: 'tatínku', ins: 'tatínkem' } },
-  babi: { label: 'Babička', g: 'f', av: '👵', forms: { nom: 'babička', gen: 'babičky', dat: 'babičce', acc: 'babičku', voc: 'babičko', ins: 'babičkou' } },
-  deda: { label: 'Dědeček', g: 'm', av: '👴', forms: { nom: 'dědeček', gen: 'dědečka', dat: 'dědečkovi', acc: 'dědečka', voc: 'dědečku', ins: 'dědečkem' } },
+  mama: { label: 'Maminka', g: 'f', forms: { nom: 'maminka', gen: 'maminky', dat: 'mamince', acc: 'maminku', voc: 'maminko', ins: 'maminkou' } },
+  tata: { label: 'Tatínek', g: 'm', forms: { nom: 'tatínek', gen: 'tatínka', dat: 'tatínkovi', acc: 'tatínka', voc: 'tatínku', ins: 'tatínkem' } },
+  babi: { label: 'Babička', g: 'f', forms: { nom: 'babička', gen: 'babičky', dat: 'babičce', acc: 'babičku', voc: 'babičko', ins: 'babičkou' } },
+  deda: { label: 'Dědeček', g: 'm', forms: { nom: 'dědeček', gen: 'dědečka', dat: 'dědečkovi', acc: 'dědečka', voc: 'dědečku', ins: 'dědečkem' } },
 };
 
 function inTownGuess(town) {
@@ -122,9 +153,8 @@ const unlocked = (st) => st.free || S.premium;
 const screens = {
   login: () => `
     <div class="login">
-      <div class="logo">🌙</div>
-      <h1>Lumi</h1>
-      <p class="tag">Pohádky, kde hlavní roli hrají vaše děti.</p>
+      <div class="logo"><img src="${MASCOT.mark}" alt=""><h1 class="wordmark">${APP_NAME}</h1></div>
+      <p class="tag">Pohádky, kde je hrdinou tvoje dítě.</p>
       <button class="btn white" data-a="google">${GOOGLE_SVG} Pokračovat přes Google</button>
       <button class="btn ghost" data-a="guest">Vyzkoušet bez přihlášení</button>
       <p class="fine">Prototyp: přihlášení je zatím jen simulované.</p>
@@ -144,18 +174,18 @@ const screens = {
     const list = STORIES.filter((s) => (ui.cat === 'all' || s.cats.includes(ui.cat)) && (!ui.ageOnly || hs.every((k) => k.age >= s.ages[0] && k.age <= s.ages[1])));
     return `
       <div class="top">
-        <h1>Pohádky pro ${esc(c.h.acc)} ✨</h1>
-        <button class="icon-btn" data-a="settings" aria-label="Nastavení">⚙️</button>
+        <h1>Pohádky pro ${esc(c.h.acc)}</h1>
+        <button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button>
       </div>
       ${S.family.children.length > 1 ? `
-        <div class="section-t">Hlavní hrdinové <span class="hint">– vyberte jednoho nebo víc</span></div>
-        <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${k.gender === 'f' ? '👧' : '👦'} ${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
+        <div class="section-t">Hlavní hrdinové <span class="hint">– vyber jednoho nebo víc</span></div>
+        <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
       <div class="section-t">Kategorie</div>
       <div class="hscroll">
-        ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${k.label}</button>`).join('')}
-        <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">🎂 ${hs.length === 1 ? `Pro ${hs[0].age} let` : 'Podle věku'}</button>
+        ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${CAT_COLOR[k.id] ? `<span class="dot" style="--c:${CAT_COLOR[k.id]}"></span>` : ''}${k.label}</button>`).join('')}
+        <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age} let` : 'Podle věku'}</button>
       </div>
-      ${S.premium ? '' : `<button class="promo" data-a="paywall"><span style="font-size:32px">🔓</span><div><b>Odemkněte všechny pohádky</b><span>7 dní zdarma, pak od 58 Kč měsíčně</span></div></button>`}
+      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak od 58 Kč měsíčně</span></div></button>`}
       <div class="grid">
         ${list.map((s) => {
           const segs = s.text(c);
@@ -163,37 +193,39 @@ const screens = {
           <button class="card" data-a="open" data-id="${s.id}">
             <div class="cover" style="--g1:${s.cover.g1};--g2:${s.cover.g2}">
               ${s.cover.img ? `<img src="${coverImg(s, hs)}" alt="" loading="lazy">` : s.cover.emoji}
-              ${s.free && !S.premium ? '<span class="badge free">ZDARMA</span>' : ''}
-              ${unlocked(s) ? '' : '<span class="badge lock">🔒</span>'}
-              <span class="badge dur">⏱ ${minutes(segs)} min</span>
+              ${s.free && !S.premium ? '<span class="badge free">Zdarma</span>' : ''}
+              ${unlocked(s) ? '' : `<span class="badge lock">${I.lock}Zamčeno</span>`}
             </div>
             <h3>${esc(s.title(c))}</h3>
-            <div class="meta">${s.ages[0]}–${s.ages[1]} let</div>
+            <div class="meta"><span class="dot" style="--c:${catColor(s)}"></span>${minutes(segs)} min · ${s.ages[0]}–${s.ages[1]} let</div>
           </button>`;
-        }).join('') || '<p class="empty">V téhle kategorii zatím nic není.</p>'}
+        }).join('') || `<div class="empty"><img src="${MASCOT.trip}" alt="">V téhle kategorii zatím nic není.</div>`}
       </div>`;
   },
 
   settings: () => `
     <div class="top">
       <h1>Rodina a nastavení</h1>
-      <button class="icon-btn" data-a="back" aria-label="Zpět">✕</button>
+      <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
     </div>
     <div class="section-t">Děti</div>${peopleList('child')}
     <div class="section-t">Rodiče a blízcí</div>${peopleList('parent')}
     <div class="section-t">Bydliště</div>
-    <div class="person"><div class="av">🏡</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
+    <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
     <div class="section-t">Předplatné</div>
-    <div class="person"><div class="av">${S.premium ? '⭐' : '🔒'}</div><div class="nm"><b>${S.premium ? 'Lumi Plus (demo)' : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
+    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus (demo)` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
       ${S.premium ? '<button class="btn small ghost" data-a="unsub">Zrušit</button>' : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    <div class="section-t">Vzhled</div>
+    <div class="seg">${[['auto', 'Podle času'], ['light', 'Den'], ['dark', 'Noc']].map(([v, l]) => `<button data-a="theme" data-v="${v}" class="${(S.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin noční režim.</p>
     <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat všechna data a začít znovu</button></div>`,
 };
 
 function peopleList(kind) {
   const arr = kind === 'child' ? S.family.children : S.family.parents;
-  return `<div class="people">${arr.map((p) => `
+  return `<div class="people">${arr.map((p, i) => `
     <div class="person">
-      <div class="av">${kind === 'child' ? (p.gender === 'f' ? '👧' : '👦') : ROLES[p.role].av}</div>
+      ${avatar(p, kind, i)}
       <div class="nm"><b>${esc(kind === 'child' ? p.forms.nom : ROLES[p.role].label + (p.name ? ' ' + p.forms.nom : ''))}</b>
       <span>${kind === 'child' ? `${p.age} let · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
@@ -202,8 +234,9 @@ function peopleList(kind) {
 }
 
 const stepKids = () => `
+  <img class="onb-mascot" src="${MASCOT.head}" alt="">
   <h1>Kdo bude hlavní hrdina?</h1>
-  <p class="lead">Přidejte své děti. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem a zvířátkem.</p>
+  <p class="lead">Přidej své děti. Pohádky budou o nich. S jejich jménem, oblíbeným jídlem a zvířátkem.</p>
   ${peopleList('child')}
   <div class="footer-actions"><button class="btn" data-a="next" ${S.family.children.length ? '' : 'disabled'}>Pokračovat</button></div>`;
 
@@ -218,7 +251,7 @@ const stepParents = () => `
 
 const stepHome = () => `
   <h1>Kde bydlíte?</h1>
-  <p class="lead">Pohádky se pak budou odehrávat v místech, která děti znají. Stačí obec, přesnou adresu nepotřebujeme.</p>
+  <p class="lead">Pohádky se pak budou odehrávat v místech, která děti znají. Stačí obec. Přesnou adresu nepotřebujeme.</p>
   ${homeForm()}
   <div class="footer-actions">
     <button class="btn" data-a="finish">Hotovo – jdeme na pohádky</button>
@@ -231,7 +264,7 @@ function homeForm() {
   return `
     <label for="town">Obec nebo město</label>
     <div class="row"><input id="town" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small" style="flex:0 0 auto" data-a="findSpots">Najít okolí</button></div>
-    <label for="inTown">Jak řeknete „bydlíme …“</label>
+    <label for="inTown">Jak doma říkáte: „bydlíme …“</label>
     <input id="inTown" placeholder="v Benešově" value="${esc(h.inTown)}">
     <div id="spotsMsg" class="note" style="margin-top:8px"></div>
     ${h.nearOpts.length ? `<div class="section-t">Obce v okolí</div><div class="chips">${chips(h.nearOpts, h.near, 'near')}</div>` : ''}
@@ -244,12 +277,12 @@ function homeForm() {
 async function findSpots() {
   const town = document.getElementById('town').value.trim();
   const msg = document.getElementById('spotsMsg');
-  if (!town) { msg.textContent = 'Nejdřív napište obec.'; return; }
+  if (!town) { msg.textContent = 'Nejdřív napiš obec.'; return; }
   syncHome();
   msg.textContent = 'Hledám místa v okolí…';
   try {
     const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=cz,sk&accept-language=cs&q=${encodeURIComponent(town)}`).then((r) => r.json());
-    if (!g.length) throw new Error('Obec jsme nenašli. Zkuste jiný název.');
+    if (!g.length) throw new Error('Obec jsme nenašli. Zkus jiný název.');
     const lat = +g[0].lat, lon = +g[0].lon;
     const q = `[out:json][timeout:25];(node(around:12000,${lat},${lon})[place~"^(town|village)$"][name];nwr(around:25000,${lat},${lon})[tourism~"^(zoo|theme_park|attraction)$"][name];nwr(around:25000,${lat},${lon})[historic~"^(castle|ruins)$"][name];);out tags center 200;`;
     const d = await overpass(q);
@@ -262,9 +295,9 @@ async function findSpots() {
     h.nearOpts = towns; h.near = towns.slice(0, 4);
     h.attrOpts = uniq([...h.attr, ...attrs]); h.attr = h.attr.length ? h.attr : attrs.slice(0, 3);
     save(); render();
-    document.getElementById('spotsMsg').textContent = towns.length || attrs.length ? 'Vybraná místa se objeví v pohádkách. Klepnutím je zapnete nebo vypnete.' : 'V okolí jsme nic nenašli – přidejte místa ručně.';
+    document.getElementById('spotsMsg').textContent = towns.length || attrs.length ? 'Vybraná místa se objeví v pohádkách. Klepnutím je zapneš nebo vypneš.' : 'V okolí jsme nic nenašli. Přidej místa ručně.';
   } catch (e) {
-    msg.innerHTML = `<span class="err">${esc(e.message || 'Hledání se nepovedlo.')} Místa můžete přidat i ručně.</span>`;
+    msg.innerHTML = `<span class="err">${esc(e.message || 'Hledání se nepovedlo.')} Místa můžeš přidat i ručně.</span>`;
   }
 }
 // veřejné servery Overpass bývají přetížené – zkusíme víc zrcadel, každé s časovým limitem
@@ -299,7 +332,7 @@ function personSheet(kind, id) {
         <label for="pName">Jak mu/jí doma říkáte?</label>
         <input id="pName" value="${esc(p.forms.nom)}" placeholder="např. Toník, Ema, Kubík">
         <label>Je to</label>
-        <div class="seg" id="gSeg"><button data-a="gender" data-v="m" class="${p.gender !== 'f' ? 'on' : ''}">👦 Kluk</button><button data-a="gender" data-v="f" class="${p.gender === 'f' ? 'on' : ''}">👧 Holka</button></div>
+        <div class="seg" id="gSeg"><button data-a="gender" data-v="m" class="${p.gender !== 'f' ? 'on' : ''}">Kluk</button><button data-a="gender" data-v="f" class="${p.gender === 'f' ? 'on' : ''}">Holka</button></div>
         <div class="row">
           <div><label for="pAge">Věk</label><select id="pAge">${[2, 3, 4, 5, 6, 7, 8, 9, 10].map((a) => `<option ${a === p.age ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
         </div>
@@ -309,13 +342,12 @@ function personSheet(kind, id) {
         <input id="pAnimal" value="${esc(p.animal || '')}" placeholder="např. liška">
       ` : `
         <label>Kdo to je</label>
-        <div class="seg" id="rSeg">${Object.entries(ROLES).map(([k, r]) => `<button data-a="role" data-v="${k}" class="${p.role === k ? 'on' : ''}">${r.av}</button>`).join('')}</div>
-        <div class="note" id="roleLabel" style="margin-top:6px">${ROLES[p.role].label}</div>
-        <label for="pName">Jméno (nepovinné)</label>
+        <div class="seg" id="rSeg">${Object.entries(ROLES).map(([k, r]) => `<button data-a="role" data-v="${k}" class="${p.role === k ? 'on' : ''}">${r.label}</button>`).join('')}</div>
+                <label for="pName">Jméno (nepovinné)</label>
         <input id="pName" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra">
         <p class="note">V pohádce pak zazní třeba „maminka Petra“. Bez jména jen „maminka“.</p>
       `}
-      <details><summary>Skloňování jména (zkontrolujte)</summary>
+      <details><summary>Skloňování jména (zkontroluj)</summary>
         <div class="cases">${CASES.map(([k, l]) => `<div><label for="c_${k}">${l}</label><input id="c_${k}" value="${esc(p.forms[k])}"></div>`).join('')}</div>
       </details>
       <div class="footer-actions">
@@ -352,9 +384,9 @@ function savePerson() {
 function paywall() {
   $modal.innerHTML = `
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
-      <div style="font-size:48px;text-align:center">⭐</div>
-      <h2 style="text-align:center">Lumi Plus</h2>
-      <p class="lead" style="text-align:center">Celá knihovna pohádek pro všechny vaše děti.</p>
+      <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
+      <h2 style="text-align:center">${APP_NAME} Plus</h2>
+      <p class="lead" style="text-align:center">Celá knihovna pohádek pro všechny tvoje děti.</p>
       <ul class="perks">
         <li>Všechny pohádky a každý měsíc nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
@@ -362,8 +394,8 @@ function paywall() {
         <li>Poslech offline a časovač usínání</li>
       </ul>
       <div class="plans">
-        <button class="plan ${ui.plan === 'year' ? 'on' : ''}" data-a="plan" data-v="year"><div><b>Ročně</b><span class="save">−41 %</span><small>699 Kč / rok · 58 Kč měsíčně</small></div><span>${ui.plan === 'year' ? '●' : '○'}</span></button>
-        <button class="plan ${ui.plan === 'month' ? 'on' : ''}" data-a="plan" data-v="month"><div><b>Měsíčně</b><small>99 Kč / měsíc</small></div><span>${ui.plan === 'month' ? '●' : '○'}</span></button>
+        <button class="plan ${ui.plan === 'year' ? 'on' : ''}" data-a="plan" data-v="year"><div><b>Ročně</b><span class="save">−41 %</span><small>699 Kč / rok · 58 Kč měsíčně</small></div><span class="radio"></span></button>
+        <button class="plan ${ui.plan === 'month' ? 'on' : ''}" data-a="plan" data-v="month"><div><b>Měsíčně</b><small>99 Kč / měsíc</small></div><span class="radio"></span></button>
       </div>
       <button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma</button>
       <p class="fine" style="text-align:center">Prototyp: žádná platba neproběhne, pohádky se jen odemknou.</p>
@@ -400,21 +432,21 @@ function openPlayer(st) {
   const rec = RECORDINGS[st.id] && RECORDINGS[st.id].hero === c.H ? RECORDINGS[st.id] : null;
   P = { st, segs: st.text(c), i: 0, playing: false, stop: null, showText: true, rec, voice: rec ? rec.voices[0].id : 'browser', audio: null };
   $app.insertAdjacentHTML('beforeend', `
-    <div class="player" id="player" style="--g1:${st.cover.g1}">
+    <div class="player" id="player" style="--c:${catColor(st)}">
       <div class="inner">
-        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">✕</button><button class="icon-btn" data-a="toggleText" aria-label="Text">📖</button></div>
+        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
-        ${rec ? `<div class="chips voices">${rec.voices.map((v) => `<button class="chip ${P.voice === v.id ? 'on' : ''}" data-a="setVoice" data-v="${v.id}">🎙️ ${v.name}</button>`).join('')}<button class="chip" data-a="setVoice" data-v="browser">🤖 Prohlížeč</button></div>` : ''}
+        ${rec ? `<div class="chips voices">${rec.voices.map((v) => `<button class="chip ${P.voice === v.id ? 'on' : ''}" data-a="setVoice" data-v="${v.id}">${I.mic} ${v.name}</button>`).join('')}<button class="chip" data-a="setVoice" data-v="browser">Prohlížeč</button></div>` : ''}
         <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}</div>
         <div class="waiting" id="waiting"></div>
         <div class="controls">
-          <button class="skip" data-a="prevSeg" aria-label="Předchozí">⏮</button>
-          <button class="play" data-a="playPause" id="playBtn" aria-label="Přehrát">▶</button>
-          <button class="skip" data-a="nextSeg" aria-label="Další">⏭</button>
+          <button class="skip" data-a="prevSeg" aria-label="Předchozí">${I.prev}</button>
+          <button class="play" data-a="playPause" id="playBtn" aria-label="Přehrát">${I.play}</button>
+          <button class="skip" data-a="nextSeg" aria-label="Další">${I.next}</button>
         </div>
-        <div class="mix">🎵 Hudba <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol ?? 0.5}"></div>
-        <div class="voicewarn" id="voicewarn">${rec ? 'Realistický hlas ElevenLabs – ukázka nahraná pro tuto rodinu.' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
+        <div class="mix">${I.music} Hudba <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol ?? 0.5}"></div>
+        <div class="voicewarn" id="voicewarn">${rec ? 'Realistický hlas ElevenLabs. Ukázka nahraná pro tuto rodinu.' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
@@ -427,7 +459,9 @@ function highlight() {
     p.className = i === P.i ? 'now' : i < P.i ? 'done' : '';
     if (i === P.i) p.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
-  document.getElementById('playBtn').textContent = P.playing ? '⏸' : '▶';
+  const b = document.getElementById('playBtn');
+  b.innerHTML = P.playing ? I.pause : I.play;
+  b.setAttribute('aria-label', P.playing ? 'Pozastavit' : 'Přehrát');
 }
 
 function playSeg() {
@@ -505,7 +539,7 @@ function setVoice(el) {
   stopVoice();
   P.voice = el.dataset.v;
   el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el));
-  document.getElementById('voicewarn').textContent = recVoice() ? 'Realistický hlas ElevenLabs – ukázka nahraná pro tuto rodinu.' : 'Ukázkový hlas prohlížeče pro srovnání.';
+  document.getElementById('voicewarn').textContent = recVoice() ? 'Realistický hlas ElevenLabs. Ukázka nahraná pro tuto rodinu.' : 'Ukázkový hlas prohlížeče pro srovnání.';
   if (wasPlaying) recVoice() ? playRec() : playSeg();
 }
 
@@ -513,8 +547,8 @@ function setVoice(el) {
 function waitAnswer(sec, done) {
   let left = sec;
   const w = document.getElementById('waiting');
-  w.textContent = `🤔 Čas na odpověď… ${left}`;
-  const iv = setInterval(() => { left--; w.textContent = left > 0 ? `🤔 Čas na odpověď… ${left}` : ''; if (left <= 0) { clearInterval(iv); done(); } }, 1000);
+  w.textContent = `Čas na odpověď… ${left}`;
+  const iv = setInterval(() => { left--; w.textContent = left > 0 ? `Čas na odpověď… ${left}` : ''; if (left <= 0) { clearInterval(iv); done(); } }, 1000);
   return () => { clearInterval(iv); w.textContent = ''; };
 }
 
@@ -544,9 +578,9 @@ function theEnd() {
   P.playing = false;
   ambience.stopMusic(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
-  document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><div>${bedtime ? '😴' : '🎉'}</div><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
+  document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
   document.querySelector('.the-end').scrollIntoView({ behavior: 'smooth' });
-  document.getElementById('playBtn').textContent = '↻';
+  document.getElementById('playBtn').innerHTML = I.replay;
 }
 
 function closePlayer() {
@@ -566,7 +600,7 @@ const actions = {
   addPerson: (el) => personSheet(el.dataset.kind),
   editPerson: (el) => personSheet(el.dataset.kind, el.dataset.id),
   gender: (el) => { ui.edit.gender = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); refreshCases(); },
-  role: (el) => { ui.edit.role = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); document.getElementById('roleLabel').textContent = ROLES[el.dataset.v].label; refreshCases(); },
+  role: (el) => { ui.edit.role = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); refreshCases(); },
   savePerson,
   deletePerson: () => {
     const k = ui.edit.kind === 'child' ? 'children' : 'parents';
@@ -605,6 +639,7 @@ const actions = {
   subscribe: () => { S.premium = true; save(); closeModal(); render(); },
   unsub: () => { S.premium = false; save(); render(); },
   settings: () => go('settings'),
+  theme: (el) => { S.theme = el.dataset.v === 'auto' ? null : el.dataset.v; save(); applyTheme(); render(); },
   back: () => go('lib'),
   editHome: () => {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
@@ -618,6 +653,13 @@ const actions = {
   closePlayer,
   setVoice,
 };
+
+function applyTheme() {
+  const h = new Date().getHours();
+  const dark = S.theme === 'dark' || (S.theme !== 'light' && (h >= 19 || h < 7));
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.querySelector('meta[name=theme-color]').content = dark ? '#1C1E33' : '#F7F5FC';
+}
 
 function go(screen) { ui.screen = screen; render(); window.scrollTo(0, 0); }
 

@@ -16,10 +16,10 @@
 
 window.CATEGORIES = [
   { id: 'all', label: 'Vše' },
-  { id: 'noc', label: '🌙 Na dobrou noc' },
-  { id: 'auto', label: '🚗 Do auta' },
-  { id: 'dobro', label: '🗺️ Dobrodružství' },
-  { id: 'zivot', label: '🌱 Ze života' },
+  { id: 'noc', label: 'Na dobrou noc' },
+  { id: 'auto', label: 'Do auta' },
+  { id: 'dobro', label: 'Dobrodružství' },
+  { id: 'zivot', label: 'Ze života' },
 ];
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
