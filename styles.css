@@ -17,11 +17,17 @@
   --focus-ring: var(--lavender-ink);
   --err: #B3261E;
   --overlay: rgba(46, 49, 80, .45);
-  --radius-sm: 10px;
-  --radius-md: 18px;
-  --radius-lg: 28px;
+  --radius-sm: 12px;
+  --radius-md: 22px;
+  --radius-lg: 32px;
   --radius-pill: 999px;
   --shadow-soft: 0 8px 24px rgba(46, 49, 80, .12);
+  /* Plyš: vlákna fleecu, prošívání a polštářkový stín (brand/maskot-3d) */
+  --felt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .18 0 0 0 0 .19 0 0 0 0 .31 .16 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --stitch: rgba(46, 49, 80, .2);
+  --stitch-on-accent: rgba(255, 255, 255, .55);
+  --shadow-plush: inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -6px 14px rgba(46, 49, 80, .06), 0 2px 3px rgba(46, 49, 80, .06), 0 10px 22px rgba(46, 49, 80, .1);
+  --shadow-pillow: inset 0 2px 0 rgba(255, 255, 255, .35), inset 0 -5px 10px rgba(0, 0, 0, .14), 0 6px 14px rgba(46, 49, 80, .18);
   /* Fredoka nemá ě, č, ř, ů, ň, ť, ď – nadpisy proto v Nunitu, Fredoka jen ve slově „ospalek“ v logu */
   --display: "Nunito", ui-rounded, system-ui, sans-serif;
   --logo: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
@@ -45,6 +51,11 @@
   --on-pastel: #1C1E33;
   --err: #FFB4AB;
   --overlay: rgba(10, 11, 22, .7);
+  --felt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .92 0 0 0 0 .98 .1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --stitch: rgba(238, 235, 250, .18);
+  --stitch-on-accent: rgba(28, 30, 51, .35);
+  --shadow-plush: inset 0 1px 0 rgba(255, 255, 255, .06), inset 0 -6px 14px rgba(0, 0, 0, .18), 0 10px 22px rgba(0, 0, 0, .3);
+  --shadow-pillow: inset 0 2px 0 rgba(255, 255, 255, .3), inset 0 -5px 10px rgba(0, 0, 0, .18), 0 6px 14px rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -181,3 +192,31 @@ details summary { cursor: pointer; padding: 10px 0; color: var(--ink-muted); fon
 .cover .badge { z-index: 2; }
 .pcover img { width: 132px; aspect-ratio: 3/4; object-fit: cover; border-radius: var(--radius-md); box-shadow: var(--shadow-soft); display: block; margin: 0 auto; }
 .section-t .hint { text-transform: none; letter-spacing: 0; font-weight: 600; opacity: .8; }
+
+/* Plyš – látkový povrch, prošívání a polštářky místo plochých karet */
+html, body { background: var(--felt), var(--surface); }
+.card, .person, .plan, .promo, .icon-btn, details, .sheet, .seg, .chip { background-image: var(--felt); }
+.card, .person, .plan, details { border-color: transparent; box-shadow: var(--shadow-plush); outline: 2px dashed var(--stitch); outline-offset: -7px; }
+.card { padding-bottom: 16px; }
+.card:hover { box-shadow: var(--shadow-plush), var(--shadow-soft); }
+.cover { margin: 6px 6px 0; border-radius: calc(var(--radius-md) - 6px); }
+.plan.on { outline-color: var(--lavender-ink); }
+.promo { box-shadow: var(--shadow-plush); outline: 2px dashed var(--stitch-on-accent); outline-offset: -7px; }
+.promo img, .logo img, .onb-mascot, .sheet-mascot, .empty img, .the-end img { object-fit: contain; filter: drop-shadow(0 8px 12px rgba(46, 49, 80, .18)); }
+.logo img { width: 132px; height: 132px; }
+.onb-mascot { width: 104px; height: 104px; }
+.sheet-mascot { width: 112px; height: 112px; }
+.promo img { width: 56px; height: 56px; }
+.the-end img { width: 200px; height: auto; }
+.btn, .seg button.on, .controls .play { box-shadow: var(--shadow-pillow); outline: 2px dashed var(--stitch-on-accent); outline-offset: -6px; }
+.btn.ghost { box-shadow: inset 0 0 0 2px var(--lavender-ink); outline-color: var(--stitch); }
+.btn.white { box-shadow: var(--shadow-plush); outline-color: var(--stitch); background-image: var(--felt); }
+.btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.icon-btn, .chip, .seg { border-color: transparent; box-shadow: var(--shadow-plush); }
+.chip.on { box-shadow: var(--shadow-plush), inset 0 0 0 2px var(--lavender-ink); }
+.av { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), inset 0 -4px 8px rgba(46, 49, 80, .12); }
+input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
+.progress { box-shadow: inset 0 2px 4px rgba(46, 49, 80, .1); }
+.progress div { background-image: repeating-linear-gradient(90deg, transparent 0 6px, var(--stitch-on-accent) 6px 12px); background-size: 100% 2px; background-repeat: no-repeat; background-position: 0 50%; }
+.sheet { box-shadow: var(--shadow-plush); }
+.badge { box-shadow: 0 2px 6px rgba(46, 49, 80, .15); }

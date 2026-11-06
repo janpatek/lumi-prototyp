@@ -35,7 +35,7 @@ const I = {
   prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
   next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
 };
-const MASCOT = { mark: 'brand/ospalek-mark.svg', head: 'brand/ospalek-hlava.svg', sleep: 'brand/ospalek-spi.svg', trip: 'brand/ospalek-vyprava.svg' };
+const MASCOT = { mark: 'brand/maskot-3d/web/ospalek-mark.webp', head: 'brand/maskot-3d/web/ospalek-hlava.webp', sleep: 'brand/maskot-3d/web/ospalek-spi.webp', trip: 'brand/maskot-3d/web/ospalek-vyprava.webp' };
 // každá kategorie má svou pastelovou barvu (brand manuál)
 const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)' };
 const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';

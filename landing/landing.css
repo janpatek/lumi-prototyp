@@ -19,11 +19,19 @@
   --night-raised: #262942;
   --night-ink: #EEEBFA;
   --night-muted: #B4B2CF;
-  --radius-sm: 10px;
-  --radius-md: 18px;
-  --radius-lg: 28px;
+  --radius-sm: 12px;
+  --radius-md: 22px;
+  --radius-lg: 32px;
   --radius-pill: 999px;
   --shadow-soft: 0 8px 24px rgba(46, 49, 80, .12);
+  /* Plyš: vlákna fleecu, prošívání a polštářkový stín (brand/maskot-3d) */
+  --felt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .18 0 0 0 0 .19 0 0 0 0 .31 .16 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --felt-night: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .92 0 0 0 0 .98 .1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --stitch: rgba(46, 49, 80, .2);
+  --stitch-on-accent: rgba(255, 255, 255, .55);
+  --stitch-night: rgba(238, 235, 250, .18);
+  --shadow-plush: inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -6px 14px rgba(46, 49, 80, .06), 0 2px 3px rgba(46, 49, 80, .06), 0 10px 22px rgba(46, 49, 80, .1);
+  --shadow-pillow: inset 0 2px 0 rgba(255, 255, 255, .35), inset 0 -5px 10px rgba(0, 0, 0, .14), 0 6px 14px rgba(46, 49, 80, .18);
   /* Fredoka nemá ě, č, ř, ů, ň, ť, ď – nadpisy proto v Nunitu, Fredoka jen ve slově „ospalek“ v logu */
   --display: "Nunito", ui-rounded, system-ui, sans-serif;
   --logo: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
@@ -48,6 +56,11 @@
     --on-pastel: #1C1E33;
     --night: #14162A;
     --night-raised: #22253D;
+    --felt: var(--felt-night);
+    --stitch: rgba(238, 235, 250, .18);
+    --stitch-on-accent: rgba(28, 30, 51, .35);
+    --shadow-plush: inset 0 1px 0 rgba(255, 255, 255, .06), inset 0 -6px 14px rgba(0, 0, 0, .18), 0 10px 22px rgba(0, 0, 0, .3);
+    --shadow-pillow: inset 0 2px 0 rgba(255, 255, 255, .3), inset 0 -5px 10px rgba(0, 0, 0, .18), 0 6px 14px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
@@ -214,7 +227,24 @@ p { margin: 0; }
 .sticky-cta.show { transform: none; }
 .sticky-cta .btn { width: 100%; font-size: 18px; }
 
-a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
+/* Plyš – látkový povrch, prošívání a polštářky místo plochých karet */
+html, body, .nav, .sticky-cta { background-image: var(--felt); }
+.how, .price-sec { background-image: var(--felt); }
+.listen, .end, .foot { background-image: var(--felt-night); }
+.namebox, .storypage, .price-card, .faq details { background-image: var(--felt); box-shadow: var(--shadow-plush); outline: 2px dashed var(--stitch); outline-offset: -8px; }
+.player { background-image: var(--felt-night); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 12px 28px rgba(0, 0, 0, .3); outline: 2px dashed var(--stitch-night); outline-offset: -8px; }
+.moment-list li { background-image: var(--felt); box-shadow: var(--shadow-plush); outline: 2px dashed var(--stitch-on-accent); outline-offset: -8px; }
+.btn, .play { box-shadow: var(--shadow-pillow); outline: 2px dashed var(--stitch-on-accent); outline-offset: -6px; }
+.btn:hover { box-shadow: var(--shadow-pillow), var(--shadow-soft); }
+.gender button[aria-pressed="true"] { box-shadow: var(--shadow-pillow); }
+.namebox input, .town-input, .gender { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
+.book img { box-shadow: 0 2px 3px rgba(46, 49, 80, .08), 0 14px 28px rgba(46, 49, 80, .16); }
+.brand img { border-radius: 50%; }
+.how-steps img { filter: drop-shadow(0 8px 12px rgba(46, 49, 80, .18)); }
+.moment-list img { width: 80px; height: 80px; padding: 4px; background: var(--felt), rgba(255, 255, 255, .6); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -4px 8px rgba(46, 49, 80, .1); }
+.end-mascot { width: 240px; height: 240px; padding: 22px; background: var(--felt), #ECE9FA; box-shadow: inset 0 3px 0 rgba(255, 255, 255, .7), inset 0 -10px 22px rgba(46, 49, 80, .12), 0 16px 36px rgba(0, 0, 0, .35); outline: 2px dashed rgba(46, 49, 80, .2); outline-offset: -10px; }
+
+a:focus-visible, button:focus-visible, summary:focus-visible, .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 
 /* Tablet a výš */
 @media (min-width: 640px) {

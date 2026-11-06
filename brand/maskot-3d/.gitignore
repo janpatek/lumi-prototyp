@@ -1,0 +1,3 @@
+# Zdrojové rendery 2048 px (~100 MB) jen lokálně; do webu jdou web/ a navrhy/
+/*.png
+/ikony/

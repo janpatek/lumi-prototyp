@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ospalek 3D – varianty</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --lav:#C9C3EC; --ink:#2E3150; --bg:#F7F5FD; --card:#fff; --honey:#F6D98B; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:Nunito, system-ui, sans-serif; }
+  main { max-width:1100px; margin:0 auto; padding:32px 16px 48px; }
+  h1 { font-weight:800; margin:0 0 4px; }
+  .lead { margin:0 0 28px; opacity:.8; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+  figure { margin:0; background:var(--card); border-radius:20px; overflow:hidden; box-shadow:0 2px 10px rgba(46,49,80,.08); }
+  figure.pick { outline:3px solid var(--honey); }
+  img { display:block; width:100%; aspect-ratio:1; object-fit:cover; }
+  figcaption { padding:14px 18px 18px; line-height:1.45; }
+  figcaption b { display:block; font-size:1.1rem; margin-bottom:4px; }
+  .tag { display:inline-block; background:var(--honey); border-radius:99px; padding:2px 10px; font-size:.8rem; font-weight:700; margin-left:6px; vertical-align:middle; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Ospalek ve 3D</h1>
+  <p class="lead">Pět stylů, stejná póza „spí na měsíčku“, pastelové levandulové pozadí.</p>
+  <div class="grid">
+    <figure class="pick"><img src="navrhy/2-plys.webp" alt="Plyšová hračka">
+      <figcaption><b>2 · Plyšák <span class="tag">doporučuji</span></b>Měkký, hřejivý, přesně na usínání. Rodič v něm vidí hračku do postýlky, takže se dá vyrobit i jako skutečný plyšák.</figcaption></figure>
+    <figure><img src="navrhy/3-vinyl.webp" alt="Vinylová figurka">
+      <figcaption><b>3 · Vinylová figurka</b>Nejčistší tvary a nejlepší čitelnost v malé velikosti (ikona aplikace, avatar). Působí trochu víc jako produkt než jako kamarád na noc.</figcaption></figure>
+    <figure><img src="navrhy/1-plastelina.webp" alt="Plastelína">
+      <figcaption><b>1 · Plastelína</b>Hravá, ručně dělaná, dobře se rozpohybuje do stop-motion Reels. Na dobrou noc je o kousek rušnější.</figcaption></figure>
+    <figure><img src="navrhy/4-animovany-film.webp" alt="Animovaný film">
+      <figcaption><b>4 · Animovaný film</b>Nejvíc emocí a „wow“ na Instagramu. Je ale nejblíž realismu a těžko se drží jednotný napříč pózami.</figcaption></figure>
+    <figure><img src="navrhy/5-low-poly.webp" alt="Low poly">
+      <figcaption><b>5 · Low poly</b>Moderní a geometrický, levný na animaci. Ostré hrany ale berou plšíkovi měkkost a ocas nepůsobí jako peřina.</figcaption></figure>
+  </div>
+</main>
+</body>
+</html>
