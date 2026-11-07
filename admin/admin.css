@@ -261,3 +261,16 @@ tbody tr:hover td { background: var(--lavender-soft); }
 }
 .gen .covers.one .cv { aspect-ratio: 3/4; }
 .tiles > .panel, .grid2 > .panel, .gen > .panel, .stories > .panel { margin-top: 0; }
+
+/* Přihlášení */
+body.locked .shell, body.locked #modal, body.locked .toast { display: none; }
+.login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.login-card { width: 100%; max-width: 380px; display: flex; flex-direction: column; text-align: center; padding: 28px 26px 26px; }
+.login-card img { width: 120px; height: 120px; object-fit: contain; margin: 0 auto 4px; filter: drop-shadow(0 8px 12px rgba(46, 49, 80, .18)); }
+.login-card .wordmark { font-family: var(--logo); font-weight: 600; font-size: 30px; line-height: 1; }
+.login-card h1 { font-size: 20px; margin: 6px 0 4px; }
+.login-card label { text-align: left; }
+.login-card .check { margin-bottom: 4px; }
+.login-card .err { min-height: 18px; margin: 4px 0 10px; }
+.side-foot { display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 760px) { .side-foot { flex-direction: row; } }

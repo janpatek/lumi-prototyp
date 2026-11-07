@@ -581,7 +581,8 @@ function saveStory() {
   }
   s.titleSrc = s.titleSrc.trim(); s.textSrc = s.textSrc.trim();
   if (ED.orig) STORIES[STORIES.findIndex((x) => x.id === ED.orig)] = s; else STORIES.push(s);
-  saveStories(); closeModal(); render(); toast(ED.orig ? 'Pohádka je upravená' : 'Pohádka je přidaná');
+  const edited = !!ED.orig;
+  saveStories(); closeModal(); render(); toast(edited ? 'Pohádka je upravená' : 'Pohádka je přidaná');
 }
 
 // ---------- Nové náhledy (obálky) ----------
@@ -753,4 +754,4 @@ let rz;
 // při změně šířky jen překreslit grafy – celé překreslení by na mobilu shodilo klávesnici v hledání
 addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => after.forEach((f) => f()), 150); });
 addEventListener('hashchange', () => { render(); scrollTo(0, 0); });
-render();
+window.adminGate(render);

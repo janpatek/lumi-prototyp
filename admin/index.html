@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin.css?v=1">
+  <link rel="stylesheet" href="admin.css?v=2">
   <script>
     // Téma: ruční volba z administrace, jinak podle systému
     (function () {
@@ -21,7 +21,7 @@
     })();
   </script>
 </head>
-<body>
+<body class="locked">
   <div class="shell">
     <aside class="side">
       <a class="brand" href="#prehled">
@@ -31,6 +31,7 @@
       <nav class="nav" id="nav"></nav>
       <div class="side-foot">
         <button class="theme-btn" id="themeBtn" type="button"></button>
+        <button class="theme-btn" type="button" onclick="adminLogout()"><svg class="ico" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg><span>Odhlásit</span></button>
       </div>
     </aside>
     <main class="main" id="main"></main>
@@ -38,7 +39,8 @@
   <div id="modal"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="../app/stories.cs.js?v=5"></script>
+  <script src="login.js?v=1"></script>
   <script src="demo-data.js?v=1"></script>
-  <script src="admin.js?v=1"></script>
+  <script src="admin.js?v=3"></script>
 </body>
 </html>
