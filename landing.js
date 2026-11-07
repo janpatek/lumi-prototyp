@@ -4,7 +4,7 @@
 // appStoreUrl / googlePlayUrl: odkazy do obchodů. Dokud jsou prázdné, tlačítka vedou na # a ukazují štítek „Již brzy“.
 const LANDING = {
   appName: 'Ospalek',
-  tryUrl: '../',
+  tryUrl: 'app/',
   appStoreUrl: '',
   googlePlayUrl: '',
 };
@@ -102,7 +102,7 @@ function render() {
   });
   document.querySelectorAll('[data-img-f]').forEach((img) => {
     const src = kid.gender === 'f' ? img.dataset.imgF : img.dataset.imgM;
-    if (!img.src.endsWith(src.replace('../', ''))) img.src = src;
+    if (!img.src.endsWith(src)) img.src = src;
   });
   genderBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.gender === kid.gender)));
 }

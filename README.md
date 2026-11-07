@@ -3,8 +3,14 @@
 Klikací webový prototyp mobilní aplikace s personalizovanými pohádkami pro děti.
 Rodič zadá děti, rodiče a bydliště. Pohádky jsou pak o jeho dětech a odehrávají se v okolí, které znají.
 
-**Vyzkoušet:** https://janpatek.github.io/lumi-prototyp/ (nejlépe na mobilu)  
-**Web pro rodiče:** https://janpatek.github.io/lumi-prototyp/landing/
+**Web pro rodiče:** https://ospalek.cz/  
+**Vyzkoušet aplikaci:** https://ospalek.cz/app/ (nejlépe na mobilu)
+
+## Struktura a nasazení
+- `index.html`, `landing.css`, `landing.js`, `img/`: landing page na `/`.
+- `app/`: webová aplikace na `/app/`.
+- `brand/`, `covers/`, `audio/`: sdílené obrázky a zvuky.
+- Web běží na GitHub Pages z větve `main` (kořen). Vlastní doménu určuje soubor `CNAME`. Co se pushne na `main`, je do minuty venku.
 
 Vzhled a texty se řídí brand manuálem Ospalek (pastelová paleta, Fredoka a Nunito, tykání rodičům). Znak a maskot jsou ve složce `brand/` (koncept v SVG).
 

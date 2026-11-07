@@ -32,7 +32,7 @@ window.STORIES = [
     cats: ['noc'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { img: 'covers/hvezdicka.jpg', imgF: 'covers/hvezdicka-f.jpg', emoji: '🌟', g1: '#1d2b64', g2: '#6a4c93' },
+    cover: { img: '../covers/hvezdicka.jpg', imgF: '../covers/hvezdicka-f.jpg', emoji: '🌟', g1: '#1d2b64', g2: '#6a4c93' },
     title: (c) => `Hvězdička, která spadla k ${c.h.dat}`,
     text: (c) => [
       { t: `Bylo nebylo, ${c.inTown} stál jeden docela obyčejný dům. A v tom domě ${c.g('bydlel', 'bydlela', 'bydleli')} ${c.H}.` },
@@ -52,7 +52,7 @@ window.STORIES = [
     cats: ['dobro'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { img: 'covers/vyprava.jpg', imgF: 'covers/vyprava-f.jpg', emoji: '🗺️', g1: '#1b5e20', g2: '#9ccc65' },
+    cover: { img: '../covers/vyprava.jpg', imgF: '../covers/vyprava-f.jpg', emoji: '🗺️', g1: '#1b5e20', g2: '#9ccc65' },
     title: (c) => c.n(`${c.H} a velká výprava`, `Velká výprava ${c.h.gen}`),
     text: (c) => [
       { t: `V sobotu ráno to ${c.H} ${c.g('věděl', 'věděla', 'věděli')} hned, jak ${c.g('otevřel', 'otevřela', 'otevřeli')} oči: dnes se jede na výpravu! A cíl? ${c.attr[0] ? cap(c.attr[0]) : 'Starý hrad na kopci'}!`, sfx: 'birds' },
@@ -71,7 +71,7 @@ window.STORIES = [
     cats: ['auto'],
     ages: [3, 8],
     mood: 'road',
-    cover: { img: 'covers/hadanky.jpg', emoji: '🚗', g1: '#e65100', g2: '#ffb74d' },
+    cover: { img: '../covers/hadanky.jpg', emoji: '🚗', g1: '#e65100', g2: '#ffb74d' },
     title: (c) => `Hádankové auto ${c.h.gen}`,
     text: (c) => [
       { t: `Pozor, pozor! Právě startuje to nejkouzelnější auto na světě – Hádankové auto! Řídí ho ${c.p1.full} a ${c.g('hlavním navigátorem je', 'hlavní navigátorkou je', 'hlavními navigátory jsou', 'hlavními navigátorkami jsou')} ${c.H}.`, sfx: 'car' },
@@ -91,7 +91,7 @@ window.STORIES = [
     cats: ['noc'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { img: 'covers/drak.jpg', emoji: '🐉', g1: '#004d40', g2: '#4db6ac' },
+    cover: { img: '../covers/drak.jpg', emoji: '🐉', g1: '#004d40', g2: '#4db6ac' },
     title: () => `Drak, který se bál tmy`,
     text: (c) => [
       { t: `Daleko za lesem, nedaleko místa, kterému se říká ${c.near[0] || c.town || 'Zelený Dolík'}, žil v jeskyni malý drak Fousek.` },
@@ -111,7 +111,7 @@ window.STORIES = [
     cats: ['dobro'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { img: 'covers/lednice.jpg', emoji: '🧀', g1: '#f9a825', g2: '#fff176' },
+    cover: { img: '../covers/lednice.jpg', emoji: '🧀', g1: '#f9a825', g2: '#fff176' },
     title: (c) => c.n(`${c.H} a kouzelná lednice`, `Kouzelná lednice ${c.h.gen}`),
     text: (c) => [
       { t: `U vás doma, ${c.inTown}, stojí v kuchyni lednice. Vypadá úplně obyčejně. Ale jen do té doby, než ji o půlnoci ${c.n('otevře', 'otevřou')} ${c.H}.` },
@@ -132,7 +132,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [3, 7],
     mood: 'lullaby',
-    cover: { img: 'covers/zubar.jpg', imgF: 'covers/zubar-f.jpg', emoji: '🦷', g1: '#ad1457', g2: '#f48fb1' },
+    cover: { img: '../covers/zubar.jpg', imgF: '../covers/zubar-f.jpg', emoji: '🦷', g1: '#ad1457', g2: '#f48fb1' },
     title: (c) => `${c.H} ${c.n('jde', 'jdou')} statečně k zubaři`,
     text: (c) => [
       { t: `Dnes ${c.n('půjde', 'půjdou')} ${c.H} k zubaři. A víš co? Bude to docela dobrodružný den.` },

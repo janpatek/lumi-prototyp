@@ -35,12 +35,12 @@ const I = {
   prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
   next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
 };
-const MASCOT = { mark: 'brand/maskot-3d/web/ospalek-mark.webp', head: 'brand/maskot-3d/web/ospalek-hlava.webp', sleep: 'brand/maskot-3d/web/ospalek-spi.webp', trip: 'brand/maskot-3d/web/ospalek-vyprava.webp' };
+const MASCOT = { mark: '../brand/maskot-3d/web/ospalek-mark.webp', head: '../brand/maskot-3d/web/ospalek-hlava.webp', sleep: '../brand/maskot-3d/web/ospalek-spi.webp', trip: '../brand/maskot-3d/web/ospalek-vyprava.webp' };
 // každá kategorie má svou pastelovou barvu (brand manuál)
 const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)' };
 const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
 // plyšové ikonky kategorií (brand/ikony)
-const catIcon = (id, cls = 'cat-ico') => (CAT_COLOR[id] ? `<img class="${cls}" src="brand/ikony/kat-${id}.webp" alt="">` : '');
+const catIcon = (id, cls = 'cat-ico') => (CAT_COLOR[id] ? `<img class="${cls}" src="../brand/ikony/kat-${id}.webp" alt="">` : '');
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
 // avatar: první písmeno jména v pastelovém kolečku
 const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
