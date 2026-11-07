@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#F7F5FC">
+  <title>Ospalek – administrace</title>
+  <link rel="icon" href="../brand/maskot-3d/web/ospalek-mark-64.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=1">
+  <script>
+    // Téma: ruční volba z administrace, jinak podle systému
+    (function () {
+      var pref = null;
+      try { pref = localStorage.getItem('ospalek.admin.theme'); } catch (e) {}
+      var dark = pref ? pref === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    })();
+  </script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="side">
+      <a class="brand" href="#prehled">
+        <img src="../brand/maskot-3d/web/ospalek-mark.webp" alt="">
+        <span><b class="wordmark">ospalek</b><small>administrace</small></span>
+      </a>
+      <nav class="nav" id="nav"></nav>
+      <div class="side-foot">
+        <button class="theme-btn" id="themeBtn" type="button"></button>
+      </div>
+    </aside>
+    <main class="main" id="main"></main>
+  </div>
+  <div id="modal"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="../app/stories.cs.js?v=5"></script>
+  <script src="demo-data.js?v=1"></script>
+  <script src="admin.js?v=1"></script>
+</body>
+</html>
