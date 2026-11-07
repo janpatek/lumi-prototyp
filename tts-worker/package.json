@@ -1,0 +1,9 @@
+{
+  "name": "ospalek-tts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "mock": "node dev-mock.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}

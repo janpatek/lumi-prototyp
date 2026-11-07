@@ -1,0 +1,20 @@
+# Ospalek – hlas pohádek (Cloudflare Worker). Návod: README.md v této složce.
+name = "ospalek-tts"
+main = "src/worker.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+# Weby, odkud smí aplikace hlas volat (čárkou oddělené, bez lomítka na konci)
+ALLOWED_ORIGINS = "https://janpatek.github.io,https://ospalek.cz,https://www.ospalek.cz,http://localhost:5174"
+# Hlasy z tvého účtu ElevenLabs: název → Voice ID (najdeš v ElevenLabs u hlasu, tlačítko „ID“)
+VOICES = '{"jana":"SEM_VLOZ_VOICE_ID_JANY"}'
+# Model s češtinou; dražší a kvalitnější eleven_multilingual_v2, levnější eleven_flash_v2_5
+MODEL_ID = "eleven_multilingual_v2"
+# Nejdelší text v jednom požadavku (aplikace posílá po odstavcích)
+MAX_CHARS = "1500"
+
+# Volitelně trvalé uložení hotových nahrávek (Cloudflare R2, v malém objemu zdarma).
+# Nejdřív `npx wrangler r2 bucket create ospalek-audio`, pak odkomentuj:
+# [[r2_buckets]]
+# binding = "AUDIO"
+# bucket_name = "ospalek-audio"
