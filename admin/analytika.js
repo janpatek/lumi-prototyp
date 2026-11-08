@@ -97,7 +97,7 @@ function pagePayments() {
   const finished = startedTrials.filter((f) => f.trialI + 7 <= L);
   const conv = finished.filter((f) => f.subI >= 0).length;
   const paying = fams.filter((f) => f.status === 'active' || f.status === 'past_due');
-  const mix = [['Měsíční', paying.filter((f) => f.plan === 'měsíc').length], ['Roční', paying.filter((f) => f.plan === 'rok').length], ['Dárek', paying.filter((f) => f.plan === 'dárek').length]];
+  const mix = [['Česko', paying.filter((f) => f.plan === 'měsíc' && f.country === 'CZ').length], ['Slovensko', paying.filter((f) => f.plan === 'měsíc' && f.country === 'SK').length], ['Dárek', paying.filter((f) => f.plan === 'dárek').length]];
   const stores = ['App Store', 'Google Play', 'Stripe'].map((s) => [s, p30.filter((p) => p.store === s && p.status === 'zaplaceno').reduce((a, p) => a + p.czk, 0)]);
   const idx = dayIdx(N);
   lineChart('chMrr2', idx, [{ name: 'MRR (Kč)', color: 'var(--s3)', get: (i) => dl.mrr[i] }], false);
@@ -109,7 +109,7 @@ function pagePayments() {
         { k: 'at', label: 'Datum', w: '130px', html: (p) => `<span class="num">${fdate(p.at)} <span class="muted">${p.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></span>` },
         { k: 'fam', label: 'Rodina', w: 'minmax(180px, 1.4fr)', html: (p) => famLink(API.families.get(p.fam)) },
         { k: 'store', label: 'Obchod', w: '110px', html: (p) => p.store },
-        { k: 'plan', label: 'Tarif', w: '90px', html: (p) => (p.plan === 'rok' ? 'roční' : 'měsíční') },
+        { k: 'cur', label: 'Země', w: '90px', html: (p) => (p.cur === 'EUR' ? 'Slovensko' : 'Česko') },
         { k: 'amount', label: 'Částka', w: '100px', cls: 'r', html: (p) => (p.cur === 'EUR' ? `${dec(p.amount, 2)} €` : kc(p.czk)) },
         { k: 'fee', label: 'Poplatek', w: '90px', cls: 'r', html: (p) => `<span class="muted">${p.fee ? kc(p.fee) : '–'}</span>` },
         { k: 'status', label: 'Stav', w: '110px', html: (p) => payTag(p.status) },
@@ -124,8 +124,8 @@ function pagePayments() {
   const opt = (k, v, l) => `<option value="${v}" ${PAY[k] === v ? 'selected' : ''}>${l}</option>`;
   const bars = (list, f = fmt) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${f(c)}</span></div>`).join('')}</div>`; };
   return `
-    ${head('Předplatné a platby', 'Měsíční a roční předplatné přes App Store, Google Play a Stripe')}
-    <div class="demo"><b>Ukázková data</b><span>Nic se neúčtuje ani nevrací. Skutečná data dodají webhooky z RevenueCat (obchody) a Stripe (web). Poplatky obchodů jsou odhad (15 %, Stripe 1,5 % + 6,50 Kč), kurz 1 € = ${D.eur} Kč.</span></div>
+    ${head('Předplatné a platby', 'Měsíční předplatné 129 Kč za celou rodinu přes App Store, Google Play a Stripe')}
+    <div class="demo"><b>Ukázková data</b><span>Nic se neúčtuje ani nevrací. Skutečná data dodají webhooky z RevenueCat (obchody) a Stripe (web). Poplatky obchodů jsou odhad (15 %, Stripe 1,5 % + 6,50 Kč), kurz 1 € = ${D.eur} Kč. Cena pro Slovensko (4,99 €) je zatím předpoklad.</span></div>
     <div class="tiles t8">
       ${tile('MRR', kc(mrr), `${trend(mrr, dl.mrr[N - 31], 'za 30 dní')}`)}
       ${tile('ARR', kc(mrr * 12), 'MRR × 12')}
@@ -141,13 +141,13 @@ function pagePayments() {
       <section class="panel"><div class="panel-head"><h2>Platící a zkušební</h2>${legendOf([['var(--s1)', 'Platící'], ['var(--s2)', 'Zkušební']])}</div><div class="chart" id="chSubs"></div></section>
     </div>
     <div class="grid3">
-      <section class="panel"><div class="panel-head"><h2>Tarify platících</h2></div>${bars(mix)}<h2 style="margin:16px 0 10px">Příjem podle obchodu (30 dní)</h2>${bars(stores, kc)}</section>
+      <section class="panel"><div class="panel-head"><h2>Platící podle země</h2></div>${bars(mix)}<h2 style="margin:16px 0 10px">Příjem podle obchodu (30 dní)</h2>${bars(stores, kc)}</section>
       <section class="panel"><div class="panel-head"><h2>Neuhrazené platby</h2></div>
         ${pastDue.length ? `<div class="table-wrap"><table><tbody>${pastDue.slice(0, 8).map((f) => `<tr><td>${famLink(f)}</td><td>${f.platform}</td><td class="r">${canR ? `<button class="btn white sm" data-a="payRemind" data-v="${f.id}">Připomenout</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Žádné.</p>'}
         <p class="hint" style="margin-top:8px">Obchody zkouší platbu znovu až 16 dní (grace period). Připomínka je e-mail rodině.</p></section>
-      <section class="panel"><div class="panel-head"><h2>Slevové a dárkové kódy</h2>${canR ? `<button class="btn white sm" data-a="promoNew">${I.plus}Nový kód</button>` : ''}</div>
-        <div class="table-wrap"><table><thead><tr><th>Kód</th><th>Popis</th><th class="r">Použito</th></tr></thead><tbody>
-        ${API.payments.promos().map((p) => `<tr><td class="mono">${esc(p.code)}</td><td>${esc(p.desc)}</td><td class="r num">${fmt(p.uses)}${p.limit ? ` / ${fmt(p.limit)}` : ''}</td></tr>`).join('')}
+      <section class="panel"><div class="panel-head"><h2>Kupony a partneři</h2><a class="btn white sm" href="#kupony">Spravovat</a></div>
+        <div class="table-wrap"><table><thead><tr><th>Kampaň</th><th class="r">Uplatněno</th><th class="r">Platí</th></tr></thead><tbody>
+        ${CPN.campaigns.filter((c) => CPN.status(c) === 'active').slice(0, 6).map((c) => { const s = CPN.stats(c); return `<tr><td><a class="link" href="#kupony/${c.id}">${esc(c.name)}</a></td><td class="r num">${fmt(s.uses)}</td><td class="r num">${fmt(s.paying)}</td></tr>`; }).join('')}
         <tr><td colspan="3" class="muted" style="padding-top:12px">Dárkové poukazy: ${D.vouchers.length} prodaných, ${D.vouchers.filter((v) => v.redeemed).length} uplatněných</td></tr>
         </tbody></table></div></section>
     </div>
@@ -222,18 +222,6 @@ Object.assign(ACTIONS, {
     confirmBox('Vrátit platbu?', `${kc(p.czk)} rodině ${esc(famName(API.families.get(p.fam)))} přes ${p.store}. V ukázce se nic neposílá, jen se změní stav a zapíše audit log.`, 'Vrátit platbu', () => { API.payments.refund(v); PAY.vt && PAY.vt.reset(true); toast('Platba je označená jako vrácená'); });
   },
   payRemind: (v) => { API.log('payment.remind', v, 'Připomínka neuhrazené platby (ukázka)'); toast('Připomínka zapsaná do audit logu (ukázka, nic se neodeslalo)'); },
-  promoNew: () => modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="prT">
-    <div class="dialog-head"><h2 id="prT">Nový slevový kód</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
-    <div class="dialog-body"><label for="prCode">Kód</label><input id="prCode" placeholder="VANOCE" style="text-transform:uppercase"><label for="prDesc">Co dává</label><input id="prDesc" placeholder="Např. 30 % na první rok"><label for="prLim">Limit použití (nepovinné)</label><input id="prLim" type="number" min="1"><p class="err" id="prErr"></p>
-    <p class="hint">Ve skutečnosti se kód zakládá v App Store Connect, Google Play a Stripe. Tady jen evidence.</p></div>
-    <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zrušit</button><button class="btn" data-a="promoSave">Založit</button></div></div></div>`),
-  promoSave: () => {
-    const code = $('#prCode').value.trim().toUpperCase(), desc = $('#prDesc').value.trim();
-    if (!/^[A-Z0-9-]{3,20}$/.test(code) || !desc) { $('#prErr').textContent = 'Kód 3–20 znaků (písmena bez diakritiky, číslice, pomlčka) a popis.'; return; }
-    if (API.payments.promos().some((p) => p.code === code)) { $('#prErr').textContent = 'Takový kód už existuje.'; return; }
-    API.payments.addPromo({ code, desc, uses: 0, limit: Number($('#prLim').value) || null, local: true });
-    closeModal(); render(); toast('Kód je založený');
-  },
   ttsRetry: (v) => { const j = D.ttsJobs.find((x) => x.id === v); j.status = 'běží'; j.err = null; API.log('tts.retry', v, 'Nové generování (ukázka)'); render(); toast('Úloha je znovu ve frontě (ukázka)'); },
 });
 document.addEventListener('input', (ev) => {

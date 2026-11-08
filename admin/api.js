@@ -24,7 +24,8 @@ const API = (() => {
     'tickets.read': 'Číst helpdesk',
     'tickets.reply': 'Odpovídat a měnit tickety',
     'billing.read': 'Vidět předplatné a platby',
-    'billing.refund': 'Vracet platby, dávat dárky',
+    'billing.refund': 'Vracet platby, dávat dárky, vyplácet provize',
+    'coupons.manage': 'Vytvářet kupony a kódy pro partnery',
     'content.edit': 'Upravovat pohádky',
     'analytics.read': 'Statistiky a přehledy',
     'ops.read': 'Provoz a náklady na hlas',
@@ -34,10 +35,10 @@ const API = (() => {
   const ALL = Object.keys(PERMS);
   const ROLES = {
     owner: { label: 'Vlastník', perms: ALL },
-    support: { label: 'Podpora', perms: ['families.read', 'families.pii', 'families.edit', 'tickets.read', 'tickets.reply', 'billing.read', 'analytics.read'] },
+    support: { label: 'Podpora', perms: ['families.read', 'families.pii', 'families.edit', 'tickets.read', 'tickets.reply', 'billing.read', 'analytics.read', 'coupons.manage'] },
     content: { label: 'Obsah', perms: ['content.edit', 'analytics.read', 'ops.read', 'tickets.read', 'families.read'] },
     analyst: { label: 'Analytik', perms: ['families.read', 'analytics.read', 'billing.read', 'ops.read'] },
-    finance: { label: 'Účetní', perms: ['billing.read', 'billing.refund', 'families.read', 'families.pii', 'analytics.read'] },
+    finance: { label: 'Účetní', perms: ['billing.read', 'billing.refund', 'coupons.manage', 'families.read', 'families.pii', 'analytics.read'] },
   };
   const roleOver = ls.get('ospalek.admin.roles.v1', {});
   const staff = D.staff.map((s) => ({ ...s, role: roleOver[s.id] || s.role }));

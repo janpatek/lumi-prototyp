@@ -92,7 +92,7 @@ function pageFamily(id) {
   const tl = [
     { at: f.created, c: 'var(--s1)', t: `Registrace (${esc(f.source)}, ${f.platform})` },
     f.trialI >= 0 && { at: D.dayAt(f.trialI), c: 'var(--honey)', t: 'Začal zkušební týden' },
-    f.subI >= 0 && f.plan !== 'dárek' && { at: D.dayAt(f.subI), c: 'var(--s3)', t: `Předplatné ${f.plan === 'rok' ? 'roční' : 'měsíční'}` },
+    f.subI >= 0 && f.plan !== 'dárek' && { at: D.dayAt(f.subI), c: 'var(--s3)', t: 'Předplatné (129 Kč měsíčně)' },
     f.subEnd >= 0 && { at: D.dayAt(f.subEnd), c: 'var(--s2)', t: 'Zrušení předplatného' },
     ...pays.map((p) => ({ at: p.at, c: p.status === 'zaplaceno' ? 'var(--s3)' : 'var(--s2)', t: `Platba ${kc(p.czk)} · ${p.status}` })),
     ...tks.map((t) => ({ at: t.created, c: 'var(--s4)', t: `Ticket <a class="link" href="#helpdesk/${t.id}">#${t.id} ${esc(t.subject)}</a>` })),

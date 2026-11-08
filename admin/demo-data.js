@@ -145,15 +145,16 @@
       // preference kategorií: každá rodina má svou oblíbenou
       const fav = weighted([['noc', 0.5], ['auto', 0.2], ['dobro', 0.18], ['zivot', 0.12]]);
       const catW = CAT_IDS.map((c) => [c, c === fav ? 0.55 : 0.15]);
-      // předplatné: zkušební týden, pak měsíční nebo roční; fanoušci kupují častěji
+      // předplatné: zkušební týden, pak jediný tarif (měsíční, 129 Kč za celou rodinu); fanoušci kupují častěji
+      // (rnd() u tarifu zůstává, aby se nerozhodila posloupnost náhodných čísel a data zůstala stejná)
       const wantP = guest ? 0 : { fan: 0.62, regular: 0.34, casual: 0.08, tried: 0.01 }[arch];
       let subI = -1, subEnd = -1, plan = null, status = null, trialI = -1, failed = false;
       if (rnd() < wantP) {
         trialI = Math.min(DAYS - 1, ci + Math.floor(rnd() * 6));
-        if (trialI + 7 > DAYS - 1) { status = 'trial'; plan = rnd() < 0.35 ? 'rok' : 'měsíc'; }
+        if (trialI + 7 > DAYS - 1) { status = 'trial'; rnd(); plan = 'měsíc'; }
         else if (rnd() < 0.64) {
-          subI = trialI + 7; plan = rnd() < 0.35 ? 'rok' : 'měsíc'; status = 'active';
-          if (plan === 'měsíc') for (let m = subI + 30; m < DAYS; m += 30) if (rnd() < 0.07) { subEnd = m; status = 'canceled'; break; }
+          subI = trialI + 7; rnd(); plan = 'měsíc'; status = 'active';
+          for (let m = subI + 30; m < DAYS; m += 30) if (rnd() < 0.07) { subEnd = m; status = 'canceled'; break; }
           if (status === 'active' && rnd() < 0.035) { status = 'past_due'; failed = true; }
         } else status = 'expired';
       }
@@ -194,7 +195,8 @@
   });
 
   // ---------- Předplatné a platby ----------
-  const PRICE = { CZ: { 'měsíc': 99, rok: 699 }, SK: { 'měsíc': 3.99, rok: 27.99 } };
+  // ceník od 8. 11. 2026: jen měsíční předplatné 129 Kč; cena pro Slovensko zatím neurčená, 4,99 € je předpoklad
+  const PRICE = { CZ: 129, SK: 4.99 };
   const EUR = 25; // pevný kurz pro ukázku
   const STORE = { iOS: 'App Store', Android: 'Google Play', Web: 'Stripe' };
   const fee = (store, czk) => (store === 'Stripe' ? Math.round((czk * 0.015 + 6.5) * 100) / 100 : Math.round(czk * 0.15 * 100) / 100);
@@ -208,12 +210,12 @@
       return;
     }
     const cur = f.country === 'SK' ? 'EUR' : 'CZK';
-    const amt = PRICE[f.country][f.plan];
+    const amt = PRICE[f.country];
     const czk = cur === 'EUR' ? Math.round(amt * EUR * 100) / 100 : amt;
     const store = STORE[f.platform];
-    const step = f.plan === 'rok' ? 365 : 30;
+    const step = 30;
     const end = f.subEnd >= 0 ? f.subEnd : DAYS;
-    const monthly = f.plan === 'rok' ? czk / 12 : czk;
+    const monthly = czk;
     mrrDiff[f.subI] += monthly; mrrDiff[end] -= monthly;
     subDiff[f.subI]++; subDiff[end]--;
     for (let i = f.subI; i < end; i += step) {
@@ -230,10 +232,10 @@
   for (let i = 0; i < 24; i++) {
     const code = 'DAREK-' + Math.floor(rnd() * 0xfffff).toString(16).toUpperCase().padStart(5, '0');
     const sold = at(Math.floor(40 + rnd() * (DAYS - 41)), 10 + Math.floor(rnd() * 10));
-    VOUCHERS.push({ code, kind: rnd() < 0.7 ? 'rok' : '3 měsíce', sold, buyer: `darce.${i + 1}@example.cz`, redeemed: rnd() < 0.6 ? families[Math.floor(rnd() * families.length)].id : null });
+    VOUCHERS.push({ code, kind: rnd() < 0.7 ? '12 měsíců' : '3 měsíce', sold, buyer: `darce.${i + 1}@example.cz`, redeemed: rnd() < 0.6 ? families[Math.floor(rnd() * families.length)].id : null });
   }
   const PROMOS = [
-    { code: 'INSTAGRAM20', desc: '20 % na první rok', uses: Math.round(41 * SCALE), limit: null, until: dayAt(DAYS - 1 + 30) },
+    { code: 'INSTAGRAM20', desc: '20 % na 12 měsíců', uses: Math.round(41 * SCALE), limit: null, until: dayAt(DAYS - 1 + 30) },
     { code: 'SKOLKA', desc: 'Měsíc zdarma pro rodiče ze školek', uses: Math.round(17 * SCALE), limit: 200, until: dayAt(DAYS - 1 + 60) },
     { code: 'MIKULAS', desc: '2 měsíce za cenu jednoho', uses: 0, limit: null, until: dayAt(DAYS - 1 + 40) },
   ];

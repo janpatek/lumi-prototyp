@@ -47,7 +47,7 @@ const SUB = { trial: ['Zkušební', 'honey'], active: ['Platí', 'mint'], past_d
 const subTag = (f) => {
   if (!f.status) return f.email ? '<span class="tag line">Zdarma</span>' : '<span class="tag line">Host</span>';
   const [l, c] = SUB[f.status];
-  return `<span class="tag ${c}">${l}${f.plan && f.status !== 'expired' ? ` · ${f.plan === 'rok' ? 'roční' : f.plan === 'dárek' ? 'dárek' : 'měsíční'}` : ''}</span>`;
+  return `<span class="tag ${c}">${l}${f.plan === 'dárek' ? ' · dárek' : ''}</span>`;
 };
 const healthTag = (h) => `<span class="health ${h >= 60 ? 'h-good' : h >= 35 ? 'h-mid' : 'h-bad'}" title="Zdraví účtu (0–100)">${h}</span>`;
 const kidsHtml = (f) => f.kids.map((k) => `<span class="kid ${k.g}">${API.can('families.pii') ? esc(k.name) : k.g === 'f' ? 'holka' : 'kluk'} ${k.age}</span>`).join('');
@@ -102,6 +102,7 @@ const ROUTES = [
   { id: 'navstevy', label: 'Návštěvy', ico: I.eye, perm: 'analytics.read' },
   { grp: 'Byznys' },
   { id: 'platby', label: 'Předplatné a platby', ico: I.card, perm: 'billing.read' },
+  { id: 'kupony', label: 'Kupony a partneři', ico: I.gift, perm: 'billing.read' },
   { grp: 'Obsah' },
   { id: 'pohadky', label: 'Pohádky', ico: I.book, perm: 'content.edit' },
   { id: 'hlas', label: 'Hlas a náklady', ico: I.wave, perm: 'ops.read' },
@@ -270,7 +271,7 @@ const delta = (a, b) => {
   const p = Math.round(((a - b) / b) * 100);
   return `${p >= 0 ? '+' : '−'}${Math.abs(p)} % proti předchozím 30 dnům`;
 };
-const planTag = (p) => (p === 'rok' ? '<span class="tag mint">Roční</span>' : p === 'měsíc' ? '<span class="tag sky">Měsíční</span>' : p === 'demo' ? '<span class="tag mint">Demo</span>' : '<span class="muted">ne</span>');
+const planTag = (p) => (p === 'dárek' ? '<span class="tag honey">Dárek</span>' : p === 'měsíc' ? '<span class="tag mint">Předplatné</span>' : p === 'demo' ? '<span class="tag mint">Demo</span>' : '<span class="muted">ne</span>');
 const acct = (f) => (f.email ? esc(f.email) : '<span class="tag line">Host</span>');
 const rangeFilters = () => `
   <div class="filters">
