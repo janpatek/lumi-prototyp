@@ -5,8 +5,8 @@
 
 (function () {
   const AUTH = {
-    salt: 'a15fa943e4a4d106c38cc1297e43a4b0',
-    hash: 'ec39c0ad159de63700426502fe0e89817ef6fc6c056ab8d206c4699902aa8378',
+    salt: '46dd5bd17b5fc9ad5da179930aa356d9',
+    hash: 'dcf6761e5f2b413cd94cfb671d213c561a274b3b79e325b2d03fe328948d07a9',
     iterations: 250000,
   };
   const KEY = 'ospalek.admin.auth';
