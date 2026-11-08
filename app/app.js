@@ -1,4 +1,5 @@
-// Ospalek – webový prototyp. Bez buildu, data jen v localStorage tohoto prohlížeče.
+// Ospalek – webový prototyp. Bez buildu, data v localStorage tohoto prohlížeče.
+// Je-li vyplněný ../config.js, posílá sync.js rodinu a poslechy do databáze (Supabase) pro administraci.
 // (cap a listCz pochází ze stories.cs.js)
 
 const APP_NAME = 'Ospalek';
@@ -20,7 +21,7 @@ const blank = () => ({ user: null, onboarded: false, premium: false, heroIds: []
 let S = store.get() || blank();
 if (!S.heroIds) S.heroIds = S.heroId ? [S.heroId] : []; // starší uložená data měla jen jednoho hrdinu
 let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false };
-const save = () => store.set(S);
+const save = () => { store.set(S); SYNC.family(S); }; // SYNC: app/sync.js, odešle do databáze, je-li nastavená
 const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -197,6 +198,7 @@ const screens = {
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
       </div>
       ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak 129 Kč měsíčně</span></div></button>`}
+      ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžeš nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změníš to kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       <div class="grid">
         ${list.map((s) => {
           const segs = s.text(c);
@@ -226,6 +228,8 @@ const screens = {
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus (demo)` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
       ${S.premium ? '<button class="btn small ghost" data-a="unsub">Zrušit</button>' : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    ${SYNC.on ? `<div class="section-t">Statistiky</div>
+    <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
     <p class="note" style="margin-top:6px"><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
     <div class="section-t">Vzhled</div>
     <div class="seg">${[['auto', 'Podle času'], ['light', 'Den'], ['dark', 'Noc']].map(([v, l]) => `<button data-a="theme" data-v="${v}" class="${(S.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>
@@ -629,6 +633,7 @@ function playPause() {
   } else {
     P.playing = true;
     if (P.i >= P.segs.length) P.i = 0;
+    if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
     ambience.startMusic(P.st.mood);
     document.querySelector('.the-end')?.remove();
     recVoice() ? playRec() : playSeg();
@@ -644,6 +649,7 @@ function jump(d) {
 
 function theEnd() {
   P.playing = false;
+  SYNC.playEnd(P.sync, true);
   ambience.stopMusic(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
@@ -652,7 +658,7 @@ function theEnd() {
 }
 
 function closePlayer() {
-  if (P) { stopVoice(); P = null; }
+  if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); stopVoice(); P = null; }
   ambience.stopMusic(true);
   document.getElementById('player')?.remove();
 }
@@ -706,13 +712,15 @@ const actions = {
   subscribe: () => { S.premium = true; save(); closeModal(); render(); },
   unsub: () => { S.premium = false; save(); render(); },
   settings: () => go('settings'),
+  // souhlas se statistikami poslechu (sync.js); vypnutí v databázi anonymizuje dosavadní poslechy
+  analytics: (el) => { S.analytics = el.dataset.v === '1'; save(); render(); },
   theme: (el) => { S.theme = el.dataset.v === 'auto' ? null : el.dataset.v; save(); applyTheme(); render(); },
   back: () => go('lib'),
   editHome: () => {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
   saveHome: () => { syncHome(); closeModal(); render(); },
-  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),

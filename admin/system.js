@@ -3,7 +3,8 @@
 const ACTION_LABEL = { auth: 'Přihlášení', ticket: 'Helpdesk', family: 'Rodiny', payment: 'Platby', story: 'Pohádky', team: 'Tým', promo: 'Kódy', tts: 'Hlas' };
 
 function pageTeam() {
-  const canM = API.can('team.manage');
+  // v ostrém režimu se tým a role spravují v databázi (tabulka staff), tady jen přehled
+  const canM = API.can('team.manage') && !D.live;
   const roles = Object.entries(API.ROLES);
   return `
     ${head('Tým a role', 'Kdo má do administrace přístup a co smí', canM ? `<button class="btn" data-a="invite">${I.plus}Pozvat člena týmu</button>` : '')}
@@ -23,6 +24,42 @@ function pageTeam() {
     </section>`;
 }
 PAGES.tym = pageTeam;
+
+// ---------- Napojení dat ----------
+function pageData() {
+  const live = D.live;
+  const counts = [['Rodiny', D.families.length], ['Dětské profily', D.families.reduce((n, f) => n + f.kids.length, 0)], ['Přehrání celkem', D.families.reduce((n, f) => n + f.plays, 0)], ['Rodin s poslechem za 30 dní', D.families.filter((f) => f.days30 > 0).length]];
+  return `
+    ${head('Napojení dat', live ? 'Administrace čte ostrá data ze Supabase' : 'Administrace teď ukazuje ukázková data')}
+    <div class="grid2 data-page" style="margin-top:0">
+      <section class="panel"><div class="panel-head"><h2>Stav</h2>${live ? '<span class="tag mint">Ostrá data</span>' : '<span class="tag honey">Ukázková data</span>'}</div>
+        <dl class="kv">
+          <dt>Databáze</dt><dd>${LIVE.configured ? esc(LIVE.url) : 'nenastavená (config.js)'}</dd>
+          ${live ? `<dt>Přihlášen</dt><dd>${esc(D.me.name)} · ${esc(API.ROLES[D.me.role].label)}</dd><dt>Načteno</dt><dd>${D.loadedAt.toLocaleTimeString('cs-CZ')} · ${Math.round(D.fetchMs)} ms</dd>` : ''}
+          ${counts.map(([l, v]) => `<dt>${l}</dt><dd>${fmt(v)}</dd>`).join('')}
+        </dl>
+        <div class="head-actions" style="margin-top:14px">
+          ${live ? '<button class="btn sm" data-a="dataReload">Načíst znovu</button><button class="btn white sm" data-a="dataMode" data-v="demo">Přepnout na ukázková data</button><button class="btn white sm" data-a="dataSignOut">Odhlásit z databáze</button>'
+            : LIVE.configured ? '<button class="btn sm" data-a="dataMode" data-v="live">Přepnout na ostrá data</button>' : ''}
+        </div>
+      </section>
+      <section class="panel"><div class="panel-head"><h2>Co je napojené</h2></div>
+        <div class="table-wrap"><table><tbody>
+          ${[['Rodiny, děti, obec, zařízení', 'ano', 'aplikace posílá po každém uložení'], ['Poslechy (pohádka, délka, dohráno)', 'ano', 'začátek a konec poslechu'], ['Používání, retence, heatmapa, výkon pohádek', 'ano', 'předpočítané souhrny v databázi'], ['Audit log', 'ano', 'zapisuje administrace'], ['Předplatné a platby', 'ne', 'v aplikaci zatím simulované; RevenueCat a Stripe'], ['Helpdesk', 'ne', 'příjem e-mailů a zpráv z aplikace'], ['Návštěvy webu', 'ne', 'Plausible'], ['Kupony v aplikaci', 'ne', 'pole na kód při registraci']].map(([a, b, c]) => `<tr><td>${a}</td><td class="${b === 'ano' ? 'status-ok' : 'status-warn'}">${b}</td><td class="muted">${c}</td></tr>`).join('')}
+        </tbody></table></div>
+      </section>
+    </div>
+    ${LIVE.configured ? '' : `<section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Jak zapnout ostrá data</h2></div>
+      <ol class="steps">
+        <li>Založ projekt na <b>supabase.com</b> v regionu <b>EU (Frankfurt)</b>.</li>
+        <li>V SQL Editoru spusť celý soubor <code>supabase/schema.sql</code>.</li>
+        <li>V Authentication → Sign In / Providers zapni <b>Anonymous sign-ins</b> (rodiny nemusí zadávat e-mail).</li>
+        <li>V Authentication → Users vytvoř svůj účet (e-mail a heslo) a v SQL přidej sebe do týmu: <code>insert into staff (user_id, name, role) select id, 'Jan', 'owner' from auth.users where email = 'tvuj@email';</code></li>
+        <li>Do <code>config.js</code> v kořeni webu vlož Project URL a anon key (Project Settings → API) a nasaď.</li>
+      </ol>
+      <p class="hint" style="margin-top:10px">Podrobně v <code>supabase/README.md</code>. Lokálně se dá vyzkoušet bez účtu: <code>node supabase/dev-server.mjs</code> a admin/?db=http://localhost:54321.</p></section>`}`;
+}
+PAGES.data = pageData;
 
 const AUD = { q: '', actor: 'all', kind: 'all', vt: null };
 function pageAudit() {
@@ -126,6 +163,13 @@ document.addEventListener('change', (ev) => {
   if (t.id === 'viewAs') { API.setViewAs(t.value); render(); toast(`Administrace jako: ${API.ROLES[t.value].label}`); }
 });
 
+// stav dat vlevo dole
+$('#viewAs').insertAdjacentHTML('beforebegin', `<a class="mode ${D.live ? 'live' : ''}" href="#data" style="text-decoration:none"><i></i>${D.live ? 'Ostrá data' : 'Ukázková data'}</a>`);
+Object.assign(ACTIONS, {
+  dataReload: () => location.reload(),
+  dataMode: (v) => { LIVE.setMode(v); location.reload(); },
+  dataSignOut: () => { LIVE.signOut(); location.reload(); },
+});
 // role switcher vlevo dole
 $('#viewAs').innerHTML = Object.entries(API.ROLES).map(([k, r]) => `<option value="${k}" ${API.viewAs === k ? 'selected' : ''}>${r.label}</option>`).join('');
 

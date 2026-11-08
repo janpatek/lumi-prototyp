@@ -8,9 +8,11 @@
 const API = (() => {
   const D = window.DEMO;
   const now = () => new Date();
+  // ostrý režim má vlastní klíče, ať se úpravy z ukázky (smazané rodiny, poznámky…) nepletou se skutečnými
+  const nk = (k) => (D.live ? k.replace('ospalek.admin.', 'ospalek.admin.live.') : k);
   const ls = {
-    get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* jen do obnovení stránky */ } },
+    get(k, d) { try { const v = JSON.parse(localStorage.getItem(nk(k))); return v ?? d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(nk(k), JSON.stringify(v)); } catch (e) { /* jen do obnovení stránky */ } },
   };
   const revive = (o) => JSON.parse(JSON.stringify(o), (k, v) => (typeof v === 'string' && /^\d{4}-\d\d-\d\dT/.test(v) ? new Date(v) : v));
   const fam = new Map(D.families.map((f) => [f.id, f]));
@@ -44,8 +46,11 @@ const API = (() => {
   const staff = D.staff.map((s) => ({ ...s, role: roleOver[s.id] || s.role }));
   ls.get('ospalek.admin.invites.v1', []).forEach((s) => staff.push(revive(s)));
   const ME = staff[0];
-  let viewAs = ls.get('ospalek.admin.viewAs', 'owner');
-  const can = (p) => ROLES[viewAs]?.perms.includes(p);
+  // v ostrém režimu rozhoduje role v databázi; „Zobrazit jako“ jde jen k menším oprávněním
+  const realRole = D.live ? D.me.role : 'owner';
+  let viewAs = ls.get('ospalek.admin.viewAs', realRole);
+  if (!ROLES[viewAs]) viewAs = realRole;
+  const can = (p) => !!ROLES[viewAs]?.perms.includes(p) && ROLES[realRole].perms.includes(p);
   const staffName = (id) => staff.find((s) => s.id === id)?.name || id;
 
   // ---------- Audit ----------
@@ -53,7 +58,8 @@ const API = (() => {
   function log(action, target, detail) {
     const e = { at: now(), actor: ME.id, action, target, detail, live: true };
     liveAudit.unshift(e); if (liveAudit.length > 500) liveAudit.length = 500;
-    ls.set('ospalek.admin.audit.v1', liveAudit);
+    // ostrý režim zapisuje do databáze (audit_log), po načtení se záznam vrátí odtamtud
+    if (D.live) D.log(action, target, detail); else ls.set('ospalek.admin.audit.v1', liveAudit);
     bump('audit');
   }
 
@@ -200,14 +206,22 @@ const API = (() => {
         return page(s, cursor, limit);
       },
       count: (seg) => D.families.reduce((n, f) => n + (!deleted.has(f.id) && SEGMENTS[seg].test(f) ? 1 : 0), 0),
+      // v ostrém režimu vrací null, dokud se poslechy nenačtou (loadActivity)
       activity(id) {
         if (actCache.has(id)) return actCache.get(id);
+        if (D.live) return null;
         const a = D.familyDetail(fam.get(id));
         actCache.set(id, a); if (actCache.size > 30) actCache.delete(actCache.keys().next().value);
         return a;
       },
       note: (id) => notes[id] || '',
       setNote(id, text) { notes[id] = text; ls.set('ospalek.admin.notes.v1', notes); log('family.note', id, 'Interní poznámka'); },
+      async loadActivity(id) {
+        const a = await D.familyDetailAsync(fam.get(id));
+        actCache.set(id, a); if (actCache.size > 30) actCache.delete(actCache.keys().next().value);
+        return a;
+      },
+      async removeLive(id) { await D.deleteFamily(fam.get(id)); deleted.add(id); bump('families'); },
       remove(id) { deleted.add(id); ls.set('ospalek.admin.deleted.v1', [...deleted]); bump('families'); log('family.delete', id, 'Smazání rodiny (GDPR, ukázka)'); },
       gift(id, months) {
         gifts.push({ fam: id, months, at: now() }); ls.set('ospalek.admin.gifts.v1', gifts);

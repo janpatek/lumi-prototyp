@@ -9,8 +9,8 @@ const famCols = () => [
   { k: 'kids', label: 'Děti', w: 'minmax(120px, 1fr)', sort: true, html: kidsHtml },
   { k: 'town', label: 'Bydliště', w: '124px', sort: true, html: (f) => `<span class="ell">${esc(f.town)}</span> <span class="muted">${f.country}</span>` },
   { k: 'plan', label: 'Tarif', w: '136px', html: subTag },
-  { k: 'plays30', label: 'Přehrání 30 d', w: '92px', cls: 'r', sort: true, html: (f) => fmt(f.plays30) },
-  { k: 'min30', label: 'Minut 30 d', w: '84px', cls: 'r', sort: true, html: (f) => fmt(f.min30) },
+  { k: 'plays30', label: 'Přehrání 30 d', w: '92px', cls: 'r', sort: true, html: (f) => (f.analytics === false ? '<span class="muted" title="Bez souhlasu se statistikami">–</span>' : fmt(f.plays30)) },
+  { k: 'min30', label: 'Minut 30 d', w: '84px', cls: 'r', sort: true, html: (f) => (f.analytics === false ? '<span class="muted">–</span>' : fmt(f.min30)) },
   { k: 'days30', label: 'Aktivní dny', w: '110px', sort: true, html: (f) => `<span class="meter" style="width:44px"><i style="width:${(f.days30 / 30) * 100}%"></i></span><span class="num">${f.days30}/30</span>` },
   { k: 'health', label: 'Zdraví', w: '64px', cls: 'r', sort: true, html: (f) => healthTag(f.health) },
   { k: 'last', label: 'Naposledy', w: '100px', sort: true, html: (f) => `<span class="muted">${ago(f.lastSeen)}</span>` },
@@ -74,8 +74,15 @@ function pageFamily(id) {
   const f = API.families.get(id);
   if (!f) return `${head('Rodina nenalezena')}<p><a class="link" href="#rodiny">Zpět na rodiny</a></p>`;
   const t0 = performance.now();
-  const a = API.families.activity(id);
+  // bez souhlasu se statistikami nejsou poslechy rodiny v databázi přiřazené, detail ukáže jen CRM údaje
+  const noStats = D.live && f.analytics === false;
+  const a = noStats ? emptyActivity(f) : API.families.activity(id);
   const ms = performance.now() - t0;
+  if (!a) {
+    // ostrý režim: poslechy rodiny se načtou z databáze a stránka se pak vykreslí znovu
+    API.families.loadActivity(id).then(() => { if (route() === 'rodiny' && routeParam() === id) render(); }, (e) => { const el = $('#famLoading'); if (el) el.textContent = 'Poslechy se nepodařilo načíst: ' + e.message; });
+    return `${head(esc(famName(f)))}<p class="muted" id="famLoading">Načítám poslechy rodiny…</p>`;
+  }
   const pays = API.can('billing.read') ? API.families.payments(id) : [];
   const tks = API.can('tickets.read') ? API.families.tickets(id) : [];
   const gifts = API.families.gifts(id);
@@ -113,7 +120,8 @@ function pageFamily(id) {
         ${canDel ? `<button class="btn white sm" data-a="famExport" data-v="${f.id}">${I.down}Export dat (GDPR)</button><button class="btn danger sm" data-a="famDelete" data-v="${f.id}">Smazat rodinu</button>` : ''}
       </div>
     </div>
-    ${demoBar(`Aktivita se dopočítala za ${dec(ms)} ms.`)}
+    ${demoBar(D.live ? '' : `Aktivita se dopočítala za ${dec(ms)} ms.`)}
+    ${noStats ? '<div class="locked-note">Rodina nedala souhlas se statistikami poslechu. Účet, děti a obec vidíš kvůli podpoře, poslechy jsou jen v anonymních souhrnech.</div>' : ''}
     <div class="tiles t8">
       ${tile('Přehrání celkem', fmt(a.plays), `${fmt(f.plays30)} za 30 dní`)}
       ${tile('Hodin poslechu', dec(a.minutes / 60), `${fmt(f.min30)} min za 30 dní`)}
@@ -135,7 +143,7 @@ function pageFamily(id) {
       <section class="panel"><div class="panel-head"><h2>Děti</h2></div>
         <div class="kids">${f.kids.map((k, i) => `<div class="kidcard"><b>${API.can('families.pii') ? esc(k.name) : `Dítě ${i + 1}`}</b><div class="muted">${k.g === 'f' ? 'holka' : 'kluk'}, ${k.age} ${plural(k.age, 'rok', 'roky', 'let')}</div><div style="margin-top:6px;font-size:12px">Hrdinou <b>${fmt(a.hero[i])}×</b></div></div>`).join('')}</div>
         <h2 style="margin:16px 0 8px">Zařízení</h2>
-        <dl class="kv"><dt>Platforma</dt><dd>${f.platform}</dd><dt>Verze aplikace</dt><dd>${f.appVer}${f.appVer !== 'web' && f.appVer !== '1.4.2' ? ' <span class="tag peach">stará</span>' : ''}</dd><dt>Registrace</dt><dd>${fdate(f.created)}</dd><dt>Zdroj</dt><dd>${esc(f.source)}</dd></dl>
+        <dl class="kv"><dt>Platforma</dt><dd>${f.platform}</dd><dt>Verze aplikace</dt><dd>${f.appVer}${f.platform !== 'Web' && f.appVer !== '1.4.2' ? ' <span class="tag peach">stará</span>' : ''}</dd><dt>Registrace</dt><dd>${fdate(f.created)}</dd><dt>Zdroj</dt><dd>${esc(f.source)}</dd></dl>
         <h2 style="margin:16px 0 8px">Interní poznámka</h2>
         <textarea data-f="famNote" data-id="${f.id}" rows="4" style="font-family:var(--body);font-size:13px" ${canE ? '' : 'disabled'} placeholder="Vidí jen tým. Uloží se po opuštění pole.">${esc(API.families.note(f.id))}</textarea>
       </section>
@@ -154,6 +162,7 @@ function pageFamily(id) {
       </section>
     </div>`;
 }
+const emptyActivity = (f) => ({ plays: 0, minutes: 0, days: 0, cat: [0, 0, 0, 0], story: {}, hero: f.kids.map(() => 0), done: 0, hours: new Float64Array(24), series: { plays: new Uint16Array(D.days), minutes: new Float32Array(D.days), events: [] } });
 const payTag = (s) => `<span class="tag ${s === 'zaplaceno' ? 'mint' : s === 'vráceno' ? 'line' : 'peach'}">${s}</span>`;
 
 function famCsv() {
@@ -179,7 +188,10 @@ Object.assign(ACTIONS, {
     download(`ospalek-export-${v}.json`, JSON.stringify(data, null, 2), 'application/json');
     API.log('family.export', v, 'Export údajů rodiny (GDPR)'); toast('Export se stahuje');
   },
-  famDelete: (v) => confirmBox('Smazat rodinu?', `Rodina ${esc(v)} zmizí ze seznamů. V ukázce se to dá vrátit smazáním dat prohlížeče, ve skutečném systému je smazání nevratné a týká se i nahrávek.`, 'Smazat', () => { API.families.remove(v); go('rodiny'); toast('Rodina je smazaná (ukázka)'); }),
+  famDelete: (v) => confirmBox('Smazat rodinu?', `Rodina ${esc(v)} zmizí ze seznamů. ${D.live ? 'Smazání je nevratné: zmizí účet, děti i všechny poslechy v databázi.' : 'V ukázce se to dá vrátit smazáním dat prohlížeče, ve skutečném systému je smazání nevratné a týká se i nahrávek.'}`, 'Smazat', () => {
+    if (!D.live) { API.families.remove(v); go('rodiny'); toast('Rodina je smazaná (ukázka)'); return; }
+    API.families.removeLive(v).then(() => { go('rodiny'); toast('Rodina je smazaná i s poslechy a účtem'); }, (e) => toast('Smazání se nepovedlo: ' + e.message));
+  }),
 });
 document.addEventListener('input', (ev) => {
   const t = ev.target;

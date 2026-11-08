@@ -1,0 +1,8 @@
+{
+  "name": "ospalek-supabase-dev",
+  "private": true,
+  "type": "module",
+  "description": "Lokální napodobenina Supabase pro vývoj Ospalku (dev-server.mjs)",
+  "scripts": { "dev": "node dev-server.mjs --seed 60" },
+  "dependencies": { "@electric-sql/pglite": "0.2.17" }
+}

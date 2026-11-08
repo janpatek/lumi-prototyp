@@ -109,6 +109,7 @@ const ROUTES = [
   { grp: 'Systém' },
   { id: 'tym', label: 'Tým a role', ico: I.shield },
   { id: 'audit', label: 'Audit log', ico: I.list, perm: 'audit.read' },
+  { id: 'data', label: 'Napojení dat', ico: I.wave },
 ];
 // #stranka/parametr – např. #rodiny/f00042, #helpdesk/1042, #helpdesk/breach
 const hashParts = () => { const [r, ...rest] = decodeURIComponent(location.hash.slice(1)).split('/'); return [r === 'uzivatele' ? 'rodiny' : r, rest.join('/')]; };
@@ -263,7 +264,20 @@ const visChart = (id, bs, by) => after.push(() => chart(document.getElementById(
 const legend = () => '<div class="legend"><span><i class="key" style="--c:var(--s1)"></i>Landing page</span><span><i class="key" style="--c:var(--s2)"></i>Aplikace</span></div>';
 
 // ---------- Společné kousky ----------
-const demoBar = (extra = '') => `<div class="demo"><b>Ukázková data</b><span>Čísla jsou vymyšlená, aplikace zatím nemá backend ani měření návštěv. ${extra}</span></div>`;
+// V ostrém režimu lišta říká, odkud data jsou a co zatím napojené není (místo vymyšlených čísel jsou tam nuly).
+const LIVE_GAPS = {
+  navstevy: 'Návštěvy webu zatím neměříme (doplní se Plausible), proto jsou nulové.',
+  platby: 'Předplatné je v aplikaci zatím jen simulované a platby nejsou napojené (RevenueCat, Stripe), čísla o penězích jsou nulová.',
+  hlas: 'Fronta generování hlasu zatím není napojená na tts-worker.',
+  kupony: 'Kódy zatím nejde uplatnit v aplikaci; kampaně, které tu založíš, se drží jen v tomhle prohlížeči.',
+  helpdesk: 'Helpdesk zatím nepřijímá e-maily ani zprávy z aplikace.',
+  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami.',
+  pouzivani: 'Přehrání, pohádky a heatmapa zahrnují i anonymní poslechy; aktivní rodiny a retence jen rodiny se souhlasem se statistikami.',
+  rodiny: 'Rodiny bez souhlasu se statistikami vidíš celé, jen bez poslechů (štítek „bez statistik“).',
+};
+const demoBar = (extra = '') => (D.live
+  ? `<div class="demo live"><b>Ostrá data</b><span>${D.dev ? 'Lokální testovací databáze. ' : ''}Načteno ${D.loadedAt.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })} ze Supabase za ${Math.round(D.fetchMs)} ms. ${LIVE_GAPS[route()] || ''} <a class="link" href="#data">Napojení dat</a></span></div>`
+  : `<div class="demo"><b>Ukázková data</b><span>Čísla jsou vymyšlená, aplikace zatím nemá backend ani měření návštěv. ${extra}</span></div>`);
 const head = (title, sub, actions = '') => `<div class="head"><div><h1>${title}</h1>${sub ? `<p>${sub}</p>` : ''}</div><div class="head-actions">${actions}</div></div>`;
 const tile = (k, v, d = '') => `<div class="panel tile"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`;
 const delta = (a, b) => {

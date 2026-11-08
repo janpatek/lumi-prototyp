@@ -5,9 +5,10 @@
 //  – families: souhrn rodiny (v databázi materializovaný pohled family_summary, přepočet v noci + při události),
 //  – daily: denní agregáty za celou aplikaci (tabulka daily_stats), grafy nikdy nesčítají surové události,
 //  – familyDetail(id): podrobná aktivita jedné rodiny, počítá se až při otevření detailu (endpoint /families/:id/activity).
+// Ostrý režim (live-data.js) vrací stejný tvar dat ze Supabase; tyhle funkce se pak vůbec nevolají.
 // Zátěžový test: admin/?zatez=20 vytvoří 20× víc rodin (cca 28 tisíc) a ukáže, jak se chovají tabulky.
 
-(function () {
+window.makeDemo = function () {
   const DAYS = 180;
   const SCALE = Math.max(1, Math.min(50, Number(new URLSearchParams(location.search).get('zatez')) || 1));
   const mk = (s) => () => { s = (s + 0x6d2b79f5) | 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -334,7 +335,7 @@
     ttsJobs.push({ id: 'j' + (9000 - i), fam: f.id, story: st.id, chars: Math.round(st.min * CHARS_PER_MIN * (0.9 + rnd() * 0.2)), at: new Date(NOW - i * (8 + rnd() * 30) * 6e4), ms: status === 'hotovo' ? Math.round(9000 + rnd() * 25000) : null, status, err: status === 'selhalo' ? pick(['429 Too Many Requests', 'Časový limit 60 s', '503 od ElevenLabs']) : null });
   }
 
-  window.DEMO = {
+  return {
     days: DAYS, scale: SCALE, visits, families: families.reverse(), sources: SOURCES, daily, wau, heat, cohorts, weekOf, WEEKS, dayAt,
     stories: STORIES, storyAgg, catIds: CAT_IDS, charsPerMin: CHARS_PER_MIN,
     payments, vouchers: VOUCHERS, promos: PROMOS, eur: EUR,
@@ -342,4 +343,4 @@
     familyDetail: (f) => simulate(f, true),
     deacc,
   };
-})();
+};

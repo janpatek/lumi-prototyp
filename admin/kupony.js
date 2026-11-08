@@ -10,7 +10,8 @@
 // Dnes ukázková data; nové kampaně, kódy a výplaty se drží v localStorage tohoto prohlížeče.
 
 const CPN = (() => {
-  const KEY = 'ospalek.admin.coupons.v1';
+  // ostrý režim: bez ukázkových kampaní a s vlastním klíčem, ať se nemíchají se skutečnými rodinami
+  const KEY = D.live ? 'ospalek.admin.live.coupons.v1' : 'ospalek.admin.coupons.v1';
   const ALPH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // bez 0/O, 1/I/L, ať se kód dá přečíst a opsat
   const GIVES = {
     trial: { label: 'Vyzkoušení zdarma bez karty', unit: 'dní', where: 'iOS, Android i web', how: 'RevenueCat přidělí dočasný přístup. Rodina nic neplatí ani nezadává kartu, po skončení uvidí nabídku předplatného.' },
@@ -52,7 +53,7 @@ const CPN = (() => {
     { id: 'p2', name: 'Táta na cestách (ukázka)', handle: '@tata_na_cestach_ukazka', channel: 'YouTube', email: 'partner2@example.cz' },
     { id: 'p3', name: 'Podcast Malí a velcí (ukázka)', handle: 'malievelci.example', channel: 'Podcast', email: 'partner3@example.cz' },
     ...st.partners,
-  ];
+  ].filter((p) => !D.live || p.local);
   const ago = (d) => new Date(NOW - d * DAY);
   const demo = [
     { id: 'c1', name: 'Známí: měsíc na vyzkoušení', purpose: 'znami', gives: 'trial', value: 30, mode: 'unique', prefix: 'ZNAMI', count: 40, newOnly: true, from: ago(70), to: ago(-20), limit: null, created: ago(70), rate: 0.6 },
@@ -64,6 +65,7 @@ const CPN = (() => {
     { id: 'c7', name: 'Mikuláš: 2 měsíce za cenu jednoho', purpose: 'marketing', gives: 'percent', value: 50, dur: 'months', months: 2, mode: 'shared', code: 'MIKULAS', newOnly: false, from: ago(-20), to: ago(-29), limit: null, created: ago(3), rate: 0 },
     { id: 'c8', name: 'Kompenzace z podpory', purpose: 'podpora', gives: 'months', value: 1, mode: 'unique', prefix: 'OMLUVA', count: 8, newOnly: false, from: ago(120), to: null, limit: null, created: ago(120), rate: 0.02 },
   ];
+  if (D.live) demo.length = 0;
   const campaigns = [...demo, ...st.campaigns.map(revive)];
   const NOTES = ['sestra', 'kamarádka z práce', 'sousedi', 'kmotra', 'babička a děda', 'spolužák', 'rodiče z hřiště', 'švagrová', 'kolega', 'teta'];
 
