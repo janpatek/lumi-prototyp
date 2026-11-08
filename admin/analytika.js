@@ -1,0 +1,247 @@
+// ---------- Používání, Předplatné a platby, Hlas a náklady ----------
+// Všechno se čte z denních agregátů a souhrnů; žádná stránka neprochází jednotlivé poslechy.
+
+const AN = { days: 90 };
+const rangeSeg = (k, cur) => `<div class="seg">${[[30, '30 dní'], [90, '90 dní'], [D.days, '6 měsíců']].map(([d, l]) => `<button data-a="${k}" data-v="${d}" class="${cur === d ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+const dayIdx = (n) => Array.from({ length: n }, (_, k) => D.days - n + k);
+const byWeek = (idx, arr) => {
+  const out = [];
+  idx.forEach((i) => { const w = D.weekOf(i), last = out[out.length - 1]; if (last && last.w === w) last.v += arr(i); else out.push({ w, i, v: arr(i) }); });
+  return out;
+};
+const lineChart = (id, idx, series, weekly) => after.push(() => {
+  const el = document.getElementById(id); if (!el) return;
+  if (weekly) {
+    const ws = byWeek(idx, () => 0);
+    chart(el, { type: 'line', labels: ws.map((w) => fshort(D.dayAt(w.i))), titles: ws.map((w) => `Týden od ${fshort(D.dayAt(w.i))}`), series: series.map((s) => ({ ...s, values: byWeek(idx, s.get).map((w) => Math.round(w.v)) })) });
+  } else chart(el, { type: 'line', labels: idx.map((i) => fshort(D.dayAt(i))), titles: idx.map((i) => fday(D.dayAt(i))), series: series.map((s) => ({ ...s, values: idx.map((i) => Math.round(s.get(i))) })) });
+});
+const legendOf = (list) => `<div class="legend">${list.map(([c, l]) => `<span><i class="key" style="--c:${c}"></i>${l}</span>`).join('')}</div>`;
+
+// ---------- Používání ----------
+function pageUsage() {
+  const n = AN.days, idx = dayIdx(n), dl = D.daily, L = D.days - 1;
+  const plays = sumR(dl.plays, L - n + 1, L), mins = sumR(dl.minutes, L - n + 1, L), done = sumR(dl.done, L - n + 1, L);
+  const dauAvg = sumR(dl.dau, L - n + 1, L) / n;
+  const mau = D.families.reduce((s, f) => s + (f.days30 > 0 ? 1 : 0), 0);
+  const wauLast = D.wau[D.WEEKS - 2];
+  lineChart('chDau', idx, [{ name: 'Přehrání', color: 'var(--s1)', get: (i) => dl.plays[i] }, { name: 'Aktivní rodiny', color: 'var(--s2)', get: (i) => dl.dau[i] }], n > 60);
+  lineChart('chCat', idx, D.catIds.map((c, k) => ({ name: catLabel(c), color: `var(--s${k + 1})`, get: (i) => dl.cat[c][i] })), true);
+  // kohorty po týdnech registrace
+  const C = D.cohorts, W = D.WEEKS, show = Math.min(12, W - 1);
+  const rows = [];
+  for (let w = W - show - 1; w < W; w++) if (C[w] && C[w].size) rows.push(w);
+  const cohort = `<div class="table-wrap"><table class="cohort"><thead><tr><th style="text-align:left">Týden registrace</th><th>Rodin</th>${Array.from({ length: show }, (_, k) => `<th>T${k}</th>`).join('')}</tr></thead><tbody>
+    ${rows.map((w) => { const c = C[w]; const start = D.dayAt(Math.max(0, w * 7 - ((D.dayAt(0).getDay() + 6) % 7))); return `<tr><td style="text-align:left" class="num">${fshort(start)}</td><td class="num">${fmt(c.size)}</td>${Array.from({ length: show }, (_, k) => { if (w + k >= W) return '<td></td>'; const r = c.active[k] / c.size; return `<td class="c ${r > 0.55 ? 'hi' : ''}" style="background:color-mix(in srgb, var(--s1) ${Math.round(r * 100)}%, transparent)" title="${pct(c.active[k], c.size)} rodin aktivních v týdnu ${k}">${Math.round(r * 100)}</td>`; }).join('')}</tr>`; }).join('')}
+  </tbody></table></div>`;
+  // den v týdnu × hodina
+  const hmax = Math.max(...D.heat);
+  const heat = `<div class="heat" style="grid-template-columns:22px repeat(24, minmax(0, 1fr))">${['po', 'út', 'st', 'čt', 'pá', 'so', 'ne'].map((d, r) => `<span>${d}</span>${Array.from({ length: 24 }, (_, h) => { const v = D.heat[r * 24 + h]; return `<i class="c" style="opacity:${v ? 0.08 + 0.92 * (v / hmax) : 0.04}" title="${d} ${h}:00 – ${fmt(v)} přehrání"></i>`; }).join('')}`).join('')}<span></span>${Array.from({ length: 24 }, (_, h) => `<span style="text-align:center">${h % 3 === 0 ? h : ''}</span>`).join('')}</div>`;
+  // distribuce aktivity
+  const buckets = [['0 dní', (f) => f.days30 === 0], ['1–3', (f) => f.days30 >= 1 && f.days30 <= 3], ['4–9', (f) => f.days30 >= 4 && f.days30 <= 9], ['10–19', (f) => f.days30 >= 10 && f.days30 <= 19], ['20+', (f) => f.days30 >= 20]].map(([l, t]) => [l, D.families.filter(t).length]);
+  const bmax = Math.max(...buckets.map((b) => b[1]));
+  const plat = ['iOS', 'Android', 'Web'].map((p) => [p, D.families.filter((f) => f.platform === p).length]);
+  const ver = {}; D.families.forEach((f) => { if (f.appVer !== 'web') ver[f.appVer] = (ver[f.appVer] || 0) + 1; });
+  const ages = {}; D.families.forEach((f) => f.kids.forEach((k) => { ages[k.age] = (ages[k.age] || 0) + 1; }));
+  const bars = (list) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>`; };
+  return `
+    ${head('Používání', 'Jak rodiny poslouchají', rangeSeg('anDays', n))}
+    ${demoBar('Ve skutečnosti se počítá v noci z tabulky poslechů do daily_stats.')}
+    <div class="tiles t8">
+      ${tile('Denně aktivní (průměr)', fmt(dauAvg), `za ${n} dní`)}
+      ${tile('Týdně aktivní', fmt(wauLast), 'minulý celý týden')}
+      ${tile('Měsíčně aktivní', fmt(mau), `DAU/MAU ${pct(sumR(dl.dau, L - 6, L) / 7, mau)}`)}
+      ${tile('Přehrání', fmt(plays), `${dec(plays / Math.max(1, sumR(dl.dau, L - n + 1, L)))} na aktivní rodinu a den`)}
+      ${tile('Hodin poslechu', fmt(mins / 60), `${dec(mins / Math.max(1, plays))} min na přehrání`)}
+      ${tile('Dohráno do konce', pct(done, plays), 'u ukolébavek je to dobré znamení')}
+      ${tile('Retence po 1 týdnu', pct(rows.slice(0, -1).reduce((s, w) => s + C[w].active[1], 0), rows.slice(0, -1).reduce((s, w) => s + C[w].size, 0)), 'průměr kohort v tabulce')}
+      ${tile('Dětí na rodinu', dec(D.families.reduce((s, f) => s + f.kids.length, 0) / D.families.length), `${fmt(D.families.reduce((s, f) => s + f.kids.length, 0))} dětských profilů`)}
+    </div>
+    <div class="grid2">
+      <section class="panel"><div class="panel-head"><h2>Přehrání a aktivní rodiny</h2>${legendOf([['var(--s1)', 'Přehrání'], ['var(--s2)', 'Aktivní rodiny']])}</div><div class="chart" id="chDau"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Přehrání podle kategorií (po týdnech)</h2>${legendOf(D.catIds.map((c, k) => [`var(--s${k + 1})`, catLabel(c)]))}</div><div class="chart" id="chCat"></div></section>
+    </div>
+    <section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Retence po týdnech</h2><span class="hint">% rodin z kohorty, které v týdnu T po registraci aspoň jednou poslouchaly</span></div>${cohort}</section>
+    <div class="grid21">
+      <section class="panel"><div class="panel-head"><h2>Kdy se poslouchá</h2><span class="hint">den v týdnu × hodina, celé období</span></div>${heat}</section>
+      <section class="panel"><div class="panel-head"><h2>Aktivní dny za 30 dní</h2></div>
+        <div class="bars">${buckets.map(([l, c]) => `<div class="b"><span>${l}</span><span class="t"><i style="width:${(c / bmax) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>
+        <h2 style="margin:16px 0 10px">Věk dětí</h2>${bars(Object.entries(ages).sort((a, b) => a[0] - b[0]).map(([a, c]) => [`${a} ${plural(Number(a), 'rok', 'roky', 'let')}`, c]))}
+      </section>
+    </div>
+    <div class="grid2">
+      <section class="panel"><div class="panel-head"><h2>Výkon pohádek</h2><a class="btn white sm" href="#pohadky">Pohádky</a></div>${storyTable()}</section>
+      <section class="panel"><div class="panel-head"><h2>Zařízení a verze</h2></div>${bars(plat)}<h2 style="margin:16px 0 10px">Verze mobilní aplikace</h2>${bars(Object.entries(ver).sort((a, b) => b[0].localeCompare(a[0])))}</section>
+    </div>`;
+}
+function storyTable() {
+  return `<div class="table-wrap"><table><thead><tr><th>Pohádka</th><th class="r">Přehrání</th><th class="r">Rodin</th><th class="r">Do konce</th><th class="r">Ø min</th><th></th></tr></thead><tbody>
+    ${Object.entries(D.storyAgg).sort((a, b) => b[1].plays - a[1].plays).map(([id, s]) => { const st = STORIES.find((x) => x.id === id); return `<tr><td>${esc(st ? safeTitle(st) : id)}</td><td class="r num">${fmt(s.plays)}</td><td class="r num">${fmt(s.families)}</td><td class="r num">${pct(s.done, s.plays)}</td><td class="r num">${dec(s.minutes / Math.max(1, s.plays))}</td><td>${st && st.free ? '<span class="tag honey">Zdarma</span>' : '<span class="tag line">Placená</span>'}</td></tr>`; }).join('')}
+  </tbody></table></div>`;
+}
+PAGES.pouzivani = pageUsage;
+
+// ---------- Předplatné a platby ----------
+const PAY = { q: '', status: 'all', store: 'all', vt: null };
+function pagePayments() {
+  const dl = D.daily, L = D.days - 1, N = D.days, fams = D.families;
+  const mrr = dl.mrr[L], subs = dl.subs[L];
+  const p30 = D.payments.filter((p) => p.at >= addDays(TODAY, -29));
+  const gross = p30.filter((p) => p.status === 'zaplaceno').reduce((s, p) => s + p.czk, 0);
+  const fees = p30.filter((p) => p.status === 'zaplaceno').reduce((s, p) => s + p.fee, 0);
+  const refunded = p30.filter((p) => p.status === 'vráceno').reduce((s, p) => s + p.czk, 0);
+  const churned = fams.filter((f) => f.subEnd >= N - 30).length;
+  const pastDue = fams.filter((f) => f.status === 'past_due');
+  const trials = fams.filter((f) => f.status === 'trial').length;
+  const startedTrials = fams.filter((f) => f.trialI >= 0);
+  const finished = startedTrials.filter((f) => f.trialI + 7 <= L);
+  const conv = finished.filter((f) => f.subI >= 0).length;
+  const paying = fams.filter((f) => f.status === 'active' || f.status === 'past_due');
+  const mix = [['Měsíční', paying.filter((f) => f.plan === 'měsíc').length], ['Roční', paying.filter((f) => f.plan === 'rok').length], ['Dárek', paying.filter((f) => f.plan === 'dárek').length]];
+  const stores = ['App Store', 'Google Play', 'Stripe'].map((s) => [s, p30.filter((p) => p.store === s && p.status === 'zaplaceno').reduce((a, p) => a + p.czk, 0)]);
+  const idx = dayIdx(N);
+  lineChart('chMrr2', idx, [{ name: 'MRR (Kč)', color: 'var(--s3)', get: (i) => dl.mrr[i] }], false);
+  lineChart('chSubs', idx, [{ name: 'Platící', color: 'var(--s1)', get: (i) => dl.subs[i] }, { name: 'Zkušební', color: 'var(--s2)', get: (i) => dl.trials[i] }], false);
+  const canR = API.can('billing.refund');
+  after.push(() => {
+    PAY.vt = vtable($('#payList'), {
+      cols: [
+        { k: 'at', label: 'Datum', w: '130px', html: (p) => `<span class="num">${fdate(p.at)} <span class="muted">${p.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></span>` },
+        { k: 'fam', label: 'Rodina', w: 'minmax(180px, 1.4fr)', html: (p) => famLink(API.families.get(p.fam)) },
+        { k: 'store', label: 'Obchod', w: '110px', html: (p) => p.store },
+        { k: 'plan', label: 'Tarif', w: '90px', html: (p) => (p.plan === 'rok' ? 'roční' : 'měsíční') },
+        { k: 'amount', label: 'Částka', w: '100px', cls: 'r', html: (p) => (p.cur === 'EUR' ? `${dec(p.amount, 2)} €` : kc(p.czk)) },
+        { k: 'fee', label: 'Poplatek', w: '90px', cls: 'r', html: (p) => `<span class="muted">${p.fee ? kc(p.fee) : '–'}</span>` },
+        { k: 'status', label: 'Stav', w: '110px', html: (p) => payTag(p.status) },
+        { k: 'act', label: '', w: '110px', cls: 'r', html: (p) => (canR && p.status === 'zaplaceno' ? `<button class="btn white sm" data-a="payRefund" data-v="${p.id}">Vrátit</button>` : '') },
+      ],
+      rowH: 40, key: (p) => p.id,
+      fetch: (c, l) => API.payments.list({ q: PAY.q, status: PAY.status, store: PAY.store }, c, l),
+      foot: (s) => `${fmt(s.total)} ${plural(s.total, 'platba', 'platby', 'plateb')} · dotaz ${dec(s.ms)} ms`,
+    });
+    onLeave(() => { PAY.vt.destroy(); PAY.vt = null; });
+  });
+  const opt = (k, v, l) => `<option value="${v}" ${PAY[k] === v ? 'selected' : ''}>${l}</option>`;
+  const bars = (list, f = fmt) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${f(c)}</span></div>`).join('')}</div>`; };
+  return `
+    ${head('Předplatné a platby', 'Měsíční a roční předplatné přes App Store, Google Play a Stripe')}
+    <div class="demo"><b>Ukázková data</b><span>Nic se neúčtuje ani nevrací. Skutečná data dodají webhooky z RevenueCat (obchody) a Stripe (web). Poplatky obchodů jsou odhad (15 %, Stripe 1,5 % + 6,50 Kč), kurz 1 € = ${D.eur} Kč.</span></div>
+    <div class="tiles t8">
+      ${tile('MRR', kc(mrr), `${trend(mrr, dl.mrr[N - 31], 'za 30 dní')}`)}
+      ${tile('ARR', kc(mrr * 12), 'MRR × 12')}
+      ${tile('Platící rodiny', fmt(subs), `ARPPU ${kc(mrr / Math.max(1, subs))} měsíčně`)}
+      ${tile('Zkušební týden', fmt(trials), `konverze ${pct(conv, finished.length)} za celé období`)}
+      ${tile('Příjem za 30 dní', kc(gross), `po poplatcích ${kc(gross - fees)}`)}
+      ${tile('Vráceno za 30 dní', kc(refunded), `${p30.filter((p) => p.status === 'vráceno').length} plateb`)}
+      ${tile('Odchod za 30 dní', fmt(churned), `${pct(churned, dl.subs[N - 31])} platících`)}
+      ${tile('Neuhrazené platby', fmt(pastDue.length), 'obchod zkouší platbu znovu')}
+    </div>
+    <div class="grid2">
+      <section class="panel"><div class="panel-head"><h2>MRR</h2></div><div class="chart" id="chMrr2"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Platící a zkušební</h2>${legendOf([['var(--s1)', 'Platící'], ['var(--s2)', 'Zkušební']])}</div><div class="chart" id="chSubs"></div></section>
+    </div>
+    <div class="grid3">
+      <section class="panel"><div class="panel-head"><h2>Tarify platících</h2></div>${bars(mix)}<h2 style="margin:16px 0 10px">Příjem podle obchodu (30 dní)</h2>${bars(stores, kc)}</section>
+      <section class="panel"><div class="panel-head"><h2>Neuhrazené platby</h2></div>
+        ${pastDue.length ? `<div class="table-wrap"><table><tbody>${pastDue.slice(0, 8).map((f) => `<tr><td>${famLink(f)}</td><td>${f.platform}</td><td class="r">${canR ? `<button class="btn white sm" data-a="payRemind" data-v="${f.id}">Připomenout</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Žádné.</p>'}
+        <p class="hint" style="margin-top:8px">Obchody zkouší platbu znovu až 16 dní (grace period). Připomínka je e-mail rodině.</p></section>
+      <section class="panel"><div class="panel-head"><h2>Slevové a dárkové kódy</h2>${canR ? `<button class="btn white sm" data-a="promoNew">${I.plus}Nový kód</button>` : ''}</div>
+        <div class="table-wrap"><table><thead><tr><th>Kód</th><th>Popis</th><th class="r">Použito</th></tr></thead><tbody>
+        ${API.payments.promos().map((p) => `<tr><td class="mono">${esc(p.code)}</td><td>${esc(p.desc)}</td><td class="r num">${fmt(p.uses)}${p.limit ? ` / ${fmt(p.limit)}` : ''}</td></tr>`).join('')}
+        <tr><td colspan="3" class="muted" style="padding-top:12px">Dárkové poukazy: ${D.vouchers.length} prodaných, ${D.vouchers.filter((v) => v.redeemed).length} uplatněných</td></tr>
+        </tbody></table></div></section>
+    </div>
+    <section class="panel" style="margin-top:12px">
+      <div class="panel-head"><h2>Transakce</h2></div>
+      <div class="filters">
+        <input type="search" data-f="payq" placeholder="Hledat rodinu nebo id platby" value="${esc(PAY.q)}" aria-label="Hledat platbu">
+        <select data-f="paystatus" aria-label="Stav">${opt('status', 'all', 'Všechny stavy')}${opt('status', 'zaplaceno', 'Zaplaceno')}${opt('status', 'selhala', 'Selhala')}${opt('status', 'vráceno', 'Vráceno')}</select>
+        <select data-f="paystore" aria-label="Obchod">${opt('store', 'all', 'Všechny obchody')}${opt('store', 'App Store', 'App Store')}${opt('store', 'Google Play', 'Google Play')}${opt('store', 'Stripe', 'Stripe')}</select>
+      </div>
+      <div class="vt-host" id="payList" style="height:420px;min-height:0"></div>
+    </section>`;
+}
+PAGES.platby = pagePayments;
+
+// ---------- Hlas a náklady ----------
+// Generování hlasu je hlavní proměnný náklad. Cena za 1000 znaků je předpoklad, dá se upravit.
+const TTS_KEY = 'ospalek.admin.ttsPrice';
+function pageVoice() {
+  const price = Number(store.get(TTS_KEY)) || 4;
+  const dl = D.daily, L = D.days - 1, N = D.days;
+  const ch30 = sumR(dl.genChars, N - 30, L), hits30 = sumR(dl.cacheHits, N - 30, L), plays30 = sumR(dl.plays, N - 30, L);
+  const ch30b = sumR(dl.genChars, N - 60, N - 31);
+  const cost30 = (ch30 / 1000) * price;
+  const subs = dl.subs[L], mrr = dl.mrr[L];
+  const jobs = D.ttsJobs, ok = jobs.filter((j) => j.ms);
+  const avg = ok.reduce((s, j) => s + j.ms, 0) / Math.max(1, ok.length);
+  const idx = dayIdx(90);
+  after.push(() => chart($('#chChars'), { type: 'bar', labels: idx.map((i) => fshort(D.dayAt(i))), titles: idx.map((i) => fday(D.dayAt(i))), series: [{ name: 'Tisíc znaků', color: 'var(--s1)', values: idx.map((i) => Math.round(dl.genChars[i] / 1000)) }] }));
+  lineChart('chCache', idx, [{ name: 'Z mezipaměti %', color: 'var(--s3)', get: (i) => (dl.plays[i] ? (dl.cacheHits[i] / dl.plays[i]) * 100 : 0) }], true);
+  const services = [
+    ['ElevenLabs API (hlas Jana, eleven_v4)', 'ok', 'odezva 1,8 s'],
+    ['Cloudflare Worker tts-worker', 'ok', '0 chyb za hodinu'],
+    ['Úložiště nahrávek', 'ok', 'cache hit 97 %'],
+    ['RevenueCat webhooky', 'warn', 'poslední událost před 2 h'],
+    ['Databáze (Supabase)', 'warn', 'zatím nenapojeno'],
+  ];
+  return `
+    ${head('Hlas a náklady', 'Generování nahrávek přes ElevenLabs, mezipaměť a marže')}
+    ${demoBar('Počty znaků vycházejí z délky pohádek a z toho, kdy rodina pohádku slyší poprvé.')}
+    <section class="panel" style="margin-bottom:12px"><div class="filters" style="margin:0">
+      <label for="ttsPrice" style="margin:0">Cena za 1 000 znaků</label><input id="ttsPrice" data-f="ttsPrice" type="number" min="0" step="0.1" value="${price}" style="width:100px"> <span class="muted">Kč · předpoklad, ověř aktuální ceník a tarif ElevenLabs</span>
+    </div></section>
+    <div class="tiles t8">
+      ${tile('Vygenerováno za 30 dní', `${fmt(ch30 / 1000)} tis. znaků`, trend(ch30, ch30b))}
+      ${tile('Odhad nákladů za 30 dní', kc(cost30), `${dec(cost30 / Math.max(1, plays30), 2)} Kč na přehrání`)}
+      ${tile('Přehráno z mezipaměti', pct(hits30, plays30), 'nic negenerovalo, 0 Kč')}
+      ${tile('Náklad na platící rodinu', kc(cost30 / Math.max(1, subs)), `vč. rodin zdarma · ARPPU ${kc(mrr / Math.max(1, subs))}`)}
+      ${tile('Marže po hlasu', pct(mrr - cost30, mrr), 'MRR minus náklady na hlas (bez obchodů)')}
+      ${tile('Průměrná doba generování', dec(avg / 1000) + ' s', `${ok.length} posledních úloh`)}
+      ${tile('Selhané úlohy', fmt(jobs.filter((j) => j.status === 'selhalo').length), 'z posledních 40')}
+      ${tile('Znaků na pohádku', fmt(D.charsPerMin * 9.5), `≈ ${D.charsPerMin} znaků na minutu`)}
+    </div>
+    <div class="grid21">
+      <section class="panel"><div class="panel-head"><h2>Vygenerované znaky po dnech (tisíce)</h2></div><div class="chart" id="chChars"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Stav služeb</h2><span class="tag honey">ukázka</span></div>
+        <div class="table-wrap"><table><tbody>${services.map(([n, s, d]) => `<tr><td>${n}</td><td class="status-${s}">${s === 'ok' ? 'v pořádku' : 'pozor'}</td><td class="muted">${d}</td></tr>`).join('')}</tbody></table></div>
+        <h2 style="margin:16px 0 8px">Podíl přehrání z mezipaměti</h2><div class="chart" id="chCache"></div></section>
+    </div>
+    <section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Poslední úlohy generování</h2></div>
+      <div class="table-wrap" style="max-height:380px;overflow-y:auto"><table><thead><tr><th>Kdy</th><th>Rodina</th><th>Pohádka</th><th class="r">Znaků</th><th class="r">Trvání</th><th>Stav</th><th></th></tr></thead><tbody>
+      ${jobs.map((j) => { const st = STORIES.find((x) => x.id === j.story); return `<tr><td class="num">${ago(j.at)}</td><td>${famLink(API.families.get(j.fam))}</td><td>${esc(st ? safeTitle(st) : j.story)}</td><td class="r num">${fmt(j.chars)}</td><td class="r num">${j.ms ? dec(j.ms / 1000) + ' s' : '–'}</td><td>${j.status === 'hotovo' ? '<span class="tag mint">hotovo</span>' : j.status === 'běží' ? '<span class="tag sky">běží</span>' : `<span class="tag peach" title="${esc(j.err)}">selhalo</span> <span class="muted">${esc(j.err)}</span>`}</td><td class="r">${j.status === 'selhalo' && API.can('content.edit') ? `<button class="btn white sm" data-a="ttsRetry" data-v="${j.id}">Zkusit znovu</button>` : ''}</td></tr>`; }).join('')}
+      </tbody></table></div></section>`;
+}
+PAGES.hlas = pageVoice;
+
+let payT;
+Object.assign(ACTIONS, {
+  anDays: (v) => { AN.days = Number(v); render(); },
+  payRefund: (v) => {
+    const p = D.payments.find((x) => x.id === v);
+    confirmBox('Vrátit platbu?', `${kc(p.czk)} rodině ${esc(famName(API.families.get(p.fam)))} přes ${p.store}. V ukázce se nic neposílá, jen se změní stav a zapíše audit log.`, 'Vrátit platbu', () => { API.payments.refund(v); PAY.vt && PAY.vt.reset(true); toast('Platba je označená jako vrácená'); });
+  },
+  payRemind: (v) => { API.log('payment.remind', v, 'Připomínka neuhrazené platby (ukázka)'); toast('Připomínka zapsaná do audit logu (ukázka, nic se neodeslalo)'); },
+  promoNew: () => modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="prT">
+    <div class="dialog-head"><h2 id="prT">Nový slevový kód</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
+    <div class="dialog-body"><label for="prCode">Kód</label><input id="prCode" placeholder="VANOCE" style="text-transform:uppercase"><label for="prDesc">Co dává</label><input id="prDesc" placeholder="Např. 30 % na první rok"><label for="prLim">Limit použití (nepovinné)</label><input id="prLim" type="number" min="1"><p class="err" id="prErr"></p>
+    <p class="hint">Ve skutečnosti se kód zakládá v App Store Connect, Google Play a Stripe. Tady jen evidence.</p></div>
+    <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zrušit</button><button class="btn" data-a="promoSave">Založit</button></div></div></div>`),
+  promoSave: () => {
+    const code = $('#prCode').value.trim().toUpperCase(), desc = $('#prDesc').value.trim();
+    if (!/^[A-Z0-9-]{3,20}$/.test(code) || !desc) { $('#prErr').textContent = 'Kód 3–20 znaků (písmena bez diakritiky, číslice, pomlčka) a popis.'; return; }
+    if (API.payments.promos().some((p) => p.code === code)) { $('#prErr').textContent = 'Takový kód už existuje.'; return; }
+    API.payments.addPromo({ code, desc, uses: 0, limit: Number($('#prLim').value) || null, local: true });
+    closeModal(); render(); toast('Kód je založený');
+  },
+  ttsRetry: (v) => { const j = D.ttsJobs.find((x) => x.id === v); j.status = 'běží'; j.err = null; API.log('tts.retry', v, 'Nové generování (ukázka)'); render(); toast('Úloha je znovu ve frontě (ukázka)'); },
+});
+document.addEventListener('input', (ev) => {
+  const t = ev.target, f = t.dataset.f;
+  if (f === 'payq') { clearTimeout(payT); payT = setTimeout(() => { PAY.q = t.value; PAY.vt && PAY.vt.reset(); }, 120); }
+});
+document.addEventListener('change', (ev) => {
+  const t = ev.target, f = t.dataset.f;
+  if (f === 'paystatus' || f === 'paystore') { PAY[f.slice(3)] = t.value; PAY.vt && PAY.vt.reset(); }
+  if (f === 'ttsPrice') { store.set(TTS_KEY, Number(t.value) || 0); render(); }
+});

@@ -1,5 +1,5 @@
 // Ospalek – administrace. Prototyp bez backendu:
-//  – uživatelé, registrace a návštěvy jsou ukázková data z demo-data.js (jasně označená),
+//  – rodiny, helpdesk, platby, statistiky a návštěvy jsou ukázková data z demo-data.js přes api.js (jasně označená),
 //  – pohádky jsou skutečné: načtou se ze ../stories.cs.js, úpravy se drží v localStorage
 //    tohoto prohlížeče a dají se vyexportovat jako nový stories.cs.js.
 // Žádné klíče ani osobní údaje – složka leží na veřejných GitHub Pages.
@@ -20,6 +20,53 @@ const store = {
   del(k) { try { localStorage.removeItem(k); } catch (e) {} },
 };
 
+const plural = (n, a, b, c) => (n === 1 ? a : n > 1 && n < 5 ? b : c);
+const ago = (d) => {
+  if (!d) return '–';
+  const s = (Date.now() - d) / 1000;
+  if (s < 60) return 'právě teď';
+  if (s < 3600) return `před ${Math.floor(s / 60)} min`;
+  if (s < 86400) return `před ${Math.floor(s / 3600)} h`;
+  const dd = Math.floor(s / 86400);
+  return dd < 7 ? `před ${dd} ${plural(dd, 'dnem', 'dny', 'dny')}` : fdate(d);
+};
+const hm = (ms) => {
+  const m = Math.round(Math.abs(ms) / 6e4);
+  if (m < 60) return `${m} min`;
+  if (m < 1440) return `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
+  return `${Math.floor(m / 1440)} d ${Math.floor((m % 1440) / 60)} h`;
+};
+const kc = (n) => `${Math.round(n).toLocaleString('cs-CZ')} Kč`;
+const dec = (n, d = 1) => n.toLocaleString('cs-CZ', { maximumFractionDigits: d, minimumFractionDigits: d });
+const initials = (n) => String(n || '?').split(/\s+/).map((x) => x[0]).join('').slice(0, 2).toUpperCase();
+// osobní údaje jen pro role s oprávněním families.pii
+const famName = (f) => (!f ? 'Smazaná rodina' : !f.email ? `Host ${f.id}` : API.can('families.pii') ? f.name : `Rodina ${f.id}`);
+const famMail = (f) => (!f?.email ? '' : API.can('families.pii') ? f.email : f.email.replace(/^(.).*(@.*)$/, '$1•••$2'));
+const famLink = (f) => (f ? `<a class="link" href="#rodiny/${f.id}">${esc(famName(f))}</a>` : '<span class="muted">Smazaná rodina</span>');
+const SUB = { trial: ['Zkušební', 'honey'], active: ['Platí', 'mint'], past_due: ['Neuhrazeno', 'peach'], canceled: ['Zrušeno', 'line'], expired: ['Nepřevedeno', 'line'] };
+const subTag = (f) => {
+  if (!f.status) return f.email ? '<span class="tag line">Zdarma</span>' : '<span class="tag line">Host</span>';
+  const [l, c] = SUB[f.status];
+  return `<span class="tag ${c}">${l}${f.plan && f.status !== 'expired' ? ` · ${f.plan === 'rok' ? 'roční' : f.plan === 'dárek' ? 'dárek' : 'měsíční'}` : ''}</span>`;
+};
+const healthTag = (h) => `<span class="health ${h >= 60 ? 'h-good' : h >= 35 ? 'h-mid' : 'h-bad'}" title="Zdraví účtu (0–100)">${h}</span>`;
+const kidsHtml = (f) => f.kids.map((k) => `<span class="kid ${k.g}">${API.can('families.pii') ? esc(k.name) : k.g === 'f' ? 'holka' : 'kluk'} ${k.age}</span>`).join('');
+const tStatus = (t) => `<span class="st st-${t.status}">${API.TSTATUS[t.status]}</span>`;
+const slaChip = (t) => {
+  const s = API.tickets.sla(t);
+  if (s.done) return s.ms != null ? `<span class="sla ${s.state}" title="První odpověď">↩ ${hm(s.ms)}</span>` : '';
+  return `<span class="sla ${s.state}" title="Do první odpovědi (SLA ${t.slaH} h)">${s.left < 0 ? `po termínu ${hm(s.left)}` : `zbývá ${hm(s.left)}`}</span>`;
+};
+const trend = (a, b, label = 'proti předchozím 30 dnům', invert = false) => {
+  if (!b) return label ? `<span class="muted">${label}</span>` : '';
+  const p = Math.round(((a - b) / b) * 100);
+  const good = invert ? p <= 0 : p >= 0;
+  return `<span class="${p === 0 ? '' : good ? 'up' : 'down'}">${p >= 0 ? '+' : '−'}${Math.abs(p)} %</span> ${label}`;
+};
+const sumR = (arr, a, b) => { let x = 0; for (let i = Math.max(0, a); i <= b; i++) x += arr[i]; return x; };
+let cleanup = [];
+const onLeave = (fn) => cleanup.push(fn);
+
 const I = {
   home: '<svg class="ico" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
   users: '<svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 5.4"/></svg>',
@@ -33,16 +80,40 @@ const I = {
   copy: '<svg class="ico" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
   wand: '<svg class="ico" viewBox="0 0 24 24"><path d="M4 20L15 9M13 7l4 4"/><path d="M18 2v3M16.5 3.5h3M20 9v2M19 10h2M10 2v2M9 3h2"/></svg>',
   sort: '<svg class="ico" viewBox="0 0 24 24" style="width:12px;height:12px;stroke-dasharray:none"><path d="M8 10l4-4 4 4M8 14l4 4 4-4"/></svg>',
+  chat: '<svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>',
+  chart: '<svg class="ico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  card: '<svg class="ico" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6 15h4"/></svg>',
+  wave: '<svg class="ico" viewBox="0 0 24 24"><path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10M21 12h0"/></svg>',
+  shield: '<svg class="ico" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  list: '<svg class="ico" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1"/></svg>',
+  search: '<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>',
+  gift: '<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M12 9c-2-4-6-4-6-1.5S10 9 12 9zm0 0c2-4 6-4 6-1.5S14 9 12 9z"/></svg>',
+  back: '<svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
 };
 
 const ROUTES = [
-  { id: 'prehled', label: 'Přehled', ico: I.home },
-  { id: 'uzivatele', label: 'Uživatelé', ico: I.users },
-  { id: 'registrace', label: 'Registrace', ico: I.reg },
-  { id: 'navstevy', label: 'Návštěvy', ico: I.eye },
-  { id: 'pohadky', label: 'Pohádky', ico: I.book },
+  { id: 'prehled', label: 'Přehled', ico: I.home, perm: 'analytics.read' },
+  { grp: 'Podpora' },
+  { id: 'helpdesk', label: 'Helpdesk', ico: I.chat, perm: 'tickets.read', badge: () => API.tickets.counts().unassigned, full: true },
+  { grp: 'Rodiny' },
+  { id: 'rodiny', label: 'Rodiny', ico: I.users, perm: 'families.read' },
+  { id: 'pouzivani', label: 'Používání', ico: I.chart, perm: 'analytics.read' },
+  { id: 'registrace', label: 'Registrace', ico: I.reg, perm: 'analytics.read' },
+  { id: 'navstevy', label: 'Návštěvy', ico: I.eye, perm: 'analytics.read' },
+  { grp: 'Byznys' },
+  { id: 'platby', label: 'Předplatné a platby', ico: I.card, perm: 'billing.read' },
+  { grp: 'Obsah' },
+  { id: 'pohadky', label: 'Pohádky', ico: I.book, perm: 'content.edit' },
+  { id: 'hlas', label: 'Hlas a náklady', ico: I.wave, perm: 'ops.read' },
+  { grp: 'Systém' },
+  { id: 'tym', label: 'Tým a role', ico: I.shield },
+  { id: 'audit', label: 'Audit log', ico: I.list, perm: 'audit.read' },
 ];
-const route = () => { const r = location.hash.slice(1); return ROUTES.some((x) => x.id === r) ? r : 'prehled'; };
+// #stranka/parametr – např. #rodiny/f00042, #helpdesk/1042, #helpdesk/breach
+const hashParts = () => { const [r, ...rest] = decodeURIComponent(location.hash.slice(1)).split('/'); return [r === 'uzivatele' ? 'rodiny' : r, rest.join('/')]; };
+const route = () => { const r = hashParts()[0]; return ROUTES.some((x) => x.id === r) ? r : 'prehled'; };
+const routeParam = () => hashParts()[1];
+const go = (h) => { if (location.hash !== '#' + h) location.hash = h; };
 
 // ---------- Data ----------
 const D = window.DEMO;
@@ -67,7 +138,6 @@ const LOCAL = (() => {
 })();
 
 const F = {
-  users: { q: '', acct: 'all', prem: 'all', country: 'all', sort: 'created', dir: -1, page: 0 },
   range: { preset: 30, from: iso(addDays(TODAY, -29)), to: iso(TODAY), by: 'den' },
   regPage: 0,
   stories: { q: '', cat: 'all', access: 'all' },
@@ -209,88 +279,71 @@ const rangeFilters = () => `
     <div class="seg">${[['den', 'Po dnech'], ['tyden', 'Po týdnech']].map(([v, l]) => `<button data-a="by" data-v="${v}" class="${F.range.by === v ? 'on' : ''}">${l}</button>`).join('')}</div>
   </div>`;
 
-// ---------- Přehled ----------
+// ---------- Přehled (KPI) ----------
+// Všechny dlaždice se počítají z denních agregátů (DEMO.daily), ne z jednotlivých poslechů.
 function pageOverview() {
-  const last30 = buckets(iso(addDays(TODAY, -29)), iso(TODAY), 'den');
-  const prev30 = buckets(iso(addDays(TODAY, -59)), iso(addDays(TODAY, -30)), 'den');
-  const subs = D.families.filter((f) => f.premium).length;
-  const accts = D.families.filter((f) => f.email).length;
+  const dl = D.daily, N = D.days, L = N - 1, fams = D.families;
+  const p30 = sumR(dl.plays, N - 30, L), p30b = sumR(dl.plays, N - 60, N - 31);
+  const m30 = sumR(dl.minutes, N - 30, L), m30b = sumR(dl.minutes, N - 60, N - 31);
+  const dau = sumR(dl.dau, N - 7, L) / 7, dauB = sumR(dl.dau, N - 37, N - 31) / 7;
+  const mau = fams.reduce((n, f) => n + (f.days30 > 0 ? 1 : 0), 0);
+  const mrr = dl.mrr[L], mrrB = dl.mrr[N - 31], subs = dl.subs[L], subsB = dl.subs[N - 31];
+  const ended = fams.filter((f) => f.trialI >= N - 38 && f.trialI <= N - 8);
+  const conv = ended.filter((f) => f.subI >= 0).length;
+  const churned = fams.filter((f) => f.subEnd >= N - 30).length;
+  const tc = API.tickets.counts();
+  const gdpr = tc.gdpr, pastDue = fams.filter((f) => f.status === 'past_due').length;
+  const risk = fams.filter((f) => f.risk).length;
+  const trialEnd = fams.filter((f) => f.status === 'trial' && f.trialI + 7 <= L + 2).length;
+  const ttsFail = D.ttsJobs.filter((j) => j.status === 'selhalo').length;
   const r90 = buckets(iso(addDays(TODAY, -89)), iso(TODAY), 'tyden');
   regChart('chReg', r90, 'tyden');
-  visChart('chVis', r90, 'tyden');
-  const src = D.sources.map((s) => [s, D.families.filter((f) => f.source === s).length]).sort((a, b) => b[1] - a[1]);
-  const smax = src[0][1];
+  const idx = Array.from({ length: 90 }, (_, k) => N - 90 + k);
+  after.push(() => chart($('#chUse'), {
+    type: 'line', labels: idx.map((i) => fshort(D.dayAt(i))), titles: idx.map((i) => fday(D.dayAt(i))),
+    series: [{ name: 'Přehrání', color: 'var(--s1)', values: idx.map((i) => dl.plays[i]) }, { name: 'Aktivní rodiny', color: 'var(--s2)', values: idx.map((i) => dl.dau[i]) }],
+  }));
+  const all = Array.from({ length: N }, (_, i) => i).filter((i) => i % 2 === L % 2);
+  after.push(() => chart($('#chMrr'), {
+    type: 'line', labels: all.map((i) => fshort(D.dayAt(i))), titles: all.map((i) => fday(D.dayAt(i))),
+    series: [{ name: 'MRR (Kč)', color: 'var(--s3)', values: all.map((i) => Math.round(dl.mrr[i])) }],
+  }));
+  const cats = D.catIds.map((c) => [catLabel(c), sumR(dl.cat[c], N - 30, L)]).sort((a, b) => b[1] - a[1]);
+  const src = D.sources.map((s) => [s, fams.filter((f) => f.source === s).length]).sort((a, b) => b[1] - a[1]);
+  const bars = (list) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>`; };
+  const att = [
+    [tc.breach, 'ticketů s ohroženým SLA', '#helpdesk/breach', 'bad'],
+    [tc.unassigned, 'nepřiřazených ticketů', '#helpdesk/unassigned', ''],
+    [gdpr, 'žádostí o osobní údaje (lhůta 30 dní)', '#helpdesk/gdpr', gdpr ? 'bad' : ''],
+    [pastDue, 'neuhrazených plateb', '#platby', ''],
+    [risk, 'platících rodin přestalo poslouchat (10+ dní)', '#rodiny/segment-risk', ''],
+    [trialEnd, 'zkušebních týdnů končí do 2 dnů', '#rodiny/segment-trial', ''],
+    [ttsFail, 'selhaných generování hlasu', '#hlas', ttsFail ? 'bad' : ''],
+  ].filter((x) => x[0] > 0);
   return `
-    ${head('Přehled', `Stav k ${fdate(TODAY)}`)}
+    ${head('Přehled', `Stav k ${fdate(TODAY)} · ${fmt(fams.length)} rodin`)}
     ${demoBar()}
-    <div class="tiles">
-      ${tile('Rodiny celkem', fmt(D.families.length), `${fmt(accts)} s e-mailem, ${fmt(D.families.length - accts)} hostů`)}
-      ${tile('Předplatné', fmt(subs), `${pct(subs, accts)} účtů s e-mailem`)}
-      ${tile('Registrace za 30 dní', fmt(sum(last30, 'reg')), delta(sum(last30, 'reg'), sum(prev30, 'reg')))}
-      ${tile('Návštěvy za 30 dní', fmt(sum(last30, 'landing') + sum(last30, 'app')), delta(sum(last30, 'landing') + sum(last30, 'app'), sum(prev30, 'landing') + sum(prev30, 'app')))}
+    <div class="tiles t8">
+      ${tile('Aktivní rodiny (30 dní)', fmt(mau), `${pct(mau, fams.length)} všech rodin`)}
+      ${tile('Denně aktivní (průměr 7 dní)', fmt(dau), `${trend(dau, dauB, 'za měsíc')} · DAU/MAU ${pct(dau, mau)}`)}
+      ${tile('Přehrání za 30 dní', fmt(p30), trend(p30, p30b))}
+      ${tile('Hodin poslechu za 30 dní', fmt(m30 / 60), trend(m30, m30b))}
+      ${tile('MRR', kc(mrr), `${trend(mrr, mrrB, 'za 30 dní')} · ARR ${kc(mrr * 12)}`)}
+      ${tile('Platící rodiny', fmt(subs), `${trend(subs, subsB, 'za 30 dní')} · odešlo ${fmt(churned)}`)}
+      ${tile('Konverze zkušebního týdne', pct(conv, ended.length), `${fmt(conv)} z ${fmt(ended.length)} za 30 dní`)}
+      ${tile('Otevřené tickety', `<a class="v" href="#helpdesk/open">${fmt(tc.open)}</a>`, tc.breach ? `<span class="down">${tc.breach} se SLA v ohrožení</span>` : '<span class="up">SLA v pořádku</span>')}
     </div>
-    <div class="grid2" style="margin-top:16px">
+    <div class="grid21">
+      <section class="panel"><div class="panel-head"><h2>Poslech po dnech (90 dní)</h2><div class="legend"><span><i class="key" style="--c:var(--s1)"></i>Přehrání</span><span><i class="key" style="--c:var(--s2)"></i>Aktivní rodiny</span></div></div><div class="chart" id="chUse"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Vyžaduje pozornost</h2></div>
+        ${att.length ? `<div class="stack">${att.map(([n, l, h, c]) => `<a class="link" style="display:flex;gap:10px;align-items:baseline" href="${h}"><b class="num ${c === 'bad' ? 'down' : ''}" style="min-width:34px;text-align:right;font-size:18px">${fmt(n)}</b><span>${l}</span></a>`).join('')}</div>` : '<p class="muted">Všechno je vyřízené.</p>'}
+      </section>
+    </div>
+    <div class="grid3">
+      <section class="panel"><div class="panel-head"><h2>MRR za 6 měsíců</h2><a class="btn white sm" href="#platby">Platby</a></div><div class="chart" id="chMrr"></div></section>
       <section class="panel"><div class="panel-head"><h2>Registrace po týdnech</h2><a class="btn white sm" href="#registrace">Detail</a></div><div class="chart" id="chReg"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Návštěvy po týdnech</h2>${legend()}</div><div class="chart" id="chVis"></div></section>
-    </div>
-    <div class="grid2" style="margin-top:16px">
-      <section class="panel"><div class="panel-head"><h2>Nejnovější rodiny</h2><a class="btn white sm" href="#uzivatele">Všechny</a></div>
-        <div class="table-wrap"><table><thead><tr><th>Účet</th><th>Registrace</th><th class="r">Děti</th><th>Předplatné</th></tr></thead>
-        <tbody>${D.families.slice(0, 6).map((f) => `<tr><td>${acct(f)}</td><td class="num">${fdate(f.created)}</td><td class="r num">${f.kids}</td><td>${planTag(f.premium)}</td></tr>`).join('')}</tbody></table></div>
-      </section>
-      <section class="panel"><div class="panel-head"><h2>Odkud rodiny přišly</h2></div>
-        <div class="bars">${src.map(([s, c]) => `<div class="b"><span>${s}</span><span class="t"><i style="width:${(c / smax) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>
-      </section>
+      <section class="panel"><div class="panel-head"><h2>Co se poslouchá (30 dní)</h2><a class="btn white sm" href="#pouzivani">Používání</a></div>${bars(cats)}<h2 style="margin:16px 0 10px">Odkud rodiny přišly</h2>${bars(src)}</section>
     </div>`;
-}
-
-// ---------- Uživatelé ----------
-function filteredUsers() {
-  const u = F.users, q = u.q.trim().toLowerCase();
-  const list = D.families.filter((f) =>
-    (!q || (f.email || 'host').includes(q) || f.town.toLowerCase().includes(q))
-    && (u.acct === 'all' || (u.acct === 'email' ? f.email : !f.email))
-    && (u.prem === 'all' || (u.prem === 'yes' ? f.premium : !f.premium))
-    && (u.country === 'all' || f.country === u.country));
-  const key = { created: (f) => f.created, kids: (f) => f.kids, plays: (f) => f.plays, last: (f) => f.lastSeen, email: (f) => f.email || '~' }[u.sort];
-  return list.sort((a, b) => (key(a) > key(b) ? 1 : key(a) < key(b) ? -1 : 0) * u.dir);
-}
-function usersTable() {
-  const list = filteredUsers(), per = 25, pages = Math.max(1, Math.ceil(list.length / per));
-  F.users.page = Math.min(F.users.page, pages - 1);
-  const rows = list.slice(F.users.page * per, (F.users.page + 1) * per);
-  const th = (k, l, cls = '') => `<th class="${cls}"><button data-a="sort" data-v="${k}">${l}${I.sort}</button></th>`;
-  const local = LOCAL && F.users.page === 0 ? `<tr class="mine"><td>${LOCAL.email ? esc(LOCAL.email) : '<span class="tag line">Host</span>'} <span class="tag">Tento prohlížeč</span></td><td class="muted">–</td><td class="r num">${LOCAL.kids}</td><td>${esc(LOCAL.town)}</td><td>${planTag(LOCAL.premium)}</td><td class="r muted">–</td><td class="muted">–</td><td class="muted">skutečná data</td></tr>` : '';
-  return `
-    <div class="table-wrap"><table>
-      <thead><tr>${th('email', 'Účet')}${th('created', 'Registrace')}${th('kids', 'Děti', 'r')}<th>Bydliště</th><th>Předplatné</th>${th('plays', 'Pohádek', 'r')}${th('last', 'Naposledy')}<th>Zdroj</th></tr></thead>
-      <tbody>${local}${rows.map((f) => `<tr><td>${acct(f)}</td><td class="num">${fdate(f.created)}</td><td class="r num">${f.kids}</td><td>${esc(f.town)} <span class="muted">${f.country}</span></td><td>${planTag(f.premium)}</td><td class="r num">${fmt(f.plays)}</td><td class="num">${fdate(f.lastSeen)}</td><td class="muted">${esc(f.source)}</td></tr>`).join('') || '<tr><td colspan="8" class="muted">Nic nenalezeno.</td></tr>'}</tbody>
-    </table></div>
-    <div class="pager"><span>${fmt(list.length)} rodin · strana ${F.users.page + 1} z ${pages}</span>
-      <span class="head-actions"><button class="btn white sm" data-a="upage" data-v="-1" ${F.users.page ? '' : 'disabled'}>Předchozí</button><button class="btn white sm" data-a="upage" data-v="1" ${F.users.page < pages - 1 ? '' : 'disabled'}>Další</button></span></div>`;
-}
-function pageUsers() {
-  const u = F.users;
-  const opt = (k, v, l) => `<option value="${v}" ${u[k] === v ? 'selected' : ''}>${l}</option>`;
-  const fam = D.families, subs = fam.filter((f) => f.premium);
-  return `
-    ${head('Uživatelé', 'Rodiny a jejich účty', `<button class="btn white" data-a="csv">${I.down}Export CSV</button>`)}
-    ${demoBar(LOCAL ? 'Jen první řádek je skutečný – rodina uložená v aplikaci v tomhle prohlížeči.' : '')}
-    <div class="tiles">
-      ${tile('Rodiny', fmt(fam.length))}
-      ${tile('Dětí celkem', fmt(sum(fam, 'kids')), `${(sum(fam, 'kids') / fam.length).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} na rodinu`)}
-      ${tile('Předplatitelé', fmt(subs.length), `${fmt(subs.filter((f) => f.premium === 'rok').length)} ročních · ${fmt(subs.filter((f) => f.premium === 'měsíc').length)} měsíčních`)}
-      ${tile('Pohádek puštěno', fmt(sum(fam, 'plays')), `${(sum(fam, 'plays') / fam.length).toLocaleString('cs-CZ', { maximumFractionDigits: 1 })} na rodinu`)}
-    </div>
-    <section class="panel" style="margin-top:16px">
-      <div class="filters">
-        <input type="search" data-f="uq" placeholder="Hledat e-mail nebo město" value="${esc(u.q)}">
-        <select data-f="acct" aria-label="Účet">${opt('acct', 'all', 'Všechny účty')}${opt('acct', 'email', 'S e-mailem')}${opt('acct', 'host', 'Hosté')}</select>
-        <select data-f="prem" aria-label="Předplatné">${opt('prem', 'all', 'Předplatné: vše')}${opt('prem', 'yes', 'S předplatným')}${opt('prem', 'no', 'Bez předplatného')}</select>
-        <select data-f="country" aria-label="Země">${opt('country', 'all', 'ČR i SR')}${opt('country', 'CZ', 'Česko')}${opt('country', 'SK', 'Slovensko')}</select>
-      </div>
-      <div id="usersTbl">${usersTable()}</div>
-    </section>`;
 }
 
 // ---------- Registrace ----------
@@ -442,6 +495,7 @@ function storyCard(s, changedIds) {
       <span class="tag line">${s.ages[0]}–${s.ages[1]} let</span>
       ${s.free ? '<span class="tag honey">Zdarma</span>' : '<span class="tag line">Placená</span>'}
     </div>
+    ${D.storyAgg[s.id] ? `<p class="hint" style="margin:-4px 6px 10px">${fmt(D.storyAgg[s.id].plays)} přehrání · ${pct(D.storyAgg[s.id].done, D.storyAgg[s.id].plays)} do konce · <a class="link" href="#pouzivani">statistiky</a></p>` : ''}
     <div class="acts">
       <button class="btn sm" data-a="edit" data-v="${esc(s.id)}">Upravit</button>
       <button class="btn white sm" data-a="covers" data-v="${esc(s.id)}">${I.wand}Náhledy</button>
@@ -658,30 +712,43 @@ function download(name, text, type = 'text/javascript') {
   a.download = name; document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
-function usersCsv() {
-  const rows = [['ucet', 'registrace', 'deti', 'mesto', 'zeme', 'predplatne', 'pohadek', 'naposledy', 'zdroj']];
-  filteredUsers().forEach((f) => rows.push([f.email || 'host', iso(f.created), f.kids, f.town, f.country, f.premium || '', f.plays, iso(f.lastSeen), f.source]));
-  return rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
-}
-
 // ---------- Vykreslení ----------
-const PAGES = { prehled: pageOverview, uzivatele: pageUsers, registrace: pageRegistrations, navstevy: pageVisits, pohadky: pageStories };
-function render() {
+const PAGES = { prehled: pageOverview, registrace: pageRegistrations, navstevy: pageVisits, pohadky: pageStories };
+const allowed = (x) => !x.perm || API.can(x.perm);
+function renderNav() {
   const r = route();
-  $('#nav').innerHTML = ROUTES.map((x) => `<a href="#${x.id}" class="${x.id === r ? 'on' : ''}" ${x.id === r ? 'aria-current="page"' : ''}>${x.ico}${x.label}</a>`).join('');
+  let html = '', grp = null;
+  ROUTES.forEach((x) => {
+    if (x.grp) { grp = x.grp; return; }
+    if (!allowed(x)) return;
+    if (grp) { html += `<div class="grp">${grp}</div>`; grp = null; }
+    const b = x.badge && x.badge();
+    html += `<a href="#${x.id}" class="${x.id === r ? 'on' : ''}" ${x.id === r ? 'aria-current="page"' : ''}>${x.ico}${x.label}${b ? `<span class="badge" title="Nepřiřazené">${b}</span>` : ''}</a>`;
+  });
+  $('#nav').innerHTML = html;
+}
+let lastMs = 0;
+function render() {
+  const t0 = performance.now();
+  let r = route();
+  const def = ROUTES.find((x) => x.id === r);
+  if (!allowed(def)) { const first = ROUTES.find((x) => x.id && allowed(x)); if (first && r === 'prehled' && !location.hash.slice(1)) r = first.id; }
+  renderNav();
   const dark = document.documentElement.dataset.theme === 'dark';
   $('#themeBtn').innerHTML = `${dark ? I.sun : I.moon}<span>${dark ? 'Denní režim' : 'Noční režim'}</span>`;
+  cleanup.forEach((f) => f()); cleanup = [];
   after = [];
-  $('#main').innerHTML = PAGES[r]();
+  const page = ROUTES.find((x) => x.id === r);
+  $('#main').classList.toggle('full', !!page.full);
+  $('#main').innerHTML = allowed(page) ? PAGES[r]() : `${head(page.label)}<div class="locked-note">${I.shield}<span>Role <b>${API.ROLES[API.viewAs].label}</b> sem nemá přístup. Oprávnění se nastavují v sekci <a class="link" href="#tym">Tým a role</a>.</span></div>`;
   after.forEach((f) => f());
+  lastMs = performance.now() - t0;
+  const pf = $('#perf'); if (pf) pf.textContent = `Start ${Math.round(window.BOOT_MS || 0)} ms · stránka ${dec(lastMs)} ms${D.scale > 1 ? ` · zátěž ×${D.scale}` : ''}`;
 }
 const ACTIONS = {
   preset: (v) => { setPreset(Number(v)); F.regPage = 0; render(); },
   by: (v) => { F.range.by = v; render(); },
-  sort: (v) => { const u = F.users; u.dir = u.sort === v ? -u.dir : -1; u.sort = v; $('#usersTbl').innerHTML = usersTable(); },
-  upage: (v) => { F.users.page += Number(v); $('#usersTbl').innerHTML = usersTable(); },
   rpage: (v) => { F.regPage += Number(v); render(); },
-  csv: () => download('ospalek-rodiny-ukazka.csv', '﻿' + usersCsv(), 'text/csv'),
   sfilter: (v, t) => { F.stories[t.dataset.k] = v; render(); },
   new: () => openEditor(null),
   edit: (v) => openEditor(v),
@@ -719,7 +786,6 @@ document.addEventListener('input', (ev) => {
   const t = ev.target;
   if (t.dataset.e && ED) return editInput(t);
   const f = t.dataset.f;
-  if (f === 'uq') { F.users.q = t.value; F.users.page = 0; $('#usersTbl').innerHTML = usersTable(); }
   if (f === 'sq') {
     F.stories.q = t.value; const pos = t.selectionStart; render();
     const n = $('[data-f="sq"]'); n.focus(); n.setSelectionRange(pos, pos);
@@ -727,7 +793,6 @@ document.addEventListener('input', (ev) => {
 });
 document.addEventListener('change', (ev) => {
   const t = ev.target, f = t.dataset.f;
-  if (['acct', 'prem', 'country'].includes(f)) { F.users[f] = t.value; F.users.page = 0; $('#usersTbl').innerHTML = usersTable(); }
   if ((f === 'from' || f === 'to') && t.value) {
     F.range[f] = t.value; F.range.preset = null; F.regPage = 0;
     if (F.range.from > F.range.to) F.range[f === 'from' ? 'to' : 'from'] = t.value;
@@ -753,5 +818,11 @@ $('#themeBtn').addEventListener('click', () => {
 let rz;
 // při změně šířky jen překreslit grafy – celé překreslení by na mobilu shodilo klávesnici v hledání
 addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => after.forEach((f) => f()), 150); });
-addEventListener('hashchange', () => { render(); scrollTo(0, 0); });
-window.adminGate(render);
+// Přechod mezi detaily ve stejné sekci (např. další ticket) nechá stránku stát a vymění jen detail.
+let lastRoute = null;
+addEventListener('hashchange', () => {
+  const r = route(), h = PAGES[r]?.onParam;
+  if (r === lastRoute && h && h(routeParam()) !== false) return;
+  lastRoute = r; render(); scrollTo(0, 0);
+});
+const startAdmin = () => { lastRoute = route(); render(); };
