@@ -226,6 +226,7 @@ const screens = {
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus (demo)` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
       ${S.premium ? '<button class="btn small ghost" data-a="unsub">Zrušit</button>' : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    <p class="note" style="margin-top:6px"><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
     <div class="section-t">Vzhled</div>
     <div class="seg">${[['auto', 'Podle času'], ['light', 'Den'], ['dark', 'Noc']].map(([v, l]) => `<button data-a="theme" data-v="${v}" class="${(S.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>
     <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin je zapnutý noční režim.</p>
@@ -408,6 +409,7 @@ function paywall() {
         <div class="plan on"><div><b>Měsíčně</b><small>129 Kč / měsíc · zrušit můžeš kdykoli</small></div></div>
       </div>
       <button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma</button>
+      <p class="fine" style="text-align:center">Po 7 dnech 129 Kč měsíčně, dokud předplatné nezrušíš. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíš s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
       <p class="fine" style="text-align:center">Prototyp: žádná platba neproběhne, pohádky se jen odemknou.</p>
     </div></div>`;
 }
