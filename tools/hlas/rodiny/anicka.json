@@ -1,0 +1,7 @@
+{
+ "_pozn": "Smyšlená testovací rodina: holčička, tatínek, jiné město – na kontrolu spojů s jiným jménem a rodem.",
+ "children": [{ "name": "Anička", "gender": "f", "age": 4, "food": "rajská omáčka", "animal": "ježek" }],
+ "parents": [{ "role": "tata", "name": "" }, { "role": "mama", "name": "" }],
+ "home": { "town": "Kolín", "inTown": "v Kolíně", "near": ["Velim", "Ovčáry"], "attr": [] },
+ "heroes": [0]
+}

@@ -1,0 +1,10 @@
+{
+ "_pozn": "Smyšlená testovací rodina (stejná jako u ukázkových nahrávek). Skutečné rodiny sem nepatří – repozitář je veřejný.",
+ "children": [
+  { "name": "Toník", "gender": "m", "age": 5, "food": "palačinky s jahodami", "animal": "liška" },
+  { "name": "Eliška", "gender": "f", "age": 3, "food": "palačinky", "animal": "kočička" }
+ ],
+ "parents": [{ "role": "mama", "name": "Petra" }],
+ "home": { "town": "Benešov", "inTown": "v Benešově", "near": ["Pomněnice", "Racek", "Chlístov"], "attr": ["hrad Konopiště"] },
+ "heroes": [0]
+}
