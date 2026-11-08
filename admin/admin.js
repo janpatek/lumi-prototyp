@@ -312,13 +312,13 @@ function pageOverview() {
   const src = D.sources.map((s) => [s, fams.filter((f) => f.source === s).length]).sort((a, b) => b[1] - a[1]);
   const bars = (list) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>`; };
   const att = [
-    [tc.breach, 'ticketů s ohroženým SLA', '#helpdesk/breach', 'bad'],
-    [tc.unassigned, 'nepřiřazených ticketů', '#helpdesk/unassigned', ''],
-    [gdpr, 'žádostí o osobní údaje (lhůta 30 dní)', '#helpdesk/gdpr', gdpr ? 'bad' : ''],
-    [pastDue, 'neuhrazených plateb', '#platby', ''],
-    [risk, 'platících rodin přestalo poslouchat (10+ dní)', '#rodiny/segment-risk', ''],
-    [trialEnd, 'zkušebních týdnů končí do 2 dnů', '#rodiny/segment-trial', ''],
-    [ttsFail, 'selhaných generování hlasu', '#hlas', ttsFail ? 'bad' : ''],
+    [tc.breach, plural(tc.breach, 'ticket s ohroženým SLA', 'tickety s ohroženým SLA', 'ticketů s ohroženým SLA'), '#helpdesk/breach', 'bad'],
+    [tc.unassigned, plural(tc.unassigned, 'nepřiřazený ticket', 'nepřiřazené tickety', 'nepřiřazených ticketů'), '#helpdesk/unassigned', ''],
+    [gdpr, plural(gdpr, 'žádost o osobní údaje', 'žádosti o osobní údaje', 'žádostí o osobní údaje') + ' (lhůta 30 dní)', '#helpdesk/gdpr', gdpr ? 'bad' : ''],
+    [pastDue, plural(pastDue, 'neuhrazená platba', 'neuhrazené platby', 'neuhrazených plateb'), '#platby', ''],
+    [risk, plural(risk, 'platící rodina', 'platící rodiny', 'platících rodin') + ' bez poslechu 10+ dní', '#rodiny/segment-risk', ''],
+    [trialEnd, plural(trialEnd, 'zkušební týden končí', 'zkušební týdny končí', 'zkušebních týdnů končí') + ' do 2 dnů', '#rodiny/segment-trial', ''],
+    [ttsFail, plural(ttsFail, 'selhané generování hlasu', 'selhaná generování hlasu', 'selhaných generování hlasu'), '#hlas', ttsFail ? 'bad' : ''],
   ].filter((x) => x[0] > 0);
   return `
     ${head('Přehled', `Stav k ${fdate(TODAY)} · ${fmt(fams.length)} rodin`)}

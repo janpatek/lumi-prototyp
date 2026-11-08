@@ -158,6 +158,7 @@ const heroes = () => {
 const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
 const coverImg = (st, ks) => (ks.every((k) => k.gender === 'f') && st.cover.imgF) || st.cover.img;
 const unlocked = (st) => st.free || S.premium;
+const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
 // ---------- Obrazovky ----------
 const screens = {
@@ -193,7 +194,7 @@ const screens = {
       <div class="section-t">Kategorie</div>
       <div class="hscroll">
         ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${catIcon(k.id)}${k.label}</button>`).join('')}
-        <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age} let` : 'Podle věku'}</button>
+        <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
       </div>
       ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak od 58 Kč měsíčně</span></div></button>`}
       <div class="grid">
@@ -227,7 +228,7 @@ const screens = {
       ${S.premium ? '<button class="btn small ghost" data-a="unsub">Zrušit</button>' : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
     <div class="section-t">Vzhled</div>
     <div class="seg">${[['auto', 'Podle času'], ['light', 'Den'], ['dark', 'Noc']].map(([v, l]) => `<button data-a="theme" data-v="${v}" class="${(S.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>
-    <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin noční režim.</p>
+    <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin je zapnutý noční režim.</p>
     <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat všechna data a začít znovu</button></div>`,
 };
 
@@ -237,7 +238,7 @@ function peopleList(kind) {
     <div class="person">
       ${avatar(p, kind, i)}
       <div class="nm"><b>${esc(kind === 'child' ? p.forms.nom : ROLES[p.role].label + (p.name ? ' ' + p.forms.nom : ''))}</b>
-      <span>${kind === 'child' ? `${p.age} let · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
+      <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
     </div>`).join('')}</div>
     <button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`;
@@ -246,7 +247,7 @@ function peopleList(kind) {
 const stepKids = () => `
   <img class="onb-mascot" src="${MASCOT.head}" alt="">
   <h1>Kdo bude hlavní hrdina?</h1>
-  <p class="lead">Přidej své děti. Pohádky budou o nich. S jejich jménem, oblíbeným jídlem a zvířátkem.</p>
+  <p class="lead">Přidej své děti. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
   ${peopleList('child')}
   <div class="footer-actions"><button class="btn" data-a="next" ${S.family.children.length ? '' : 'disabled'}>Pokračovat</button></div>`;
 
@@ -261,7 +262,7 @@ const stepParents = () => `
 
 const stepHome = () => `
   <h1>Kde bydlíte?</h1>
-  <p class="lead">Pohádky se pak budou odehrávat v místech, která děti znají. Stačí obec. Přesnou adresu nepotřebujeme.</p>
+  <p class="lead">Pohádky se pak budou odehrávat na místech, která děti znají. Stačí obec. Přesnou adresu nepotřebujeme.</p>
   ${homeForm()}
   <div class="footer-actions">
     <button class="btn" data-a="finish">Hotovo – jdeme na pohádky</button>
@@ -280,7 +281,7 @@ function homeForm() {
     ${h.nearOpts.length ? `<div class="section-t">Obce v okolí</div><div class="chips">${chips(h.nearOpts, h.near, 'near')}</div>` : ''}
     ${h.attrOpts.length ? `<div class="section-t">Výletní místa</div><div class="chips">${chips(h.attrOpts, h.attr, 'attr')}</div>` : ''}
     <label for="addSpot">Přidat vlastní oblíbené místo</label>
-    <div class="row"><input id="addSpot" placeholder="např. ZOO Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
+    <div class="row"><input id="addSpot" placeholder="např. Zoo Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
 }
 
 // ---------- Okolí z OpenStreetMap ----------
@@ -339,7 +340,7 @@ function personSheet(kind, id) {
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
       <h2>${p.id ? 'Upravit' : 'Přidat'} ${isChild ? 'dítě' : 'člena rodiny'}</h2>
       ${isChild ? `
-        <label for="pName">Jak mu/jí doma říkáte?</label>
+        <label for="pName">Jak dítěti doma říkáte?</label>
         <input id="pName" value="${esc(p.forms.nom)}" placeholder="např. Toník, Ema, Kubík">
         <label>Je to</label>
         <div class="seg" id="gSeg"><button data-a="gender" data-v="m" class="${p.gender !== 'f' ? 'on' : ''}">Kluk</button><button data-a="gender" data-v="f" class="${p.gender === 'f' ? 'on' : ''}">Holka</button></div>
@@ -398,10 +399,10 @@ function paywall() {
       <h2 style="text-align:center">${APP_NAME} Plus</h2>
       <p class="lead" style="text-align:center">Celá knihovna pohádek pro všechny tvoje děti.</p>
       <ul class="perks">
-        <li>Všechny pohádky a každý měsíc nové</li>
+        <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
         <li>Pro všechny děti v rodině</li>
-        <li>Poslech offline a časovač usínání</li>
+        <li>Brzy i poslech offline a časovač usínání</li>
       </ul>
       <div class="plans">
         <button class="plan ${ui.plan === 'year' ? 'on' : ''}" data-a="plan" data-v="year"><div><b>Ročně</b><span class="save">−41 %</span><small>699 Kč / rok · 58 Kč měsíčně</small></div><span class="radio"></span></button>

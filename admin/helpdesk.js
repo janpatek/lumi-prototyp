@@ -97,7 +97,7 @@ function hdDetail() {
         <label>Stav ${sel('status', Object.entries(API.TSTATUS), t.status)}</label>
         <label>Priorita ${sel('pri', Object.entries(API.TPRI), t.pri)}</label>
         <label>Řeší ${sel('assignee', [['', 'Nikdo'], ...AGENTS().map((s) => [s.id, s.name])], t.assignee || '')}</label>
-        <span style="margin-left:auto;text-align:right">${slaChip(t) || '<span class="sla ok">Bez odpovědi netřeba</span>'}<div class="hint">SLA první odpovědi ${t.slaH} h</div></span>
+        <span style="margin-left:auto;text-align:right">${slaChip(t) || '<span class="sla ok">Odpověď není potřeba</span>'}<div class="hint">SLA první odpovědi ${t.slaH} h</div></span>
       </div>
     </div>
     <div class="td-main">
