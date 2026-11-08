@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ospalek – už brzy</title>
+  <meta name="description" content="Ospalek: pohádky na dobrou noc, ve kterých je hlavním hrdinou tvoje dítě. Připravujeme spuštění.">
+  <meta name="theme-color" content="#F7F5FC" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1C1E33" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="../brand/maskot-3d/web/ospalek-mark-64.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../landing.css?v=5">
+  <script src="../gate.js?v=1" data-page="brzy"></script>
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; background: var(--surface) var(--felt); }
+    .soon { flex: 1; display: grid; place-items: center; padding: 40px 16px; text-align: center; }
+    .soon-in { max-width: 520px; width: 100%; }
+    .soon img.mascot { width: 220px; height: auto; margin: 0 auto 8px; filter: drop-shadow(0 14px 24px rgba(46, 49, 80, .18)); animation: bob 5s ease-in-out infinite; }
+    .soon .wordmark { font-size: 34px; display: block; margin-bottom: 18px; }
+    .soon h1 { font-size: clamp(34px, 9vw, 52px); text-wrap: balance; }
+    .soon .lead { margin: 14px auto 0; }
+    .gate { margin: 32px auto 0; background: var(--surface-raised); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-plush); outline: 2px dashed var(--stitch); outline-offset: -9px; text-align: left; }
+    .gate label { display: block; font-weight: 800; font-size: 15px; color: var(--ink-muted); margin-bottom: 10px; }
+    .gate-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .gate input { flex: 1 1 180px; min-width: 0; font: 700 18px/1.2 var(--body); color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 13px 16px; }
+    .gate input:focus { outline: none; border-color: var(--lavender-ink); }
+    .gate .btn { flex: 0 0 auto; border: 0; cursor: pointer; font-family: inherit; }
+    .gate .btn:disabled { opacity: .6; cursor: wait; }
+    .err { color: #C0392B; font-weight: 800; font-size: 15px; min-height: 1.4em; margin-top: 8px; }
+    @media (prefers-color-scheme: dark) { .err { color: #FF9C8F; } }
+    .legal { padding: 20px 16px 28px; text-align: center; font-size: 14px; color: var(--ink-muted); }
+    .legal a { color: inherit; }
+    @keyframes bob { 50% { transform: translateY(-8px) rotate(-1.5deg); } }
+    @media (prefers-reduced-motion: reduce) { .soon img.mascot { animation: none; } }
+  </style>
+</head>
+<body>
+  <main class="soon">
+    <div class="soon-in">
+      <img class="mascot" src="../brand/maskot-3d/web/ospalek-spi.webp" width="240" height="243" alt="Maskot Ospalek spí na měsíčku.">
+      <span class="wordmark">ospalek</span>
+      <h1>Pohádky, kde je hrdinou tvoje dítě</h1>
+      <p class="lead">Ospalek se ještě převléká do pyžama. Spouštíme už brzy.</p>
+
+      <form class="gate" id="gate" novalidate>
+        <label for="pw">Máš přístup do testovací verze? Zadej heslo.</label>
+        <div class="gate-row">
+          <input id="pw" type="password" autocomplete="current-password" required>
+          <button class="btn" type="submit">Vstoupit</button>
+        </div>
+        <p class="err" id="pwErr" role="alert"></p>
+      </form>
+    </div>
+  </main>
+  <footer class="legal">
+    © 2026 Magnet Marketing s.r.o. · <a href="../obchodni-podminky/">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/">Ochrana osobních údajů</a>
+  </footer>
+</body>
+</html>

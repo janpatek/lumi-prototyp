@@ -28,3 +28,7 @@ Při každé úpravě:
 2. Zvyš verzi a datum v řádku pod nadpisem.
 3. Přidej řádek do tabulky „Historie změn“.
 4. Ověř, že texty na landingu (FAQ, cena) a v aplikaci dokumentům neodporují.
+
+## Zámek před spuštěním
+
+Landing (`index.html`) a aplikace (`app/index.html`) načítají jako první `gate.js`. Bez hesla přesměruje na stránku „Připravujeme“ (`brzy/`). Nové stránky, které mají být skryté, potřebují stejný `<script>` hned za `<meta charset>`. Obchodní podmínky, ochrana osobních údajů a `admin/` (má vlastní heslo) zůstávají mimo zámek. Heslo nikdy nepiš do repa, jen otisk do `AUTH` v `gate.js` (`node admin/heslo.js "heslo"`).
