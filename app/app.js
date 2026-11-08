@@ -19,7 +19,7 @@ const store = {
 const blank = () => ({ user: null, onboarded: false, premium: false, heroIds: [], family: { children: [], parents: [], home: { town: '', inTown: '', near: [], attr: [], nearOpts: [], attrOpts: [] } } });
 let S = store.get() || blank();
 if (!S.heroIds) S.heroIds = S.heroId ? [S.heroId] : []; // starší uložená data měla jen jednoho hrdinu
-let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false, plan: 'year' };
+let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false };
 const save = () => store.set(S);
 const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
@@ -196,7 +196,7 @@ const screens = {
         ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${catIcon(k.id)}${k.label}</button>`).join('')}
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
       </div>
-      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak od 58 Kč měsíčně</span></div></button>`}
+      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak 129 Kč měsíčně</span></div></button>`}
       <div class="grid">
         ${list.map((s) => {
           const segs = s.text(c);
@@ -405,8 +405,7 @@ function paywall() {
         <li>Brzy i poslech offline a časovač usínání</li>
       </ul>
       <div class="plans">
-        <button class="plan ${ui.plan === 'year' ? 'on' : ''}" data-a="plan" data-v="year"><div><b>Ročně</b><span class="save">−41 %</span><small>699 Kč / rok · 58 Kč měsíčně</small></div><span class="radio"></span></button>
-        <button class="plan ${ui.plan === 'month' ? 'on' : ''}" data-a="plan" data-v="month"><div><b>Měsíčně</b><small>99 Kč / měsíc</small></div><span class="radio"></span></button>
+        <div class="plan on"><div><b>Měsíčně</b><small>129 Kč / měsíc · zrušit můžeš kdykoli</small></div></div>
       </div>
       <button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma</button>
       <p class="fine" style="text-align:center">Prototyp: žádná platba neproběhne, pohádky se jen odemknou.</p>
@@ -702,7 +701,6 @@ const actions = {
   age: () => { ui.ageOnly = !ui.ageOnly; render(); },
   open: (el) => { const st = STORIES.find((s) => s.id === el.dataset.id); unlocked(st) ? openPlayer(st) : paywall(); },
   paywall,
-  plan: (el) => { ui.plan = el.dataset.v; paywall(); },
   subscribe: () => { S.premium = true; save(); closeModal(); render(); },
   unsub: () => { S.premium = false; save(); render(); },
   settings: () => go('settings'),
