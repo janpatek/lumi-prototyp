@@ -226,8 +226,8 @@ const screens = {
     <div class="section-t">Bydliště</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
     <div class="section-t">Předplatné</div>
-    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus (demo)` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
-      ${S.premium ? '<button class="btn small ghost" data-a="unsub">Zrušit</button>' : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
+      ${S.premium ? `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>` : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
     ${SYNC.on ? `<div class="section-t">Statistiky</div>
     <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
     <p class="note" style="margin-top:6px"><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
@@ -414,7 +414,7 @@ function paywall() {
       </div>
       <button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma</button>
       <p class="fine" style="text-align:center">Po 7 dnech 129 Kč měsíčně, dokud předplatné nezrušíš. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíš s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
-      <p class="fine" style="text-align:center">Prototyp: žádná platba neproběhne, pohádky se jen odemknou.</p>
+      ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžeš kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se nic neplatí: předplatné se kupuje v mobilní aplikaci. Tady se pohádky pro vyzkoušení jen odemknou.</p>'}
     </div></div>`;
 }
 
@@ -711,8 +711,16 @@ const actions = {
   age: () => { ui.ageOnly = !ui.ageOnly; render(); },
   open: (el) => { const st = STORIES.find((s) => s.id === el.dataset.id); unlocked(st) ? openPlayer(st) : paywall(); },
   paywall,
-  subscribe: () => { S.premium = true; save(); closeModal(); render(); },
-  unsub: () => { S.premium = false; save(); render(); },
+  subscribe: async (el) => {
+    // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
+    if (!BILLING.native) { S.premium = true; save(); closeModal(); render(); return; }
+    el.disabled = true;
+    try {
+      if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); } else el.disabled = false;
+    } catch (e) { el.disabled = false; el.insertAdjacentHTML('afterend', `<p class="fine err" style="text-align:center">Nákup se nepovedl. ${esc(e && e.message || '')}</p>`); }
+  },
+  restore: async () => { const v = await BILLING.restore().catch(() => null); if (v !== null) { S.premium = v; save(); } closeModal(); render(); },
+  unsub: () => { if (BILLING.native) { BILLING.manage(); return; } S.premium = false; save(); render(); },
   settings: () => go('settings'),
   // souhlas se statistikami poslechu (sync.js); vypnutí v databázi anonymizuje dosavadní poslechy
   analytics: (el) => { S.analytics = el.dataset.v === '1'; save(); render(); },
@@ -762,3 +770,5 @@ document.addEventListener('input', (e) => {
 const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 
 render();
+// v aplikaci: stav předplatného z obchodu (RevenueCat) má přednost před uloženým
+BILLING.status().then((v) => { if (v !== null && v !== S.premium) { S.premium = v; save(); render(); } });

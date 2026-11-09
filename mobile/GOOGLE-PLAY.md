@@ -24,12 +24,23 @@ Ověřeno na stránkách Googlu 9. 11. 2026. Kroky v konzolích dělá majitel �
 - Předplatné v aplikaci **musí** jít přes Google Play Billing; Billing Library minimálně 8, použijeme 9. [deprecation FAQ](https://developer.android.com/google/play/billing/deprecation-faq)
 - [ ] Licenční testeři (Nastavení → Testování licencí): e-maily, které testují nákupy bez placení.
 
+## B2. RevenueCat (správa předplatného)
+
+Cena: podle srovnávacích webů zdarma do 2 500 USD měsíčních tržeb, nad tím 1 %. Ověřte na [revenuecat.com/pricing](https://www.revenuecat.com/pricing).
+
+- [ ] Účet a projekt „Ospalek“ na [app.revenuecat.com](https://app.revenuecat.com), aplikace Google Play s balíčkem `cz.ospalek.app` (a App Store pro iOS).
+- [ ] V Google Cloud servisní účet s přístupem k Play Console (Finance, Správa objednávek) a jeho JSON klíč nahrát do RevenueCat. Návod: [RevenueCat – Google Play credentials](https://www.revenuecat.com/docs/service-credentials/creating-play-service-credentials). Propsání práv trvá až 36 hodin.
+- [ ] Zapnout Real-time developer notifications (Pub/Sub téma z RevenueCat vložit do Play Console → Zpeněžení → Nastavení).
+- [ ] Nárok (entitlement) `plus`, produkt `ospalek_plus:mesicne`, nabídka (offering) `default` s balíčkem Monthly.
+- [ ] Veřejný SDK klíč Androidu (`goog_…`) poslat vývoji, přijde do `config.js` → `revenuecatAndroidKey`.
+- [ ] Ve formuláři Data safety uvést i údaje, které sbírá RevenueCat SDK (historie nákupů, ID aplikace/uživatele). Zásady ochrany osobních údajů už RevenueCat uvádějí (verze 1.4).
+
 ## C. Před vydáním (Obsah aplikace)
 
 - [ ] **Zásady ochrany osobních údajů:** https://ospalek.cz/ochrana-osobnich-udaju/ musí být veřejně dostupné bez hesla (už jsou mimo zámek gate.js), odkaz i v aplikaci (je v Nastavení).
 - [ ] **Přístup do aplikace:** návod pro recenzenty (3 pohádky zdarma bez přihlášení; na předplatné jim stačí testovací účet licenčního testera).
 - [ ] **Smazání účtu:** v aplikaci (tlačítko „Smazat všechna data“ už existuje, smaže i server) + **webový odkaz**, kde jde o smazání požádat bez aplikace (např. stránka na ospalek.cz nebo e-mail podpora@ospalek.cz). [answer/13327111](https://support.google.com/googleplay/android-developer/answer/13327111)
-- [ ] **Bezpečnost údajů (Data safety):** jména a věk dětí, obec, e-mail (volitelně), údaje o poslechu (se souhlasem), ID zařízení/aplikace; přenos šifrovaný; možnost smazání. Vyplnit podle zásad 1.4. Při volbě plateb doplnit, co sbírá platební SDK.
+- [ ] **Bezpečnost údajů (Data safety):** jména a věk dětí, obec, e-mail (volitelně), údaje o poslechu (se souhlasem), ID zařízení/aplikace; přenos šifrovaný; možnost smazání. Vyplnit podle zásad 1.4. Navíc historie nákupů (RevenueCat).
 - [ ] **Hodnocení obsahu** (dotazník IARC): nenásilný obsah pro děti.
 - [ ] **Cílové publikum:** aplikaci ovládá rodič (podmínky: 18+), obsah je pro děti 2–9 let. Pokud zvolíte jen 18+, Google může publikum kvůli dětskému vzhledu přepsat na děti. Pak platí **Families policy**: žádné reklamy, žádné reklamní ID, jen certifikovaná SDK, zásady ochrany údajů zmiňující děti. Ospalek reklamy ani analytiku nemá, takže to splní. [answer/9893335](https://support.google.com/googleplay/android-developer/answer/9893335)
 - [ ] **Služba na popředí `mediaPlayback`** (až přibude přehrávání na pozadí): deklarace + krátké video, jak uživatel spustí přehrávání. [answer/13392821](https://support.google.com/googleplay/android-developer/answer/13392821)

@@ -36,7 +36,7 @@ Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s An
 
 ## Co ještě chybí (další kroky)
 
-1. Platby: Google Play Billing a StoreKit, návrh čeká na schválení (RevenueCat vs. přímé napojení).
+1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
 2. Přehrávání na pozadí: nativní audio plugin + foreground service `mediaPlayback` (a deklarace v Play Console).
 3. Offline poslech: stáhnout nahrávky do zařízení (`@capacitor/filesystem`).
 4. Ikona a splash screen z `brand/maskot-3d` (`@capacitor/assets`).

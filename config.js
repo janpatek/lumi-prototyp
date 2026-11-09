@@ -5,4 +5,7 @@
 window.OSPALEK_CONFIG = {
   supabaseUrl: 'https://imiujppjewddeldjifkl.supabase.co',
   supabaseAnonKey: 'sb_publishable_uX729wkKmJ4vtTQaWcWzig_dGjzNaJC',
+  // RevenueCat: veřejné SDK klíče pro předplatné v mobilní aplikaci (app/billing.js). Prázdné = platby vypnuté.
+  revenuecatAndroidKey: '',
+  revenuecatIosKey: '',
 };
