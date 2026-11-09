@@ -21,7 +21,7 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
 
 ## Zapojení (jednou, asi 15 minut)
 
-1. Na [supabase.com](https://supabase.com) založ projekt. **Region: Central EU (Frankfurt).** Tarif Free na začátek stačí.
+1. Na [supabase.com](https://supabase.com) založ projekt. **Region: EU (náš projekt běží v West EU – Irsko, eu-west-1; Frankfurt by šel také).** Tarif Free na začátek stačí.
 2. **SQL Editor** → vlož celý `supabase/schema.sql` → Run. Dá se spustit i znovu po úpravách.
 3. **Authentication → Sign In / Providers → Anonymous sign-ins: zapnout.** Rodiny díky tomu nemusí zadávat e-mail.
    Doporučení: v Authentication → Rate Limits nech limit anonymních přihlášení nízký (výchozích 30 za hodinu z jedné IP), později přidat captchu (Turnstile).
@@ -31,11 +31,11 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
    select id, 'Jan', 'owner' from auth.users where email = 'tvuj@email.cz';
    ```
    Další členy týmu stejně, role: `owner`, `support`, `content`, `analyst`, `finance`.
-5. **Project Settings → API**: zkopíruj *Project URL* a *anon public key* do `config.js` v kořeni webu:
+5. **Project Settings → API**: zkopíruj *Project URL* a *Publishable key* (`sb_publishable_…`, starší *anon key* funguje také) do `config.js` v kořeni webu:
    ```js
    window.OSPALEK_CONFIG = { supabaseUrl: 'https://xxxx.supabase.co', supabaseAnonKey: 'eyJ…' };
    ```
-   Anon klíč je veřejný z principu, sám nic nesmí. **Klíč `service_role` do webu nikdy nedávej.**
+   Publishable klíč je veřejný z principu, sám nic nesmí. **Secret klíč (`sb_secret_…`, dříve `service_role`) do webu nikdy nedávej.**
 6. Nasadit (push na `main`). Administrace pak po hesle chce přihlášení e-mailem z kroku 4 a ukazuje ostrá data.
    Přepnout zpět na ukázková data jde v sekci Napojení dat.
 

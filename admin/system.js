@@ -51,7 +51,7 @@ function pageData() {
     </div>
     ${LIVE.configured ? '' : `<section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Jak zapnout ostrá data</h2></div>
       <ol class="steps">
-        <li>Založ projekt na <b>supabase.com</b> v regionu <b>EU (Frankfurt)</b>.</li>
+        <li>Založ projekt na <b>supabase.com</b> v regionu <b>EU</b> (Irsko nebo Frankfurt).</li>
         <li>V SQL Editoru spusť celý soubor <code>supabase/schema.sql</code>.</li>
         <li>V Authentication → Sign In / Providers zapni <b>Anonymous sign-ins</b> (rodiny nemusí zadávat e-mail).</li>
         <li>V Authentication → Users vytvoř svůj účet (e-mail a heslo) a v SQL přidej sebe do týmu: <code>insert into staff (user_id, name, role) select id, 'Jan', 'owner' from auth.users where email = 'tvuj@email';</code></li>

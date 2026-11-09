@@ -1,4 +1,4 @@
--- Ospalek – databáze pro ostrá data (Supabase, region EU / Frankfurt).
+-- Ospalek – databáze pro ostrá data (Supabase, region EU – Irsko, eu-west-1).
 -- Spuštění: Supabase → SQL Editor → vložit celý soubor → Run. Dá se spustit opakovaně.
 -- Návod k zapojení: supabase/README.md.
 --
@@ -366,7 +366,7 @@ end $$;
 -- ---------- Práva ----------
 -- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení nic nezmůže.
 revoke all on all tables in schema public from anon, authenticated;
-revoke execute on all functions in schema public from public, anon;
+revoke execute on all functions in schema public from public, anon, authenticated;
 grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family() to authenticated;
 grant execute on function public.admin_me(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_staff(),
