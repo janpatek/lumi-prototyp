@@ -1,0 +1,19 @@
+{
+ "_pozn": "Častá jména dětí pro předem namluvené věty (plan.mjs jmena). Startovní odhad: nejčastější jména posledních let podle ČSÚ a obvyklé domácké tvary. Až budou skutečná data, nahraď seznamem nejčastějších jmen z administrace.",
+ "jmena": [
+  { "name": "Jakub", "gender": "m" }, { "name": "Jan", "gender": "m" }, { "name": "Tomáš", "gender": "m" },
+  { "name": "Matyáš", "gender": "m" }, { "name": "Adam", "gender": "m" }, { "name": "Vojtěch", "gender": "m" },
+  { "name": "Ondřej", "gender": "m" }, { "name": "Filip", "gender": "m" }, { "name": "Matěj", "gender": "m" },
+  { "name": "Šimon", "gender": "m" }, { "name": "David", "gender": "m" }, { "name": "Antonín", "gender": "m" },
+  { "name": "Kryštof", "gender": "m" }, { "name": "Tobiáš", "gender": "m" }, { "name": "Štěpán", "gender": "m" },
+  { "name": "Kubík", "gender": "m" }, { "name": "Honzík", "gender": "m" }, { "name": "Toník", "gender": "m" },
+  { "name": "Vojta", "gender": "m" }, { "name": "Matýsek", "gender": "m" },
+  { "name": "Eliška", "gender": "f" }, { "name": "Anna", "gender": "f" }, { "name": "Tereza", "gender": "f" },
+  { "name": "Sofie", "gender": "f" }, { "name": "Adéla", "gender": "f" }, { "name": "Natálie", "gender": "f" },
+  { "name": "Ema", "gender": "f" }, { "name": "Viktorie", "gender": "f" }, { "name": "Karolína", "gender": "f" },
+  { "name": "Rozálie", "gender": "f" }, { "name": "Julie", "gender": "f" }, { "name": "Laura", "gender": "f" },
+  { "name": "Amálie", "gender": "f" }, { "name": "Klára", "gender": "f" }, { "name": "Barbora", "gender": "f" },
+  { "name": "Anička", "gender": "f" }, { "name": "Terezka", "gender": "f" }, { "name": "Kačenka", "gender": "f" },
+  { "name": "Bára", "gender": "f" }, { "name": "Emička", "gender": "f" }
+ ]
+}

@@ -8,8 +8,9 @@ compatibility_date = "2025-06-01"
 ALLOWED_ORIGINS = "https://janpatek.github.io,https://ospalek.cz,https://www.ospalek.cz,http://localhost:5174"
 # Hlasy z tvého účtu ElevenLabs: název → Voice ID (najdeš v ElevenLabs u hlasu, tlačítko „ID“)
 VOICES = '{"jana":"SEM_VLOZ_VOICE_ID_JANY"}'
-# Model s češtinou; dražší a kvalitnější eleven_multilingual_v2, levnější eleven_flash_v2_5
-MODEL_ID = "eleven_multilingual_v2"
+# Model musí být stejný jako u nahrávek vět v audio/hlas (eleven_v4), jinak budou na spojích slyšet rozdíly
+MODEL_ID = "eleven_v4"
+STABILITY = "0.6"
 # Nejdelší text v jednom požadavku (aplikace posílá po odstavcích)
 MAX_CHARS = "1500"
 

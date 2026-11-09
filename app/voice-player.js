@@ -27,14 +27,42 @@
     return ambience.ctx;
   }
 
+  // Věta z tts-workeru je surová: ticho na krajích a jiná hlasitost. Upraví se stejně jako hotové
+  // nahrávky z tools/hlas/cut.mjs (okraje 0,05 / 0,08 s, hlasitost řeči jako medián nahrávek).
+  const TARGET_DB = -19.6;
+  function tidy(buf) {
+    const c = ctx(), d = buf.getChannelData(0), sr = buf.sampleRate, win = Math.round(sr * 0.02);
+    const frames = [];
+    for (let i = 0; i + win <= d.length; i += win) {
+      let e = 0;
+      for (let k = i; k < i + win; k++) e += d[k] * d[k];
+      frames.push(e / win);
+    }
+    const loud = frames.map((e) => 10 * Math.log10(e + 1e-12) > -45);
+    const first = loud.indexOf(true), last = loud.lastIndexOf(true);
+    if (first < 0) return buf;
+    const voiced = frames.filter((_, i) => loud[i]);
+    const gain = 10 ** ((TARGET_DB - 10 * Math.log10(voiced.reduce((a, b) => a + b, 0) / voiced.length)) / 20);
+    const from = Math.max(0, first * win - Math.round(sr * 0.05));
+    const to = Math.min(d.length, (last + 1) * win + Math.round(sr * 0.08));
+    const out = c.createBuffer(buf.numberOfChannels, to - from, sr);
+    for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+      const src = buf.getChannelData(ch), dst = out.getChannelData(ch);
+      for (let i = 0; i < to - from; i++) dst[i] = Math.max(-1, Math.min(1, src[from + i] * gain));
+    }
+    return out;
+  }
+
   // AudioBuffer jedné věty; bez nahrávky ji obstará fallback(text) → URL (tts-worker)
   function clip(line, fallback) {
     if (!buffers.has(line.key)) {
-      const url = has(line) ? Promise.resolve(BASE + line.key + '.mp3') : fallback ? fallback(line.t) : Promise.reject(new Error('Věta zatím není namluvená.'));
+      const own = has(line);
+      const url = own ? Promise.resolve(BASE + line.key + '.mp3') : fallback ? fallback(line.t) : Promise.reject(new Error('Věta zatím není namluvená.'));
       const p = url
         .then((u) => fetch(u))
         .then((r) => { if (!r.ok) throw new Error('Nahrávku se nepodařilo načíst.'); return r.arrayBuffer(); })
-        .then((b) => ctx().decodeAudioData(b));
+        .then((b) => ctx().decodeAudioData(b))
+        .then((b) => (own ? b : tidy(b)));
       p.catch(() => buffers.delete(line.key)); // chybu příště zkusit znovu
       buffers.set(line.key, p);
     }

@@ -50,4 +50,28 @@ ffmpeg: proměnná `FFMPEG`, jinak `ffmpeg` z PATH. Bez Homebrew stačí `uvx --
 - Osobní věty skutečných rodin se v produkci generují přes `tts-worker` a ukládají do R2, do gitu nikdy. Přehrávač si chybějící věty umí vyžádat sám (`fallback` v `voice-player.js`).
 - `davky/`, `nahravky/` a `ukazky/` jsou pracovní soubory a v gitu nejsou.
 
-**Pozor, ještě není hotové:** aby osobní věty z `tts-worker` seděly ke společným, musí Worker používat stejný hlas, stejný model (`eleven_v4`) a stejnou značku nálady. Teď má ve `wrangler.toml` model `eleven_multilingual_v2` a značku nálady neposílá. Dokud se to nesjednotí, bude na spojích slyšet jiný přednes.
+## Stejné jméno = stejné nahrávky
+
+Klíč nahrávky je otisk textu věty, ne rodiny. Dva různí Toníci proto sdílejí každou větu, která zní stejně:
+
+1. **Společné věty** (bez jména) jsou hotové v `audio/hlas/jana/` pro všechny.
+2. **Věty se jménem**, třeba „Toník dostal nápad.“ nebo „Dobrou noc, Toníku.“, se namluví při prvním Toníkovi. Worker je uloží do společné mezipaměti a R2, takže každý další Toník je dostane zdarma. Přehrávač si o ně Workeru říká sám.
+3. **Věty s městem, jídlem nebo jménem rodiče** jsou u každé rodiny jiné a platí se vždycky.
+
+Druhý Toník s jiným městem, jídlem a rodičem dnes použije **83 %** hotových nahrávek. Platí jen věty ze skupiny 3 a věty s rodičem, kterého první Toník neměl.
+
+Věty pro častá jména jde namluvit předem, aby za ně neplatila ani první rodina:
+
+```bash
+node tools/hlas/plan.mjs jmena
+```
+
+```bash
+node tools/hlas/predehrat.mjs https://ospalek-tts.<tvuj-ucet>.workers.dev
+```
+
+- `plan.mjs jmena` vezme seznam jmen z `jmena.json` a spočítá cenu. Jedno jméno má asi 3 000 znaků, protože zahrnuje varianty s maminkou, tatínkem, babičkou a dědečkem i roli sourozence. Přes API ElevenLabs to je asi 5,50 Kč za jméno a 40 jmen stojí asi 220 Kč.
+- `predehrat.mjs` pošle věty Workeru, který je namluví a uloží. Věta, která už uložená je, nic nestojí, takže skript jde pouštět opakovaně. Bez Workeru se dá vyzkoušet proti atrapě `node tts-worker/dev-mock.mjs` na adrese `http://localhost:8787`.
+- Seznam v `jmena.json` je zatím jen odhad: nejčastější jména podle ČSÚ a domácké tvary. Až poběží provoz, nahraď ho nejčastějšími jmény z administrace.
+
+Aby věty z Workeru seděly ke společným, Worker používá stejný model (`eleven_v4`), stabilitu 0.6 a značku nálady podle pohádky (`mood`). Přehrávač jim navíc ořízne ticho a srovná hlasitost jako `cut.mjs`. Dokud ve Workeru není skutečné Voice ID Jany (`wrangler.toml`) a zapnuté R2, sdílení mezi rodinami v provozu neběží. Hotové nahrávky z `audio/hlas` ale hrají i bez Workeru.

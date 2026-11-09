@@ -18,7 +18,7 @@ globalThis.fetch = async (url, init) => {
   const { text } = JSON.parse(init.body);
   const seconds = Math.min(SAMPLE_SECONDS, Math.max(2, text.length / 14));
   const bytes = Math.round((sample.length * seconds) / SAMPLE_SECONDS);
-  console.log(`  → ElevenLabs (mock) #${calls}: ${text.length} znaků, ${seconds.toFixed(1)} s`);
+  console.log(`  → ElevenLabs (mock) #${calls}: ${text.length} znaků, ${seconds.toFixed(1)} s – ${text.slice(0, 60)}`);
   return new Response(sample.subarray(0, bytes), { headers: { 'Content-Type': 'audio/mpeg' } });
 };
 // náhrada mezipaměti Cloudflaru
@@ -32,7 +32,7 @@ const env = {
   ELEVENLABS_API_KEY: 'mock',
   ALLOWED_ORIGINS: 'http://localhost:5174',
   VOICES: '{"jana":"mock-voice"}',
-  MODEL_ID: 'eleven_multilingual_v2',
+  MODEL_ID: 'eleven_v4',
   MAX_CHARS: '1500',
 };
 

@@ -62,17 +62,21 @@ V `app/app.js` nahoře doplň adresu Workeru:
 const TTS_URL_DEFAULT = 'https://ospalek-tts.<tvuj-ucet>.workers.dev';
 ```
 
-Pak zvyš číslo verze u `app.js?v=…` v `app/index.html` a nahraj web. Přehrávač pak čte Janou. U pohádek s hotovou ukázkovou nahrávkou (Toník) hraje dál ta nahrávka. Když Worker selže, aplikace dočte pohádku hlasem prohlížeče.
+Pak zvyš číslo verze u `app.js?v=…` v `app/index.html` a nahraj web. Přehrávač pak čte Janou po větách: hotové věty z `audio/hlas/jana/`, chybějící věty přes Worker. Když Worker selže, aplikace dočte pohádku hlasem prohlížeče.
 
-## Volitelně: trvalé ukládání nahrávek (R2)
+## Trvalé ukládání nahrávek (R2) – pro sdílení jmen nutné
 
-Mezipaměť Cloudflaru je rychlá, ale může nahrávku po čase zahodit. Pokud chceš mít jistotu, že žádný odstavec nezaplatíš dvakrát:
+Přehrávač čte pohádku po větách. Hotové společné věty bere z `audio/hlas/jana/`, Worker generuje jen věty s údaji rodiny. Mezipaměť je společná pro všechny rodiny. Když si druhá rodina s Toníkem pustí stejnou pohádku, věty jen s jeho jménem („Toník dostal nápad.“, „Dobrou noc, Toníku.“) už jsou uložené a nic se neplatí.
+
+Mezipaměť Cloudflaru ale může nahrávku po čase zahodit, takže sdílení spolehlivě funguje jen s úložištěm R2:
 
 ```bash
 npx wrangler r2 bucket create ospalek-audio
 ```
 
 Pak ve `wrangler.toml` odkomentuj blok `[[r2_buckets]]` a znovu spusť `npx wrangler deploy`.
+
+V Cloudflare dashboardu pak u bucketu nastav pravidlo životního cyklu (R2 → ospalek-audio → Settings → Object lifecycle rules): mazat objekty 365 dní po nahrání. Slibují to zásady ochrany osobních údajů (článek 7): věty se jmény a místy se nemažou s účtem, protože nejsou spojené s žádnou rodinou, ale po 12 měsících zmizí. Kdo je pak potřebuje, Worker je namluví znovu.
 
 ## Zkouška bez účtu a bez kreditů
 
@@ -84,6 +88,8 @@ Spustí Worker na `http://localhost:8787`. Místo ElevenLabs vrací kus ukázkov
 
 ## Co stojí kredity
 
-Platí se za každý odstavec, který ještě nikdy nezazněl. Jedna pohádka má zhruba 5 až 9 tisíc znaků a u modelu `eleven_multilingual_v2` je to zhruba 1 kredit za znak. Levnější je `eleven_flash_v2_5` (změna `MODEL_ID` ve `wrangler.toml`), ale zní o něco hůř. Pohádky jsou na jméno a bydliště, takže každá rodina potřebuje vlastní nahrávky.
+Platí se jen za větu, která ještě nikdy nezazněla, a to u kterékoli rodiny. Model je `eleven_v4` se stabilitou 0.6, stejně jako u nahrávek v `audio/hlas`. Kdybys ho změnil, věty z Workeru nebudou znít stejně jako hotové věty a na spojích to bude slyšet.
+
+Druhá rodina se stejným jménem dítěte dnes použije zhruba 83 % hotových nahrávek. Platí jen věty se svým městem, jídlem nebo jménem rodiče. Věty pro nejčastější jména jde namluvit předem: `node tools/hlas/plan.mjs jmena`, víc v `tools/hlas/README.md`.
 
 Do ElevenLabs odchází text pohádky včetně jmen dětí a obce. Měl by to zmínit text o ochraně údajů.

@@ -443,18 +443,20 @@ function speak(text, onend) {
 }
 
 // --- hlas ElevenLabs přes tts-worker: každý odstavec zvlášť, hotové nahrávky si pamatujeme ---
+// mood = nálada pohádky: Worker podle ní přidá stejnou značku přednesu jako u hotových nahrávek vět
 const cloudClips = new Map();
-function cloudClip(text) {
-  if (!cloudClips.has(text)) {
-    const p = fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana' }) })
+function cloudClip(text, mood) {
+  const id = (mood || '') + '|' + text;
+  if (!cloudClips.has(id)) {
+    const p = fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.');
         return URL.createObjectURL(await r.blob());
       });
-    p.catch(() => cloudClips.delete(text)); // chybu příště zkusit znovu
-    cloudClips.set(text, p);
+    p.catch(() => cloudClips.delete(id)); // chybu příště zkusit znovu
+    cloudClips.set(id, p);
   }
-  return cloudClips.get(text);
+  return cloudClips.get(id);
 }
 const linesNote = 'Čte Jana (ElevenLabs). Společné věty jsou namluvené jednou pro všechny, věty se jmény pro vaši rodinu.';
 const cloudNote = 'Čte Jana (ElevenLabs). Každý odstavec se připraví zvlášť, na začátku to chvilku trvá.';
@@ -533,7 +535,7 @@ function playSeg() {
   const go = () => { if (P && P.playing && P.token === token) { P.i++; playSeg(); } };
   const cloud = P.voice === 'cloud' && !P.cloudFailed;
   const lines = P.voice === 'lines' && !P.cloudFailed;
-  const fallback = TTS_URL ? cloudClip : null;
+  const fallback = TTS_URL ? (t) => cloudClip(t, P.st.mood) : null;
   // další odstavec se připravuje, zatímco tenhle hraje
   if (cloud && P.segs[P.i + 1]) cloudClip(P.segs[P.i + 1].t).catch(() => {});
   if (lines) voiceLines.prefetch(P.plan[P.i + 1], fallback);

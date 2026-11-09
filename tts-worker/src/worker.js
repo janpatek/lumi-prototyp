@@ -1,16 +1,26 @@
 // Ospalek – hlas pohádek přes ElevenLabs.
 // Cloudflare Worker drží API klíč (tajná hodnota ELEVENLABS_API_KEY), aby nebyl v kódu aplikace.
-// Aplikace pošle POST /tts { text, voice } a dostane zpět MP3. Stejný text + hlas se podruhé neplatí:
+// Aplikace pošle POST /tts { text, voice, mood? } a dostane zpět MP3. Stejný text + hlas se podruhé neplatí:
 // hotové nahrávky se ukládají do mezipaměti Cloudflaru, a pokud je připojené úložiště R2 (AUDIO), i natrvalo.
+// Mezipaměť je společná pro všechny rodiny: věta „Dobrou noc, Toníku.“ se zaplatí jednou pro všechny Toníky.
+// Přehrávač po větách (app/voice-player.js) posílá mood = nálada pohádky; Worker pak předřadí stejnou
+// značku přednesu jako u nahrávek z tools/hlas, aby věty z Workeru seděly ke společným větám.
 //
 // Nastavení (wrangler.toml → [vars], klíč přes `npx wrangler secret put ELEVENLABS_API_KEY`):
 //   ALLOWED_ORIGINS  čárkou oddělené adresy webu, odkud se smí volat
 //   VOICES           JSON { "jana": "<voice_id>" } – jen tyhle hlasy jdou použít
-//   MODEL_ID         model ElevenLabs (výchozí eleven_multilingual_v2, umí češtinu)
+//   MODEL_ID         model ElevenLabs (výchozí eleven_v4 – stejný jako nahrávky v audio/hlas)
+//   STABILITY        stabilita hlasu 0–1 (výchozí 0.6, stejná jako nahrávky v audio/hlas)
 //   MAX_CHARS        nejdelší povolený text v jednom požadavku (jeden odstavec pohádky)
 //   LANGUAGE_CODE    volitelně "cs" – jen pro modely, které vynucení jazyka podporují
 
 const API = 'https://api.elevenlabs.io/v1/text-to-speech/';
+// musí být stejné jako MOOD_TAG v tools/hlas/lib.mjs
+const MOOD_TAG = {
+  lullaby: '[soft, calm, warm storyteller voice]',
+  adventure: '[warm, lively storyteller voice]',
+  road: '[cheerful, playful storyteller voice]',
+};
 const CACHE_HOST = 'https://tts-cache.ospalek.internal/';
 
 export default {
@@ -43,7 +53,10 @@ export default {
     const voiceId = vs[voiceName];
     if (!voiceId) return json({ error: 'Není nastavený žádný hlas.' }, 500, cors);
 
-    const key = await sha256(`${model(env)}|${voiceId}|${text}`);
+    const tag = MOOD_TAG[body.mood] || '';
+    const stability = Number(env.STABILITY ?? 0.6);
+    // bez nálady zůstává klíč jako dřív, ať se neztratí už uložené odstavce
+    const key = await sha256(tag ? `${model(env)}|${voiceId}|${stability}|${tag}|${text}` : `${model(env)}|${voiceId}|${text}`);
     const cacheKey = new Request(CACHE_HOST + key);
     const audioHeaders = { ...cors, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=31536000, immutable' };
 
@@ -64,7 +77,12 @@ export default {
       method: 'POST',
       headers: { 'xi-api-key': env.ELEVENLABS_API_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
       // language_code jen když je nastavený – vynutit jazyk umí jen některé modely (např. eleven_flash_v2_5)
-      body: JSON.stringify({ text, model_id: model(env), ...(env.LANGUAGE_CODE ? { language_code: env.LANGUAGE_CODE } : {}) }),
+      body: JSON.stringify({
+        text: tag ? `${tag} ${text}` : text,
+        model_id: model(env),
+        ...(tag ? { voice_settings: { stability, similarity_boost: 0.75 } } : {}),
+        ...(env.LANGUAGE_CODE ? { language_code: env.LANGUAGE_CODE } : {}),
+      }),
     });
     if (!res.ok) {
       // podrobnosti jen do logu Workeru, aplikaci stačí obecná hláška
@@ -80,7 +98,7 @@ export default {
 };
 
 const list = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
-const model = (env) => env.MODEL_ID || 'eleven_multilingual_v2';
+const model = (env) => env.MODEL_ID || 'eleven_v4';
 function voices(env) {
   try { return typeof env.VOICES === 'string' ? JSON.parse(env.VOICES) : env.VOICES || {}; } catch { return {}; }
 }

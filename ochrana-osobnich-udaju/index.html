@@ -43,7 +43,7 @@
   <main class="terms">
     <div class="wrap wrap-narrow">
       <h1>Ochrana osobních údajů</h1>
-      <p class="meta">Verze 1.2 · účinné od 9. 11. 2026</p>
+      <p class="meta">Verze 1.3 · účinné od 9. 11. 2026</p>
 
       <section class="summary" aria-labelledby="kratce">
         <h2 id="kratce">Krátce a lidsky</h2>
@@ -51,7 +51,7 @@
           <li>Chceme jen to, co pohádka potřebuje: křestní jméno, věk, pár oblíbených věcí a obec. Příjmení, přesnou adresu ani fotky nechceme.</li>
           <li>Na našem serveru v EU vedeme tvůj účet: křestní jména a věk dětí a obec, abychom ti mohli pomoct, když napíšeš podpoře. Oblíbené věci, jména blízkých a místa v okolí zůstávají jen ve tvém prohlížeči.</li>
           <li>Statistiky poslechu (které pohádky posloucháte a jak dlouho) přiřazujeme k vaší rodině jen s tvým souhlasem. Bez něj je počítáme jen anonymně. Souhlas zapneš a vypneš v nastavení aplikace.</li>
-          <li>Aby pohádku přečetl hlas, posíláme její text (i se jménem dítěte) poskytovateli syntetického hlasu.</li>
+          <li>Aby pohádku přečetl hlas, posíláme její text (i se jménem dítěte) poskytovateli syntetického hlasu. Namluvené věty ukládáme bez vazby na účet a použijeme je znovu pro každou rodinu, kde zazní stejná věta, třeba „Dobrou noc, Toníku.“</li>
           <li>Údaje neprodáváme a nepoužíváme je k reklamě. Nemáme reklamní ani analytické cookies.</li>
           <li>Všechno můžeš kdykoli smazat jedním tlačítkem v aplikaci.</li>
         </ul>
@@ -133,7 +133,7 @@
         <li>Údaje o rodině v prohlížeči: dokud je nesmažeš.</li>
         <li>Údaje o rodině a poslechu na serveru: dokud je nesmažeš v aplikaci nebo nás nepožádáš o smazání. Pak je smažeme hned, nejpozději do 30 dnů.</li>
         <li>Údaje o účtu: po dobu trvání účtu. Po jeho zrušení je smažeme do 30 dnů.</li>
-        <li>Hotové nahrávky pohádek: nejdéle do zrušení účtu nebo do smazání údajů o rodině. Anonymní nahrávky bez jmen, společné pro všechny rodiny, si ponecháváme.</li>
+        <li>Nahrávky vět: pohádku skládáme z nahrávek jednotlivých vět. Ukládáme je jen podle textu věty, bez vazby na účet, rodinu nebo zařízení, a stejnou větu přehrajeme každé rodině, u které se v pohádce objeví (například dětem se stejným křestním jménem). Proto je nedokážeme přiřadit konkrétní rodině a nemažeme je spolu s účtem. Nahrávky vět se jménem nebo místem se automaticky mažou 12 měsíců od namluvení. Když je někdo potřebuje později, namluví se znovu. Nahrávky bez jmen, společné pro všechny rodiny, si ponecháváme.</li>
         <li>Účetní doklady: 10 let, jak ukládá zákon.</li>
         <li>Komunikace s podporou: 3 roky od vyřízení, kvůli případným reklamacím a sporům.</li>
         <li>Technické záznamy u poskytovatelů hostingu: podle jejich pravidel, obvykle několik týdnů.</li>
@@ -167,6 +167,7 @@
         <table class="tbl">
           <thead><tr><th>Verze</th><th>Datum</th><th>Co se změnilo</th></tr></thead>
           <tbody>
+            <tr><td>1.3</td><td>9. 11. 2026</td><td>Nahrávky vět se ukládají bez vazby na účet a sdílí se mezi rodinami se stejnou větou (např. stejným jménem dítěte). Nemažou se s účtem, ale automaticky 12 měsíců od namluvení.</td></tr>
             <tr><td>1.2</td><td>9. 11. 2026</td><td>Upřesněno umístění serveru Supabase: EU, Irsko (dříve uvedeno Frankfurt).</td></tr>
             <tr><td>1.1</td><td>8. 11. 2026</td><td>Účet rodiny (děti, obec, zařízení) ukládáme na serveru v EU (Supabase) kvůli podpoře. Statistiky poslechu přiřazujeme k rodině jen se souhlasem, jinak anonymně. Smazání v aplikaci maže i data na serveru.</td></tr>
             <tr><td>1.0</td><td>8. 11. 2026</td><td>První verze. Údaje o rodině jen v prohlížeči, hlas ElevenLabs přes Cloudflare, hosting GitHub Pages.</td></tr>

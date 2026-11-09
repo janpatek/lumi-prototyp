@@ -1,6 +1,8 @@
 // Plán nahrávání: které věty chybí a v jakých dávkách je namluvit.
 //   node tools/hlas/plan.mjs spolecne            všechny věty bez osobních údajů (všechny tvary rodu a čísla)
 //   node tools/hlas/plan.mjs rodina <soubor.json> věty jedné rodiny, které ještě nejsou nahrané
+//   node tools/hlas/plan.mjs jmena [soubor.json]  věty, ve kterých je jen jméno dítěte (bez místa, jídla, jména
+//                                                 rodiče) – pro častá jména předem; výchozí tools/hlas/jmena.json
 // Vypíše do tools/hlas/davky/ jednu dávku na pohádku: <id>-<název>.json (věty) a .txt (text pro TTS).
 import fs from 'fs';
 import path from 'path';
@@ -15,18 +17,22 @@ fs.mkdirSync(OUT, { recursive: true });
 // Značky místo osobních údajů: věta, ve které se objeví, je osobní.
 const MARK = /⟦/;
 const mk = (n) => `⟦${n}⟧`;
-function variants() {
+// one = { name, gender, as: 'hero' | 'sib' }: jedno dítě se skutečným jménem, vše ostatní značky
+function variants(one) {
   const out = [];
   const kid = (n, g) => app.person(mk(n), g, { food: mk('jídlo' + n), animal: mk('zvíře' + n) });
+  const real = (g) => app.person(one.name, g, { food: mk('jídlo'), animal: mk('zvíře') });
   const par = (role, named) => ({ role, name: named ? mk('rodič') : '', forms: app.person(named ? mk('rodič') : '', role === 'mama' || role === 'babi' ? 'f' : 'm').forms });
-  for (const heroes of [['m'], ['f'], ['m', 'f'], ['f', 'f']])
-    for (const sib of [null, 'm', 'f'])
+  const heroSets = one ? (one.as === 'hero' ? [[one.gender]] : [['m'], ['f']]) : [['m'], ['f'], ['m', 'f'], ['f', 'f']];
+  const sibSets = one ? (one.as === 'sib' ? [one.gender] : [null, 'm', 'f']) : [null, 'm', 'f'];
+  for (const heroes of heroSets)
+    for (const sib of sibSets)
       for (const p1 of ['mama', 'tata', 'babi', 'deda'])
         for (const named of [false, true])
           for (const p2 of [null, 'mama', 'tata'])
             for (const home of [false, true]) {
-              const children = heroes.map((g, i) => kid('dítě' + i, g));
-              if (sib) children.push(kid('sourozenec', sib));
+              const children = heroes.map((g, i) => (one && one.as === 'hero' ? real(g) : kid('dítě' + i, g)));
+              if (sib) children.push(one && one.as === 'sib' ? real(sib) : kid('sourozenec', sib));
               out.push({
                 family: {
                   children,
@@ -41,7 +47,8 @@ function variants() {
 
 // věta, která už je v jiné dávce tohoto běhu (např. „Dobrou noc, Aničko.“), se nenamlouvá dvakrát
 const planned = new Set();
-function batch(story, name, lines) {
+const slug = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+function batch(story, name, lines, quiet) {
   const todo = lines.filter((l) => !have[l.key] && !planned.has(l.key));
   todo.forEach((l) => planned.add(l.key));
   if (!todo.length) return 0;
@@ -53,7 +60,7 @@ function batch(story, name, lines) {
   const base = path.join(OUT, `${story.id}-${name}`);
   fs.writeFileSync(base + '.json', JSON.stringify({ story: story.id, mood: story.mood, lines: todo }, null, 1));
   fs.writeFileSync(base + '.txt', text + '\n');
-  console.log(`${story.id}-${name}: ${todo.length} vět, ${text.length} znaků`);
+  if (!quiet) console.log(`${story.id}-${name}: ${todo.length} vět, ${text.length} znaků`);
   return text.length;
 }
 
@@ -83,8 +90,31 @@ if (mode === 'spolecne') {
     app.render(st, family, fam.heroes || [0]).forEach((p) => p.lines.forEach((l) => seen.has(l.key) || seen.set(l.key, { ...l, para: p.i })));
     total += batch(st, name, [...seen.values()]);
   }
+} else if (mode === 'jmena') {
+  const names = JSON.parse(fs.readFileSync(file || path.join(ROOT, 'tools/hlas/jmena.json'), 'utf8')).jmena;
+  const per = [];
+  for (const n of names) {
+    const before = total;
+    for (const st of app.stories) {
+      const seen = new Map();
+      const slots = new Map();
+      for (const as of ['hero', 'sib'])
+        for (const v of variants({ ...n, as })) app.render(st, v.family, v.heroes).forEach((p) => p.lines.forEach((l, j) => {
+          if (MARK.test(l.t) || seen.has(l.key)) return;
+          const slot = p.i + ':' + j;
+          const pass = slots.get(slot) || 0;
+          slots.set(slot, pass + 1);
+          seen.set(l.key, { ...l, para: p.i, pass });
+        }));
+      total += batch(st, 'jmeno-' + slug(n.name), [...seen.values()].sort((a, b) => a.pass - b.pass || a.para - b.para), true);
+    }
+    per.push(`${n.name}: ${total - before} znaků`);
+  }
+  console.log(per.join(', '));
+  // ceny: Magnific ~0,2 kreditu/znak (eleven_v4), ElevenLabs API 0,08 $ / 1000 znaků (business plán, 23 Kč/$)
+  console.log(`Odhad: ${Math.round(total * 0.2)} kreditů Magnificu, přes API ElevenLabs asi ${Math.round(total / 1000 * 0.08 * 23)} Kč.`);
 } else {
-  console.log('Použití: node tools/hlas/plan.mjs spolecne | rodina tools/hlas/rodiny/<rodina>.json');
+  console.log('Použití: node tools/hlas/plan.mjs spolecne | rodina tools/hlas/rodiny/<rodina>.json | jmena [seznam.json]');
   process.exit(1);
 }
 console.log(`Celkem ${total} znaků k namluvení.`);
