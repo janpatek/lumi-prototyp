@@ -33,7 +33,7 @@
     box.innerHTML = `
       <form class="panel login-card" novalidate>
         <img src="../brand/maskot-3d/web/ospalek-spi.webp" alt="">
-        <b class="wordmark">ospalek</b>
+        <b class="wordmark">Ospalek</b>
         <h1>Administrace</h1>
         <p class="muted">Pro vstup zadej heslo.</p>
         <label for="pw">Heslo</label>

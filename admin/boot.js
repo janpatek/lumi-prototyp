@@ -15,7 +15,7 @@ function loadScripts(list) {
 function bootMessage(html) {
   let el = document.getElementById('bootMsg');
   if (!el) { el = document.createElement('main'); el.id = 'bootMsg'; el.className = 'login'; document.body.prepend(el); }
-  el.innerHTML = `<div class="panel login-card"><img src="../brand/maskot-3d/web/ospalek-spi.webp" alt=""><b class="wordmark">ospalek</b>${html}</div>`;
+  el.innerHTML = `<div class="panel login-card"><img src="../brand/maskot-3d/web/ospalek-spi.webp" alt=""><b class="wordmark">Ospalek</b>${html}</div>`;
   return el;
 }
 

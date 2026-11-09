@@ -28,7 +28,7 @@
   --stitch-on-accent: rgba(255, 255, 255, .55);
   --shadow-plush: inset 0 2px 0 rgba(255, 255, 255, .7), inset 0 -6px 14px rgba(46, 49, 80, .06), 0 2px 3px rgba(46, 49, 80, .06), 0 10px 22px rgba(46, 49, 80, .1);
   --shadow-pillow: inset 0 2px 0 rgba(255, 255, 255, .35), inset 0 -5px 10px rgba(0, 0, 0, .14), 0 6px 14px rgba(46, 49, 80, .18);
-  /* Fredoka nemá ě, č, ř, ů, ň, ť, ď – nadpisy proto v Nunitu, Fredoka jen ve slově „ospalek“ v logu */
+  /* Fredoka nemá ě, č, ř, ů, ň, ť, ď – nadpisy proto v Nunitu, Fredoka jen ve slově „Ospalek“ v logu */
   --display: "Nunito", ui-rounded, system-ui, sans-serif;
   --logo: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
   --body: "Nunito", ui-rounded, system-ui, sans-serif;
@@ -84,7 +84,7 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; color: var(--ink-m
 .login { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 14px; }
 .logo { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 4px; }
 .logo img { width: 112px; height: 112px; }
-.wordmark { font-family: var(--logo); font-weight: 600; font-size: 44px; line-height: 1; text-transform: lowercase; color: var(--ink); }
+.wordmark { font-family: var(--logo); font-weight: 600; font-size: 44px; line-height: 1; color: var(--ink); }
 .tag { color: var(--ink-muted); font-size: 19px; margin: 0 0 24px; }
 .fine { color: var(--ink-muted); font-size: 13px; }
 

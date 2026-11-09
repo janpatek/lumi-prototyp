@@ -47,7 +47,7 @@ const LIVE = (() => {
       box.innerHTML = `
         <form class="panel login-card" novalidate>
           <img src="../brand/maskot-3d/web/ospalek-spi.webp" alt="">
-          <b class="wordmark">ospalek</b>
+          <b class="wordmark">Ospalek</b>
           <h1>Ostrá data</h1>
           <p class="muted">Přihlas se účtem člena týmu v databázi.</p>
           <label for="sbMail">E-mail</label><input id="sbMail" type="email" autocomplete="username" required>
