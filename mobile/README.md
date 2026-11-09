@@ -1,7 +1,7 @@
 # Ospalek pro Android a iOS (Capacitor)
 
 Nativní obal webové aplikace z `../app`. Jeden projekt pro obě platformy:
-`android/` je v repu, `ios/` přidá `npx cap add ios` (session iOS).
+`android/` a `ios/` (Xcode projekt, Swift Package Manager, bez CocoaPods) jsou v repu.
 
 ## Proč Capacitor, ne TWA
 
@@ -30,6 +30,16 @@ npm run android         # otevře projekt v Android Studiu
 npm run android:build   # APK přes Gradle (potřebuje JDK 21 a Android SDK)
 npm run android:run     # spustí v emulátoru nebo na telefonu
 ```
+
+```bash
+npm run ios             # otevře projekt v Xcode
+npm run ios:build       # sestavení pro iOS Simulator (xcodebuild)
+npm run ios:run         # spustí v iOS Simulatoru
+```
+
+iOS: potřeba plné Xcode (ne jen Command Line Tools) s iOS platformou: `sudo xcode-select -s /Applications/Xcode.app`.
+Nastaveno: `UIBackgroundModes: audio` a `AVAudioSession` `.playback` (hraje se zamčenou obrazovkou i s přepínačem ticha), jazyk cs/sk.
+Checklist pro App Store a technický návrh pro iOS: poznámka `ios-app-store.md` ve sdílené složce poznámek sessions.
 
 Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s Android 15/16.
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
