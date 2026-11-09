@@ -363,6 +363,31 @@ begin
   insert into audit_log (actor, action, target, detail) values (auth.uid(), 'family.delete', 'f' || lpad(fseq::text, 5, '0'), 'Smazání rodiny (GDPR)');
 end $$;
 
+-- ---------- Pozvánky do týmu ----------
+-- Člena týmu stačí pozvat e-mailem: jakmile v Supabase vznikne účet s tímto e-mailem (Authentication → Users → Add user),
+-- trigger ho přidá do staff. Pozvánka se tím spotřebuje.
+--   insert into staff_invites (email, name, role) values ('kolega@ospalek.cz', 'Kolega', 'support');
+create table if not exists public.staff_invites (
+  email text primary key check (email = lower(email)),
+  name text not null,
+  role text not null default 'support' check (role in ('owner', 'support', 'content', 'analyst', 'finance')),
+  created_at timestamptz not null default now()
+);
+alter table public.staff_invites enable row level security;
+
+create or replace function public.staff_invite_apply() returns trigger language plpgsql security definer set search_path = public as $$
+declare i staff_invites;
+begin
+  if new.email is null then return new; end if;
+  delete from staff_invites where email = lower(new.email) returning * into i;
+  if i.email is not null then
+    insert into staff (user_id, name, role) values (new.id, i.name, i.role) on conflict (user_id) do nothing;
+  end if;
+  return new;
+end $$;
+drop trigger if exists staff_invite_apply on auth.users;
+create trigger staff_invite_apply after insert or update of email on auth.users for each row execute function public.staff_invite_apply();
+
 -- ---------- Práva ----------
 -- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení nic nezmůže.
 revoke all on all tables in schema public from anon, authenticated;

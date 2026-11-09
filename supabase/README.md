@@ -25,12 +25,13 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
 2. **SQL Editor** → vlož celý `supabase/schema.sql` → Run. Dá se spustit i znovu po úpravách.
 3. **Authentication → Sign In / Providers → Anonymous sign-ins: zapnout.** Rodiny díky tomu nemusí zadávat e-mail.
    Doporučení: v Authentication → Rate Limits nech limit anonymních přihlášení nízký (výchozích 30 za hodinu z jedné IP), později přidat captchu (Turnstile).
-4. **Authentication → Users → Add user**: svůj e-mail a heslo (Auto Confirm). Pak v SQL Editoru:
+4. Pozvi se do týmu (SQL Editor), pak v **Authentication → Users → Add user** založ účet se stejným e-mailem a heslem (Auto Confirm).
+   Trigger tě při založení účtu sám přidá do tabulky `staff`:
    ```sql
-   insert into staff (user_id, name, role)
-   select id, 'Jan', 'owner' from auth.users where email = 'tvuj@email.cz';
+   insert into staff_invites (email, name, role) values ('tvuj@email.cz', 'Jan', 'owner');
    ```
-   Další členy týmu stejně, role: `owner`, `support`, `content`, `analyst`, `finance`.
+   Další členy týmu stejně, role: `owner`, `support`, `content`, `analyst`, `finance`. U už existujícího účtu stačí rovnou
+   `insert into staff (user_id, name, role) select id, 'Jméno', 'support' from auth.users where email = '…';`
 5. **Project Settings → API**: zkopíruj *Project URL* a *Publishable key* (`sb_publishable_…`, starší *anon key* funguje také) do `config.js` v kořeni webu:
    ```js
    window.OSPALEK_CONFIG = { supabaseUrl: 'https://xxxx.supabase.co', supabaseAnonKey: 'eyJ…' };
