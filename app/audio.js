@@ -1,5 +1,19 @@
-// Podkladová hudba a zvukové efekty syntetizované přímo v prohlížeči (Web Audio API).
-// V produkci nahradí nahrané / vygenerované stopy (ElevenLabs Music, licencovaná hudba).
+// Zvuk v pozadí pohádky a zvukové efekty (Web Audio API).
+// Každá pohádka má v audio/pozadi/ dvě smyčky: kulisu (ruchy podle děje) a jemnou hudbu
+// (vyrábí tools/pozadi/smycky.py). Pohádka bez smyček dostane hudbu syntetizovanou podle mood.
+// Zvuk v pozadí jde vypnout („Jen čtení“), volba i hlasitost se pamatují v localStorage.
+// Pod hlasem se pozadí ztlumí (duck), v pauzách na odpověď a na konci se zase zesílí.
+
+const BED = '../audio/pozadi/';
+const BED_MIX = { kulisa: 1, hudba: 0.8 }; // poměr stop; soubory mají stejnou hlasitost
+const BED_LEVEL = 0.5; // celková hlasitost při posuvníku na 1
+const DUCK = 0.5; // kolikrát tišeji pod hlasem
+const PREF = 'ospalek-pozadi';
+const pref = (() => { try { return JSON.parse(localStorage.getItem(PREF)) || {}; } catch (e) { return {}; } })();
+const savePref = () => { try { localStorage.setItem(PREF, JSON.stringify(pref)); } catch (e) {} };
+// v aplikaci pro iOS vrací Capacitor vlastní soubory se stavem 0 (bez HTTP hlavičky), data ale dorazí
+const okLocal = (r) => r.ok || r.status === 0;
+const bedIndex = fetch(BED + 'index.json').then((r) => (okLocal(r) ? r.json() : null)).catch(() => null);
 
 const MOODS = {
   // akordy jako MIDI noty, arp = kolik tónů hrací skříňky na takt
@@ -10,19 +24,31 @@ const MOODS = {
 const hz = (m) => 440 * 2 ** ((m - 69) / 12);
 
 class Ambience {
+  constructor() {
+    this.musicVol = pref.vol ?? 0.5;
+    this.bedOn = pref.on !== false;
+  }
+
   ensure() {
     if (!this.ctx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AC();
       this.master = this.ctx.createGain();
       this.master.connect(this.ctx.destination);
+      // pozadí (smyčky i syntetizovaná hudba) jde přes duck → master
+      this.duckG = this.ctx.createGain();
+      this.duckG.connect(this.master);
+      this.bedBus = this.ctx.createGain();
+      this.bedBus.gain.value = this.musicVol * BED_LEVEL;
+      this.bedBus.connect(this.duckG);
+      this.bedBufs = new Map();
       this.music = this.ctx.createGain();
       this.music.gain.value = 0;
       this.lp = this.ctx.createBiquadFilter();
       this.lp.type = 'lowpass';
       this.lp.frequency.value = 1400;
       this.lp.connect(this.music);
-      this.music.connect(this.master);
+      this.music.connect(this.duckG);
       this.fx = this.ctx.createGain();
       this.fx.gain.value = 0.5;
       this.fx.connect(this.master);
@@ -30,7 +56,6 @@ class Ambience {
       this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
       const d = this.noise.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-      this.musicVol = 0.5;
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
   }
@@ -103,8 +128,96 @@ class Ambience {
   }
 
   setMusicVolume(v) {
-    this.musicVol = v;
-    if (this.ctx && this.timer) this.music.gain.setTargetAtTime(v * 0.35, this.ctx.currentTime, 0.2);
+    this.musicVol = pref.vol = v;
+    savePref();
+    if (!this.ctx) return;
+    this.bedBus.gain.setTargetAtTime(v * BED_LEVEL, this.ctx.currentTime, 0.2);
+    if (this.timer) this.music.gain.setTargetAtTime(v * 0.35, this.ctx.currentTime, 0.2);
+  }
+
+  // --- zvuk v pozadí pohádky ---
+  bedBuffer(file) {
+    if (!this.bedBufs.has(file)) {
+      const p = fetch(BED + file)
+        .then((r) => { if (!okLocal(r)) throw new Error('Zvuk v pozadí se nenačetl.'); return r.arrayBuffer(); })
+        .then((b) => this.ctx.decodeAudioData(b));
+      p.catch(() => this.bedBufs.delete(file));
+      this.bedBufs.set(file, p);
+    }
+    return this.bedBufs.get(file);
+  }
+
+  // stáhne smyčky dopředu, aby po stisku Přehrát hrály hned
+  preloadBackground(st) {
+    this.ensure();
+    bedIndex.then((ix) => {
+      const clips = ix && ix.clips[st.id];
+      if (clips) Object.values(clips).forEach((c) => this.bedBuffer(c.file).catch(() => {}));
+    });
+  }
+
+  startBackground(st) {
+    this.ensure();
+    this.stopBackground(true);
+    this.duck(false);
+    if (!this.bedOn) return;
+    const c = this.ctx;
+    const sess = (this.bed = { gain: c.createGain(), srcs: [] });
+    sess.gain.gain.value = 0;
+    sess.gain.connect(this.bedBus);
+    bedIndex.then((ix) => {
+      const clips = ix && ix.clips[st.id];
+      if (!clips) throw new Error('Pohádka nemá smyčky.');
+      return Promise.all(Object.entries(clips).map(([kind, clip]) => this.bedBuffer(clip.file).then((buf) => ({ kind, clip, buf, pad: ix.pad }))));
+    }).then((list) => {
+      if (this.bed !== sess) return;
+      const t = c.currentTime + 0.05;
+      list.forEach(({ kind, clip, buf, pad }) => {
+        // smyčka mezi okraji: soubor má před tělem jeho konec a za ním začátek, takže
+        // posun dekodéru MP3 (ticho kodéru) nevadí a smyčka navazuje bez mezery
+        const s = c.createBufferSource();
+        s.buffer = buf;
+        s.loop = true;
+        s.loopStart = pad;
+        s.loopEnd = pad + clip.body;
+        const g = c.createGain();
+        g.gain.value = BED_MIX[kind] ?? 1;
+        s.connect(g).connect(sess.gain);
+        s.start(t, pad);
+        sess.srcs.push(s);
+      });
+      sess.gain.gain.setValueAtTime(0, t);
+      sess.gain.gain.linearRampToValueAtTime(1, t + 2.5);
+    }).catch(() => {
+      // bez smyček (nebo když se nenačtou) hraje syntetizovaná hudba podle nálady
+      if (this.bed === sess) { sess.gain.disconnect(); this.bed = null; this.startMusic(st.mood); this.bedSynth = true; }
+    });
+  }
+
+  stopBackground(now) {
+    this.stopMusic(now);
+    this.bedSynth = false;
+    const sess = this.bed;
+    this.bed = null;
+    if (!sess || !this.ctx) return;
+    const t = this.ctx.currentTime, fade = now ? 0.15 : 4;
+    sess.gain.gain.cancelScheduledValues(t);
+    sess.gain.gain.setValueAtTime(sess.gain.gain.value, t);
+    sess.gain.gain.linearRampToValueAtTime(0, t + fade);
+    sess.srcs.forEach((s) => { try { s.stop(t + fade + 0.05); } catch (e) {} });
+    setTimeout(() => sess.gain.disconnect(), (fade + 0.2) * 1000);
+  }
+
+  // „Jen čtení“: vypne zvuk v pozadí a zapamatuje si to
+  setBackgroundOn(on) {
+    this.bedOn = pref.on = on;
+    savePref();
+  }
+
+  // pod hlasem ztišit, v pauzách zesílit (rychlý nástup, pomalý návrat)
+  duck(on) {
+    if (!this.ctx) return;
+    this.duckG.gain.setTargetAtTime(on ? DUCK : 1, this.ctx.currentTime, on ? 0.15 : 0.8);
   }
 
   stopMusic(now) {

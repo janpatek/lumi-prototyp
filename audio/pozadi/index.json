@@ -1,0 +1,65 @@
+{
+ "pad": 0.5,
+ "clips": {
+  "drak": {
+   "hudba": {
+    "file": "drak-hudba.mp3",
+    "body": 27.75
+   },
+   "kulisa": {
+    "file": "drak-kulisa.mp3",
+    "body": 28.0
+   }
+  },
+  "hadanky": {
+   "hudba": {
+    "file": "hadanky-hudba.mp3",
+    "body": 26.25
+   },
+   "kulisa": {
+    "file": "hadanky-kulisa.mp3",
+    "body": 28.0
+   }
+  },
+  "hvezdicka": {
+   "hudba": {
+    "file": "hvezdicka-hudba.mp3",
+    "body": 27.75
+   },
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   }
+  },
+  "lednice": {
+   "hudba": {
+    "file": "lednice-hudba.mp3",
+    "body": 23.0
+   },
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   }
+  },
+  "vyprava": {
+   "hudba": {
+    "file": "vyprava-hudba.mp3",
+    "body": 22.75
+   },
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   }
+  },
+  "zubar": {
+   "hudba": {
+    "file": "zubar-hudba.mp3",
+    "body": 27.75
+   },
+   "kulisa": {
+    "file": "zubar-kulisa.mp3",
+    "body": 28.0
+   }
+  }
+ }
+}

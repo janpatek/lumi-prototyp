@@ -505,11 +505,16 @@ function openPlayer(st) {
           <button class="play" data-a="playPause" id="playBtn" aria-label="Přehrát">${I.play}</button>
           <button class="skip" data-a="nextSeg" aria-label="Další">${I.next}</button>
         </div>
-        <div class="mix">${I.music} Hudba <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol ?? 0.5}"></div>
+        <div class="seg bgmode" role="group" aria-label="Zvuk v pozadí">
+          <button data-a="bgOn" aria-pressed="${ambience.bedOn}" class="${ambience.bedOn ? 'on' : ''}">${I.music} Se zvukem</button>
+          <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.book} Jen čtení</button>
+        </div>
+        <div class="mix${ambience.bedOn ? '' : ' off'}" id="bgMix">Hlasitost pozadí <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol}" aria-label="Hlasitost zvuku v pozadí"></div>
         <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
+  ambience.preloadBackground(st);
   highlight();
 }
 
@@ -550,9 +555,11 @@ function playSeg() {
   if (lines) voiceLines.prefetch(P.plan[P.i + 1], fallback);
   const after = () => {
     if (!seg.pause) return setTimeout(go, 500);
+    ambience.duck(false); // čas na odpověď: pozadí zase nahlas
     P.stop = waitAnswer(seg.pause, go);
   };
   const delay = setTimeout(() => {
+    ambience.duck(true);
     P.stop = lines
       ? voiceLines.speak(P.plan[P.i], after, { fallback, onerror: (e) => {
         P.cloudFailed = true;
@@ -585,6 +592,7 @@ async function playRec() {
   }
   if (P.audio.ended) P.audio.currentTime = 0;
   P.audio.play();
+  ambience.duck(true);
   highlight();
 }
 function onRecTime() {
@@ -601,7 +609,8 @@ function onRecTime() {
       P.audio.pause();
       P.audio.currentTime = v.starts[i];
       P.waiting = true;
-      P.stop = waitAnswer(prev.pause, () => { P.waiting = false; P.audio.play(); });
+      ambience.duck(false);
+      P.stop = waitAnswer(prev.pause, () => { P.waiting = false; ambience.duck(true); P.audio.play(); });
       return;
     }
     P.i = i;
@@ -630,13 +639,13 @@ function playPause() {
   if (P.playing) {
     P.playing = false;
     stopVoice();
-    ambience.stopMusic(true);
+    ambience.stopBackground(true);
     highlight();
   } else {
     P.playing = true;
     if (P.i >= P.segs.length) P.i = 0;
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
-    ambience.startMusic(P.st.mood);
+    ambience.startBackground(P.st);
     document.querySelector('.the-end')?.remove();
     recVoice() ? playRec() : playSeg();
   }
@@ -652,16 +661,30 @@ function jump(d) {
 function theEnd() {
   P.playing = false;
   SYNC.playEnd(P.sync, true);
-  ambience.stopMusic(false); // pomalé ztlumení
+  ambience.duck(false);
+  ambience.stopBackground(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
   scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
 }
 
+// „Se zvukem“ / „Jen čtení“: volbu si pamatuje audio.js (localStorage)
+function setBackground(on) {
+  ambience.setBackgroundOn(on);
+  document.querySelectorAll('.bgmode button').forEach((b) => {
+    const sel = (b.dataset.a === 'bgOn') === on;
+    b.classList.toggle('on', sel);
+    b.setAttribute('aria-pressed', sel);
+  });
+  document.getElementById('bgMix').classList.toggle('off', !on); // jen skrýt, ať tlačítka neposkočí
+  if (!P || !P.playing) return;
+  if (on) { ambience.startBackground(P.st); ambience.duck(true); } else ambience.stopBackground(true);
+}
+
 function closePlayer() {
   if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); stopVoice(); P = null; }
-  ambience.stopMusic(true);
+  ambience.stopBackground(true);
   document.getElementById('player')?.remove();
 }
 
@@ -736,6 +759,8 @@ const actions = {
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
   toggleText: () => document.getElementById('ptext').classList.toggle('hide'),
+  bgOn: () => setBackground(true),
+  bgOff: () => setBackground(false),
   closePlayer,
 };
 
