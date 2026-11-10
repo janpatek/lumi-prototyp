@@ -88,7 +88,7 @@ Spustí Worker na `http://localhost:8787`. Místo ElevenLabs vrací kus ukázkov
 
 ## Co stojí kredity
 
-Platí se jen za větu, která ještě nikdy nezazněla, a to u kterékoli rodiny. Model je `eleven_v4` se stabilitou 0.6, stejně jako u nahrávek v `audio/hlas`. Kdybys ho změnil, věty z Workeru nebudou znít stejně jako hotové věty a na spojích to bude slyšet.
+Platí se jen za větu, která ještě nikdy nezazněla, a to u kterékoli rodiny. Model je `eleven_v4` se stabilitou 0.75 a hotové věty v `audio/hlas` vznikly přes tenhle Worker se stejným nastavením. Když hlas, model nebo stabilitu změníš, namluv hotové věty znovu (`tools/hlas/namluvit.mjs`), jinak bude na spojích slyšet rozdíl.
 
 Druhá rodina se stejným jménem dítěte dnes použije zhruba 83 % hotových nahrávek. Platí jen věty se svým městem, jídlem nebo jménem rodiče. Věty pro nejčastější jména jde namluvit předem: `node tools/hlas/plan.mjs jmena`, víc v `tools/hlas/README.md`.
 

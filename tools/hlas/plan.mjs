@@ -1,6 +1,7 @@
 // Plán nahrávání: které věty chybí a v jakých dávkách je namluvit.
 //   node tools/hlas/plan.mjs spolecne            všechny věty bez osobních údajů (všechny tvary rodu a čísla)
 //   node tools/hlas/plan.mjs rodina <soubor.json> věty jedné rodiny, které ještě nejsou nahrané
+//   ZNOVU=1 node tools/hlas/plan.mjs …           totéž včetně už nahraných vět (pro namluvit.mjs)
 //   node tools/hlas/plan.mjs jmena [soubor.json]  věty, ve kterých je jen jméno dítěte (bez místa, jídla, jména
 //                                                 rodiče) – pro častá jména předem; výchozí tools/hlas/jmena.json
 // Vypíše do tools/hlas/davky/ jednu dávku na pohádku: <id>-<název>.json (věty) a .txt (text pro TTS).
@@ -10,7 +11,8 @@ import { loadApp, readManifest, MOOD_TAG, ROOT } from './lib.mjs';
 
 const [mode, file] = process.argv.slice(2);
 const app = loadApp();
-const have = readManifest().clips;
+// ZNOVU=1: naplánovat i věty, které už nahrané jsou (nové namluvení všeho, viz namluvit.mjs)
+const have = process.env.ZNOVU ? {} : readManifest().clips;
 const OUT = path.join(ROOT, 'tools/hlas/davky');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -111,8 +113,8 @@ if (mode === 'spolecne') {
     per.push(`${n.name}: ${total - before} znaků`);
   }
   console.log(per.join(', '));
-  // ceny: Magnific ~0,2 kreditu/znak (eleven_v4), ElevenLabs API 0,08 $ / 1000 znaků (business plán, 23 Kč/$)
-  console.log(`Odhad: ${Math.round(total * 0.2)} kreditů Magnificu, přes API ElevenLabs asi ${Math.round(total / 1000 * 0.08 * 23)} Kč.`);
+  // ElevenLabs účtuje znaky (1 znak ≈ 1 kredit); cena podle business plánu 0,08 $ / 1000 znaků, 23 Kč/$
+  console.log(`Odhad: asi ${total} kreditů ElevenLabs, tj. asi ${Math.round(total / 1000 * 0.08 * 23)} Kč.`);
 } else {
   console.log('Použití: node tools/hlas/plan.mjs spolecne | rodina tools/hlas/rodiny/<rodina>.json | jmena [seznam.json]');
   process.exit(1);
