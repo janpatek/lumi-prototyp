@@ -3,19 +3,29 @@
 const ACTION_LABEL = { auth: 'Přihlášení', ticket: 'Helpdesk', family: 'Rodiny', payment: 'Platby', story: 'Pohádky', team: 'Tým', promo: 'Kódy', tts: 'Hlas' };
 
 function pageTeam() {
-  // v ostrém režimu se tým a role spravují v databázi (tabulka staff), tady jen přehled
-  const canM = API.can('team.manage') && !D.live;
+  // ostrá data: tým spravuje vlastník (účty a hesla přes Edge Function staff-admin, role a kód přes databázi)
+  const canM = API.can('team.manage') && (!D.live || (D.me.role === 'owner' && !!D.team));
   const roles = Object.entries(API.ROLES);
+  const row = (s) => {
+    const me = s.id === API.me.id;
+    const acts = D.live && canM ? `<div class="row-acts">
+        <button class="btn white sm" data-a="teamPw" data-v="${esc(s.id)}">Nastavit heslo</button>
+        ${!me && s.twofa ? `<button class="btn white sm" data-a="teamMfa" data-v="${esc(s.id)}">Zrušit kód</button>` : ''}
+        ${!me ? `<button class="btn danger sm" data-a="teamRemove" data-v="${esc(s.id)}">Odebrat</button>` : ''}</div>` : '';
+    return `<tr><td><span class="av">${initials(s.name)}</span> <b>${esc(s.name)}</b>${me ? ' <span class="tag">ty</span>' : ''}${s.invited ? ' <span class="tag honey">pozvánka</span>' : ''}</td><td class="muted">${esc(s.email)}</td>
+      <td>${canM && !me ? `<select data-f="staffRole" data-id="${s.id}" style="width:auto;padding:4px 8px">${roles.map(([k, r]) => `<option value="${k}" ${s.role === k ? 'selected' : ''}>${r.label}</option>`).join('')}</select>` : API.ROLES[s.role].label}</td>
+      <td>${s.twofa ? '<span class="status-ok">zapnuto</span>' : (D.live ? '<span class="status-warn">nastaví při přihlášení</span>' : '<span class="status-bad">vypnuto</span>')}</td><td class="muted">${s.last ? ago(s.last) : '–'}</td>${D.live && canM ? `<td>${acts}</td>` : ''}</tr>`;
+  };
+  const btn = canM ? (D.live ? `<button class="btn" data-a="teamAdd">${I.plus}Přidat člena týmu</button>` : `<button class="btn" data-a="invite">${I.plus}Pozvat člena týmu</button>`) : '';
   return `
-    ${head('Tým a role', 'Kdo má do administrace přístup a co smí', canM ? `<button class="btn" data-a="invite">${I.plus}Pozvat člena týmu</button>` : '')}
-    <div class="notice"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div><b>Role si můžeš vyzkoušet.</b> Vlevo dole přepni „Zobrazit jako role“ a administrace se schová nebo zamkne podle oprávnění, včetně skrývání e-mailů. Dnes je to jen ukázka v prohlížeči. Skutečné vynucení musí dělat backend (pravidla Row Level Security v Supabase a kontrola role u každého API volání).</div></div>
+    ${head('Tým a role', 'Kdo má do administrace přístup a co smí', btn)}
+    ${D.live
+      ? `<div class="notice"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div><b>Přihlášení do administrace:</b> e-mail, heslo a kód z Google Authenticatoru. Nový člen týmu dostane od tebe e-mail a heslo, při prvním přihlášení si naskenuje QR kód. Heslo si může kdykoli změnit přes „Zapomenuté heslo“. ${canM ? '' : 'Tým spravuje vlastník.'}</div></div>`
+      : `<div class="notice"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div><b>Role si můžeš vyzkoušet.</b> Vlevo dole přepni „Zobrazit jako role“ a administrace se schová nebo zamkne podle oprávnění, včetně skrývání e-mailů. U ukázkových dat jde jen o ukázku v prohlížeči, u ostrých dat oprávnění hlídá databáze.</div></div>`}
     <section class="panel"><div class="panel-head"><h2>Členové týmu</h2><span class="muted">${API.staff.length} lidí</span></div>
-      <div class="table-wrap"><table><thead><tr><th>Jméno</th><th>E-mail</th><th>Role</th><th>Dvoufázové ověření</th><th>Naposledy</th></tr></thead><tbody>
-      ${API.staff.map((s) => `<tr><td><span class="av">${initials(s.name)}</span> <b>${esc(s.name)}</b>${s.id === API.me.id ? ' <span class="tag">ty</span>' : ''}${s.invited ? ' <span class="tag honey">pozvánka</span>' : ''}</td><td class="muted">${esc(s.email)}</td>
-        <td>${canM && s.id !== API.me.id ? `<select data-f="staffRole" data-id="${s.id}" style="width:auto;padding:4px 8px">${roles.map(([k, r]) => `<option value="${k}" ${s.role === k ? 'selected' : ''}>${r.label}</option>`).join('')}</select>` : API.ROLES[s.role].label}</td>
-        <td>${s.twofa ? '<span class="status-ok">zapnuto</span>' : '<span class="status-bad">vypnuto</span>'}</td><td class="muted">${s.last ? ago(s.last) : '–'}</td></tr>`).join('')}
+      <div class="table-wrap"><table><thead><tr><th>Jméno</th><th>E-mail</th><th>Role</th><th>Google Authenticator</th><th>Naposledy</th>${D.live && canM ? '<th></th>' : ''}</tr></thead><tbody>
+      ${API.staff.map(row).join('')}
       </tbody></table></div>
-      <p class="hint" style="margin-top:8px">Doporučení pro ostrý provoz: dvoufázové ověření povinné pro všechny, přihlášení přes Google Workspace, automatické odhlášení po 12 h.</p>
     </section>
     <section class="panel"><div class="panel-head"><h2>Oprávnění rolí</h2></div>
       <div class="table-wrap"><table class="matrix"><thead><tr><th>Oprávnění</th>${roles.map(([, r]) => `<th>${r.label}</th>`).join('')}</tr></thead><tbody>
@@ -24,6 +34,65 @@ function pageTeam() {
     </section>`;
 }
 PAGES.tym = pageTeam;
+
+// ---------- Správa týmu nad ostrými daty ----------
+const staffById = (id) => API.staff.find((s) => s.id === id);
+async function teamRefresh() {
+  const fresh = await D.team.list();
+  API.staff.splice(0, API.staff.length, ...fresh.sort((a, b) => (a.id === API.me.id ? -1 : b.id === API.me.id ? 1 : 0)));
+  render();
+}
+// společný průběh: tlačítko se zamkne, chyba se ukáže v dialogu, po úspěchu se tým načte znovu
+async function teamRun(btn, errEl, work, done) {
+  btn.disabled = true; errEl.textContent = '';
+  try { await work(); closeModal(); await teamRefresh(); toast(done); } catch (e) { errEl.textContent = e.message; btn.disabled = false; }
+}
+const pwFields = `<label for="tPw">Heslo</label><input id="tPw" type="password" autocomplete="new-password" minlength="12">
+  <label for="tPw2">Heslo znovu</label><input id="tPw2" type="password" autocomplete="new-password">
+  <p class="hint">Aspoň 12 znaků. Heslo předej osobně nebo jiným kanálem než e-mail, ať neleží v jedné zprávě s adresou.</p>`;
+const readPw = () => {
+  const pw = $('#tPw').value;
+  if (pw.length < 12) throw new Error('Heslo musí mít aspoň 12 znaků.');
+  if (pw !== $('#tPw2').value) throw new Error('Hesla se neshodují.');
+  return pw;
+};
+Object.assign(ACTIONS, {
+  teamAdd: () => {
+    modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="taT">
+      <div class="dialog-head"><h2 id="taT">Přidat člena týmu</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
+      <div class="dialog-body"><label for="tName">Jméno</label><input id="tName" autocomplete="off" placeholder="Klára">
+        <label for="tMail">E-mail</label><input id="tMail" type="email" autocomplete="off" placeholder="jmeno@example.cz">
+        <label for="tRole">Role</label><select id="tRole">${Object.entries(API.ROLES).map(([k, r]) => `<option value="${k}" ${k === 'support' ? 'selected' : ''}>${r.label}</option>`).join('')}</select>
+        ${pwFields}<p class="err" id="tErr"></p></div>
+      <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zrušit</button><button class="btn" id="tOk">Přidat</button></div></div></div>`);
+    $('#tName').focus();
+    $('#tOk').onclick = (ev) => teamRun(ev.currentTarget, $('#tErr'), () => {
+      const name = $('#tName').value.trim(), email = $('#tMail').value.trim();
+      if (!name) throw new Error('Zadej jméno.');
+      if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email)) throw new Error('Zadej platný e-mail.');
+      return D.team.create({ name, email, role: $('#tRole').value, password: readPw() });
+    }, 'Člen týmu je přidaný');
+  },
+  teamPw: (id) => {
+    const s = staffById(id); if (!s) return;
+    modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="tpT">
+      <div class="dialog-head"><h2 id="tpT">Nové heslo: ${esc(s.name)}</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
+      <div class="dialog-body">${pwFields}<p class="err" id="tErr"></p></div>
+      <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zrušit</button><button class="btn" id="tOk">Uložit heslo</button></div></div></div>`);
+    $('#tPw').focus();
+    $('#tOk').onclick = (ev) => teamRun(ev.currentTarget, $('#tErr'), () => D.team.password(id, readPw()), 'Heslo je nastavené');
+  },
+  teamMfa: (id) => {
+    const s = staffById(id); if (!s) return;
+    confirmBox('Zrušit kód z Google Authenticatoru?', `${esc(s.name)} si při dalším přihlášení naskenuje nový QR kód. Hodí se, když ztratí telefon.`, 'Zrušit kód',
+      () => D.team.resetMfa(id).then(teamRefresh).then(() => toast('Ověření kódem je zrušené'), (e) => toast(e.message)));
+  },
+  teamRemove: (id) => {
+    const s = staffById(id); if (!s) return;
+    confirmBox('Odebrat z týmu?', `${esc(s.name)} (${esc(s.email)}) přijde o přístup do administrace a jeho účet se smaže. Vrátit to nejde, jen ho přidat znovu.`, 'Odebrat',
+      () => D.team.remove(id).then(teamRefresh).then(() => toast('Člen týmu je odebraný'), (e) => toast(e.message)));
+  },
+});
 
 // ---------- Napojení dat ----------
 function pageData() {
@@ -159,7 +228,10 @@ document.addEventListener('input', (ev) => {
 document.addEventListener('change', (ev) => {
   const t = ev.target, f = t.dataset.f;
   if (f === 'audactor' || f === 'audkind') { AUD[f.slice(3)] = t.value; AUD.vt && AUD.vt.reset(); }
-  if (f === 'staffRole') { API.setRole(t.dataset.id, t.value); toast('Role je změněná'); }
+  if (f === 'staffRole') {
+    if (D.live) D.team.role(t.dataset.id, t.value).then(teamRefresh).then(() => toast('Role je změněná'), (e) => { toast(e.message); render(); });
+    else { API.setRole(t.dataset.id, t.value); toast('Role je změněná'); }
+  }
   if (t.id === 'viewAs') { API.setViewAs(t.value); render(); toast(`Administrace jako: ${API.ROLES[t.value].label}`); }
 });
 

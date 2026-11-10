@@ -1,5 +1,5 @@
-// Vytvoří otisk nového hesla do administrace: node admin/heslo.js "nové heslo"
-// Vypsané hodnoty salt a hash vlož do AUTH v admin/login.js. Samotné heslo nikam neukládej.
+// Vytvoří otisk nového hesla k zámku webu (gate.js): node admin/heslo.js "nové heslo"
+// Vypsané hodnoty salt a hash vlož do AUTH v gate.js (zámek landingu a aplikace). Samotné heslo nikam neukládej.
 const crypto = require('crypto');
 const pw = process.argv[2];
 if (!pw || pw.length < 12) { console.error('Zadej heslo aspoň o 12 znacích: node admin/heslo.js "nové heslo"'); process.exit(1); }

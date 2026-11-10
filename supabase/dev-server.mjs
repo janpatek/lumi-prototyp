@@ -1,6 +1,7 @@
 // Lokální napodobenina Supabase pro vývoj a testy, bez účtu a bez internetu.
 // Pod ní běží skutečné supabase/schema.sql v PGlite (Postgres ve WebAssembly), data jsou jen v paměti.
-// Umí jen to, co používá Ospalek: anonymní přihlášení, přihlášení heslem, obnovení tokenu a volání funkcí (rpc).
+// Umí jen to, co používá Ospalek: anonymní přihlášení, přihlášení heslem, obnovení tokenu, obnovu hesla (odkaz se vypíše
+// do konzole místo e-mailu), ověření kódem z Google Authenticatoru (TOTP, úroveň aal2) a volání funkcí (rpc).
 //
 //   cd supabase && npm install && node dev-server.mjs            # prázdná databáze
 //   node dev-server.mjs --seed 60                                 # + 60 vymyšlených rodin s poslechy
@@ -22,7 +23,9 @@ await db.exec(`
   create role anon; create role authenticated;
   create schema auth;
   create table auth.users (id uuid primary key, email text, password text, last_sign_in_at timestamptz, is_anonymous boolean default false);
+  create table auth.mfa_factors (id uuid primary key, user_id uuid not null references auth.users(id) on delete cascade, factor_type text, status text, friendly_name text, secret text);
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+  create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
   grant usage on schema public to authenticated, anon;
 `);
 await db.exec(fs.readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'));
@@ -36,25 +39,42 @@ const fns = new Map((await db.query(`
     coalesce(p.proargnames, '{}') argnames, (select array_agg(t::regtype::text order by o) from unnest(p.proargtypes) with ordinality u(t, o)) argtypes
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'app\\_%' or p.proname like 'admin\\_%')`)).rows.map((r) => [r.name, r]));
 
-const tokens = new Map(); // access token -> { uid, exp }
-function session(uid, email) {
-  const access = 't_' + crypto.randomBytes(16).toString('hex'), exp = Math.floor(Date.now() / 1000) + 3600;
-  tokens.set(access, { uid, exp });
-  return { access_token: access, token_type: 'bearer', expires_in: 3600, expires_at: exp, refresh_token: 'r_' + uid, user: { id: uid, email } };
+const tokens = new Map(); // access token -> { uid, exp, aal }
+const refreshes = new Map(); // refresh token -> { uid, aal }
+const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+function session(uid, email, aal = 'aal1') {
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  // tvar JWT, ať si administrace přečte úroveň ověření (aal) stejně jako u skutečné Supabase; podpis se nekontroluje
+  const access = [b64u({ alg: 'none' }), b64u({ sub: uid, aal, exp }), crypto.randomBytes(8).toString('hex')].join('.');
+  const refresh = 'r_' + crypto.randomBytes(12).toString('hex');
+  tokens.set(access, { uid, exp, aal });
+  refreshes.set(refresh, { uid, aal });
+  return { access_token: access, token_type: 'bearer', expires_in: 3600, expires_at: exp, refresh_token: refresh, user: { id: uid, email } };
 }
+const tokenOf = (req) => { const t = tokens.get((req.headers.authorization || '').replace(/^Bearer /, '')); return t && t.exp >= Date.now() / 1000 ? t : null; };
+
+// TOTP (RFC 6238) pro ověření kódem z Google Authenticatoru: SHA-1, 30 s, 6 číslic, klíč v base32
+const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const b32decode = (s) => { let bits = ''; for (const c of s.replace(/=+$/, '')) bits += B32.indexOf(c).toString(2).padStart(5, '0'); return Buffer.from(bits.match(/.{8}/g).map((b) => parseInt(b, 2))); };
+export function totp(secret, t = Date.now()) {
+  const msg = Buffer.alloc(8); msg.writeBigUInt64BE(BigInt(Math.floor(t / 30000)));
+  const h = crypto.createHmac('sha1', b32decode(secret)).update(msg).digest(), o = h[19] & 15;
+  return String((h.readUInt32BE(o) & 0x7fffffff) % 1e6).padStart(6, '0');
+}
+const challenges = new Map(); // challenge id -> factor id
 // jeden dotaz najednou, ať se nepletou nastavení role mezi požadavky
 let chain = Promise.resolve();
 const serial = (fn) => (chain = chain.then(fn, fn));
-async function asUser(uid, sql, params) {
+async function asUser(uid, sql, params, aal = 'aal1') {
   return serial(async () => {
-    await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [uid]);
+    await db.query(`select set_config('request.jwt.claim.sub', $1, false), set_config('request.jwt.claims', $2, false)`, [uid, JSON.stringify({ sub: uid, aal })]);
     await db.exec('set role authenticated');
     try { return await db.query(sql, params); } finally { await db.exec('reset role'); }
   });
 }
 
 const send = (res, code, body) => {
-  res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'apikey, authorization, content-type, prefer', 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS' });
+  res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'apikey, authorization, content-type, prefer', 'Access-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS' });
   res.end(body === undefined ? '' : JSON.stringify(body));
 };
 const read = (req) => new Promise((ok) => { let b = ''; req.on('data', (c) => { b += c; }); req.on('end', () => { try { ok(b ? JSON.parse(b) : {}); } catch (e) { ok({}); } }); });
@@ -76,25 +96,112 @@ http.createServer(async (req, res) => {
         await serial(() => db.query(`update auth.users set last_sign_in_at = now() where id = $1`, [u.id]));
         return send(res, 200, session(u.id, u.email));
       }
-      if (grant === 'refresh_token' && /^r_/.test(body.refresh_token || '')) {
-        const uid = body.refresh_token.slice(2);
-        const u = (await serial(() => db.query(`select id, email from auth.users where id = $1`, [uid]))).rows[0];
+      if (grant === 'refresh_token' && refreshes.has(body.refresh_token)) {
+        const r = refreshes.get(body.refresh_token); refreshes.delete(body.refresh_token);
+        const u = (await serial(() => db.query(`select id, email from auth.users where id = $1`, [r.uid]))).rows[0];
         if (!u) return send(res, 400, { error: 'invalid_grant' });
-        return send(res, 200, session(u.id, u.email));
+        return send(res, 200, session(u.id, u.email, r.aal));
       }
       return send(res, 400, { error: 'unsupported_grant_type' });
     }
+    // obnova hesla: místo e-mailu se odkaz vypíše do konzole
+    if (req.method === 'POST' && url.pathname === '/auth/v1/recover') {
+      const body = await read(req);
+      const u = (await serial(() => db.query(`select id, email from auth.users where email = $1`, [body.email]))).rows[0];
+      if (u) {
+        const s = session(u.id, u.email), back = url.searchParams.get('redirect_to') || 'http://localhost:5174/admin/';
+        console.log(`Obnova hesla pro ${u.email}: ${back}#access_token=${s.access_token}&refresh_token=${s.refresh_token}&expires_in=3600&token_type=bearer&type=recovery`);
+      }
+      return send(res, 200, {});
+    }
+    if (url.pathname.startsWith('/auth/v1/user') || url.pathname.startsWith('/auth/v1/factors')) {
+      const t = tokenOf(req);
+      if (!t) return send(res, 401, { msg: 'JWT expired' });
+      const u = (await serial(() => db.query(`select id, email from auth.users where id = $1`, [t.uid]))).rows[0];
+      const list = (await serial(() => db.query(`select * from auth.mfa_factors where user_id = $1`, [t.uid]))).rows;
+      const pub = (f) => ({ id: f.id, factor_type: f.factor_type, status: f.status, friendly_name: f.friendly_name });
+      const body = req.method === 'GET' || req.method === 'DELETE' ? {} : await read(req);
+      if (url.pathname === '/auth/v1/user' && req.method === 'GET') return send(res, 200, { id: u.id, email: u.email, factors: list.map(pub) });
+      if (url.pathname === '/auth/v1/user' && req.method === 'PUT') {
+        if (body.password) {
+          if ((await serial(() => db.query(`select 1 from auth.users where id = $1 and password = $2`, [t.uid, body.password]))).rows.length) return send(res, 422, { error_code: 'same_password', msg: 'New password should be different from the old password.' });
+          await serial(() => db.query(`update auth.users set password = $2 where id = $1`, [t.uid, body.password]));
+        }
+        return send(res, 200, { id: u.id, email: u.email });
+      }
+      if (url.pathname === '/auth/v1/factors' && req.method === 'POST') {
+        if (list.some((f) => f.friendly_name === body.friendly_name)) return send(res, 422, { error_code: 'mfa_factor_name_conflict', msg: 'A factor with the friendly name already exists' });
+        const secret = Array.from(crypto.randomBytes(20), (b) => B32[b & 31]).join('');
+        const f = { id: crypto.randomUUID(), factor_type: 'totp', status: 'unverified', secret, friendly_name: body.friendly_name };
+        await serial(() => db.query(`insert into auth.mfa_factors (id, user_id, factor_type, status, friendly_name, secret) values ($1, $2, $3, $4, $5, $6)`, [f.id, t.uid, f.factor_type, f.status, f.friendly_name, f.secret]));
+        const uri = `otpauth://totp/${encodeURIComponent(body.issuer || 'test')}:${encodeURIComponent(u.email)}?secret=${secret}&issuer=${encodeURIComponent(body.issuer || 'test')}`;
+        const qr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#eee"/><text x="50" y="54" font-size="10" text-anchor="middle">QR (test)</text></svg>`;
+        console.log(`TOTP klíč pro ${u.email}: ${secret}`);
+        return send(res, 200, { id: f.id, type: 'totp', totp: { qr_code: 'data:image/svg+xml;utf-8,' + qr, secret, uri } });
+      }
+      const fm = url.pathname.match(/^\/auth\/v1\/factors\/([\w-]+)(?:\/(challenge|verify))?$/);
+      const f = fm && list.find((x) => x.id === fm[1]);
+      if (!f) return send(res, 404, { msg: 'Factor not found' });
+      if (req.method === 'DELETE') { await serial(() => db.query(`delete from auth.mfa_factors where id = $1`, [f.id])); return send(res, 200, { id: f.id }); }
+      if (fm[2] === 'challenge') { const id = crypto.randomUUID(); challenges.set(id, f.id); return send(res, 200, { id, type: 'totp', expires_at: Math.floor(Date.now() / 1000) + 300 }); }
+      if (fm[2] === 'verify') {
+        if (challenges.get(body.challenge_id) !== f.id) return send(res, 422, { error_code: 'mfa_challenge_expired', msg: 'Challenge not found' });
+        challenges.delete(body.challenge_id);
+        const now = Date.now();
+        if (![now - 30000, now, now + 30000].some((at) => totp(f.secret, at) === String(body.code))) return send(res, 422, { error_code: 'mfa_verification_failed', msg: 'Invalid TOTP code entered' });
+        await serial(() => db.query(`update auth.mfa_factors set status = 'verified' where id = $1`, [f.id]));
+        return send(res, 200, session(u.id, u.email, 'aal2'));
+      }
+      return send(res, 404, { msg: 'not found' });
+    }
+    // napodobenina Edge Function staff-admin (supabase/functions/staff-admin): stejná pravidla, místo admin API přímo tabulky
+    if (req.method === 'POST' && url.pathname === '/functions/v1/staff-admin') {
+      const t = tokenOf(req), body = await read(req), q = (sql, a) => serial(() => db.query(sql, a));
+      if (!t) return send(res, 401, { message: 'Nejsi přihlášený.' });
+      if (t.aal !== 'aal2') return send(res, 403, { message: 'Přihlas se i kódem z Google Authenticatoru.' });
+      const me = (await q(`select role from public.staff where user_id = $1`, [t.uid])).rows[0];
+      if (!me || me.role !== 'owner') return send(res, 403, { message: 'Tým může spravovat jen vlastník.' });
+      const pwOk = (pw) => typeof pw === 'string' && pw.length >= 12 && pw.length <= 72;
+      const audit = (action, target, detail) => q(`insert into public.audit_log (actor, action, target, detail) values ($1, $2, $3, $4)`, [t.uid, action, target, detail]);
+      if (body.action === 'create') {
+        const email = String(body.email || '').trim().toLowerCase(), name = String(body.name || '').trim();
+        if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email) || !name) return send(res, 400, { message: 'Zadej jméno a platný e-mail.' });
+        if (!['owner', 'support', 'content', 'analyst', 'finance'].includes(body.role)) return send(res, 400, { message: 'Neznámá role.' });
+        if (!pwOk(body.password)) return send(res, 400, { message: 'Heslo musí mít aspoň 12 znaků.' });
+        if ((await q(`select 1 from auth.users where email = $1`, [email])).rows.length) return send(res, 409, { message: 'Účet s tímhle e-mailem už existuje.' });
+        const id = crypto.randomUUID();
+        await q(`insert into auth.users (id, email, password) values ($1, $2, $3)`, [id, email, body.password]);
+        await q(`insert into public.staff (user_id, name, role) values ($1, $2, $3) on conflict (user_id) do nothing`, [id, name, body.role]);
+        await audit('team.create', name, `Nový člen týmu · ${email} · ${body.role}`);
+        return send(res, 200, { user_id: id });
+      }
+      const target = (await q(`select user_id, name from public.staff where user_id::text = $1`, [String(body.user_id || '')])).rows[0];
+      if (!target) return send(res, 404, { message: 'Člen týmu neexistuje.' });
+      if (body.action === 'password') {
+        if (!pwOk(body.password)) return send(res, 400, { message: 'Heslo musí mít aspoň 12 znaků.' });
+        await q(`update auth.users set password = $2 where id = $1`, [target.user_id, body.password]);
+        await audit('team.password', target.name, 'Nastavené nové heslo');
+        return send(res, 200, { ok: true });
+      }
+      if (body.action === 'remove') {
+        if (target.user_id === t.uid) return send(res, 400, { message: 'Sám sebe odebrat nemůžeš.' });
+        await q(`delete from auth.users where id = $1`, [target.user_id]);
+        await audit('team.remove', target.name, 'Odebraný z týmu, účet smazaný');
+        return send(res, 200, { ok: true });
+      }
+      return send(res, 400, { message: 'Neznámá akce.' });
+    }
     const m = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)$/);
     if (req.method === 'POST' && m) {
-      const t = tokens.get((req.headers.authorization || '').replace(/^Bearer /, ''));
-      if (!t || t.exp < Date.now() / 1000) return send(res, 401, { message: 'JWT expired' });
+      const t = tokenOf(req);
+      if (!t) return send(res, 401, { message: 'JWT expired' });
       const f = fns.get(m[1]);
       if (!f) return send(res, 404, { message: 'function not found' });
       const body = await read(req);
       const names = f.argnames.filter((n) => n in body);
       const sql = `select * from public.${f.name}(${names.map((n, i) => `${n} => $${i + 1}::${f.argtypes[f.argnames.indexOf(n)]}`).join(', ')})`;
       const params = names.map((n) => (typeof body[n] === 'object' ? JSON.stringify(body[n]) : body[n]));
-      const r = await asUser(t.uid, sql, params);
+      const r = await asUser(t.uid, sql, params, t.aal);
       if (f.ret === 'void') return send(res, 204);
       if (!f.set && r.fields.length === 1) return send(res, 200, r.rows[0] ? Object.values(r.rows[0])[0] : null);
       return send(res, 200, r.rows);

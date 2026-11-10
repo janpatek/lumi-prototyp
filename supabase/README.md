@@ -37,8 +37,22 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
    window.OSPALEK_CONFIG = { supabaseUrl: 'https://xxxx.supabase.co', supabaseAnonKey: 'eyJ…' };
    ```
    Publishable klíč je veřejný z principu, sám nic nesmí. **Secret klíč (`sb_secret_…`, dříve `service_role`) do webu nikdy nedávej.**
-6. Nasadit (push na `main`). Administrace pak po hesle chce přihlášení e-mailem z kroku 4 a ukazuje ostrá data.
+5b. **Authentication → URL Configuration**: Site URL `https://ospalek.cz`, Redirect URLs `https://ospalek.cz/admin/` (sem vede odkaz z e-mailu „Zapomenuté heslo“).
+   **Authentication → Multi-Factor**: TOTP (App Authenticator) musí být *Enabled*.
+6. Nasadit (push na `main`). Administrace pak chce přihlášení e-mailem z kroku 4, heslem a kódem z Google Authenticatoru a ukazuje ostrá data.
    Přepnout zpět na ukázková data jde v sekci Napojení dat.
+
+## Přihlášení týmu: heslo + Google Authenticator
+
+Funkce `admin_*` (kromě `admin_me`) vydají data jen přihlášení s úrovní **aal2**, tedy heslem i šestimístným kódem z aplikace
+Google Authenticator (nebo jiné TOTP aplikace). Při prvním přihlášení administrace ukáže QR kód k naskenování, potom chce kód pokaždé.
+- **Zapomenuté heslo:** odkaz na přihlašovací stránce. Supabase pošle e-mail s odkazem zpět do administrace, kde se nastaví nové heslo.
+  Bez vlastního SMTP posílá Supabase jen pár e-mailů za hodinu a jen na adresy členů organizace v Supabase.
+- **Správa týmu** (stránka Tým, jen vlastník): přidat člena s heslem, změnit roli, nastavit heslo, zrušit kód, odebrat.
+  Účty a hesla zakládá Edge Function `supabase/functions/staff-admin` (tajný klíč zůstává na serveru Supabase),
+  role a zrušení kódu databáze (`admin_set_role`, `admin_reset_mfa`). Po úpravě funkce ji nasaď znovu v Supabase → Edge Functions.
+- **Ztracený telefon:** vlastník dá na stránce Tým „Zrušit kód“ (nebo smaže v Supabase Authentication → Users → uživatel → MFA factors) a člověk si
+  při dalším přihlášení naskenuje nový QR kód. Jde to i SQL: `delete from auth.mfa_factors where user_id = (select id from auth.users where email = '…');`
 
 ## Lokální vyzkoušení bez účtu
 
@@ -48,7 +62,7 @@ cd supabase && npm install && node dev-server.mjs --seed 60
 
 Pod napodobeninou Supabase běží skutečné `schema.sql` v PGlite (Postgres ve WebAssembly), data jsou jen v paměti.
 - Aplikace: http://localhost:5174/app/?db=http://localhost:54321
-- Administrace: http://localhost:5174/admin/?db=http://localhost:54321 (admin@example.cz / ospalek-test)
+- Administrace: http://localhost:5174/admin/?db=http://localhost:54321 (admin@example.cz / ospalek-test; klíč pro Authenticator a odkaz z obnovy hesla vypíše server do konzole)
 
 ## Co zatím chybí
 

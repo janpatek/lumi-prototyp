@@ -1,8 +1,8 @@
-// Start administrace: po hesle se rozhodne, odkud jsou data.
+// Start administrace: rozhodne se, odkud jsou data.
 //  – ostrá data (je vyplněný ../config.js): přihlášení člena týmu do Supabase a načtení souhrnů,
 //  – jinak ukázková data z demo-data.js.
 // Zbytek skriptů potřebuje hotová data (window.DEMO), proto se načítá až potom: stahuje se paralelně, spouští v pořadí.
-const ADMIN_SCRIPTS = ['api.js?v=3', 'vtable.js?v=2', 'admin.js?v=6', 'helpdesk.js?v=2', 'rodiny.js?v=3', 'analytika.js?v=3', 'kupony.js?v=2', 'system.js?v=3'];
+const ADMIN_SCRIPTS = ['api.js?v=4', 'vtable.js?v=2', 'admin.js?v=6', 'helpdesk.js?v=2', 'rodiny.js?v=3', 'analytika.js?v=3', 'kupony.js?v=2', 'system.js?v=4'];
 
 function loadScripts(list) {
   return Promise.all(list.map((src) => new Promise((res, rej) => {
@@ -35,8 +35,8 @@ async function bootAdmin() {
   } catch (e) {
     const el = bootMessage(`<h1>Data se nepodařilo načíst</h1><p class="err">${String(e.message).replace(/[<>&]/g, '')}</p>
       <button class="btn" type="button" onclick="location.reload()">Zkusit znovu</button>
-      <button class="btn white" type="button" style="margin-top:8px" id="toDemo">Zobrazit ukázková data</button>`);
-    el.querySelector('#toDemo').onclick = () => { LIVE.setMode('demo'); location.reload(); };
+      <button class="linkbtn" type="button" id="sbOut">Odhlásit z databáze</button>`);
+    el.querySelector('#sbOut').onclick = () => { LIVE.signOut(); location.reload(); };
     return;
   }
   document.getElementById('bootMsg')?.remove();
@@ -44,4 +44,4 @@ async function bootAdmin() {
   window.BOOT_MS = performance.now() - t0;
   startAdmin();
 }
-window.adminGate(bootAdmin);
+bootAdmin();

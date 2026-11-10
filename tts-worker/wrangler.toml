@@ -5,9 +5,10 @@ compatibility_date = "2025-06-01"
 
 [vars]
 # Weby, odkud smí aplikace hlas volat (čárkou oddělené, bez lomítka na konci)
-ALLOWED_ORIGINS = "https://janpatek.github.io,https://ospalek.cz,https://www.ospalek.cz,http://localhost:5174"
+# capacitor://localhost = aplikace na iOS, https://localhost = aplikace na Androidu (Capacitor)
+ALLOWED_ORIGINS = "https://janpatek.github.io,https://ospalek.cz,https://www.ospalek.cz,http://localhost:5174,capacitor://localhost,https://localhost"
 # Hlasy z tvého účtu ElevenLabs: název → Voice ID (najdeš v ElevenLabs u hlasu, tlačítko „ID“)
-VOICES = '{"jana":"SEM_VLOZ_VOICE_ID_JANY"}'
+VOICES = '{"jana":"bF7C2fCv7Zf30iT84wZ1"}'
 # Model musí být stejný jako u nahrávek vět v audio/hlas (eleven_v4), jinak budou na spojích slyšet rozdíly
 MODEL_ID = "eleven_v4"
 STABILITY = "0.6"

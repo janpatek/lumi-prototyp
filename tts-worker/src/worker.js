@@ -87,7 +87,7 @@ export default {
     if (!res.ok) {
       // podrobnosti jen do logu Workeru, aplikaci stačí obecná hláška
       console.log('ElevenLabs', res.status, (await res.text()).slice(0, 300));
-      const msg = res.status === 401 ? 'API klíč ElevenLabs nefunguje.' : res.status === 429 ? 'ElevenLabs je přetížený nebo došly kredity.' : 'ElevenLabs teď nevrátil zvuk.';
+      const msg = res.status === 401 ? 'API klíč ElevenLabs nefunguje.' : res.status === 402 ? 'Účet ElevenLabs potřebuje placený tarif (hlasy z knihovny jdou přes API jen s ním).' : res.status === 429 ? 'ElevenLabs je přetížený nebo došly kredity.' : 'ElevenLabs teď nevrátil zvuk.';
       return json({ error: msg }, 502, cors);
     }
     const buf = await res.arrayBuffer();
