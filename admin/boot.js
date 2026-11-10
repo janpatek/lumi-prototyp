@@ -1,4 +1,4 @@
-// Start administrace: po hesle se rozhodne, odkud jsou data.
+// Start administrace: rozhodne se, odkud jsou data.
 //  – ostrá data (je vyplněný ../config.js): přihlášení člena týmu do Supabase a načtení souhrnů,
 //  – jinak ukázková data z demo-data.js.
 // Zbytek skriptů potřebuje hotová data (window.DEMO), proto se načítá až potom: stahuje se paralelně, spouští v pořadí.
@@ -44,4 +44,4 @@ async function bootAdmin() {
   window.BOOT_MS = performance.now() - t0;
   startAdmin();
 }
-window.adminGate(bootAdmin);
+bootAdmin();

@@ -31,4 +31,4 @@ Při každé úpravě:
 
 ## Zámek před spuštěním
 
-Landing (`index.html`) a aplikace (`app/index.html`) načítají jako první `gate.js`. Bez hesla přesměruje na stránku „Připravujeme“ (`brzy/`). Nové stránky, které mají být skryté, potřebují stejný `<script>` hned za `<meta charset>`. Obchodní podmínky, ochrana osobních údajů a `admin/` (má vlastní heslo) zůstávají mimo zámek. Heslo nikdy nepiš do repa, jen otisk do `AUTH` v `gate.js` (`node admin/heslo.js "heslo"`).
+Landing (`index.html`) a aplikace (`app/index.html`) načítají jako první `gate.js`. Bez hesla přesměruje na stránku „Připravujeme“ (`brzy/`). Nové stránky, které mají být skryté, potřebují stejný `<script>` hned za `<meta charset>`. Obchodní podmínky, ochrana osobních údajů a `admin/` zůstávají mimo zámek. Administraci chrání přihlášení člena týmu do Supabase (e-mail, heslo s obnovou e-mailem a kód z Google Authenticatoru), společné heslo už nemá. Heslo nikdy nepiš do repa, jen otisk do `AUTH` v `gate.js` (`node admin/heslo.js "heslo"`).

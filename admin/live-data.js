@@ -80,7 +80,7 @@ const LIVE = (() => {
   function passwordStep(msg) {
     return new Promise((resolve) => {
       const form = card(`
-        <h1>Ostrá data</h1>
+        <h1>Administrace</h1>
         <p class="muted">Přihlas se účtem člena týmu v databázi.</p>
         <label for="sbMail">E-mail</label><input id="sbMail" type="email" autocomplete="username" required>
         <label for="sbPw">Heslo</label><input id="sbPw" type="password" autocomplete="current-password" required>
@@ -297,5 +297,9 @@ const LIVE = (() => {
 
   const mode = () => (configured ? (get(MKEY) || 'live') : 'demo');
   const setMode = (m) => set(MKEY, m);
+  // tlačítko Odhlásit v administraci: odhlásí ze Supabase a příště se zase chce e-mail, heslo a kód
+  window.adminLogout = () => { set(SKEY, null); if (configured) set(MKEY, null); location.reload(); };
+  // pozůstatek zrušeného společného hesla k administraci
+  try { localStorage.removeItem('ospalek.admin.auth'); sessionStorage.removeItem('ospalek.admin.auth'); } catch (e) {}
   return { configured, url: URL_, dev: devOk, mode, setMode, ensureStaff, load, rpc, signOut: () => set(SKEY, null) };
 })();

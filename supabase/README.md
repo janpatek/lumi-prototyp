@@ -39,7 +39,7 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
    Publishable klíč je veřejný z principu, sám nic nesmí. **Secret klíč (`sb_secret_…`, dříve `service_role`) do webu nikdy nedávej.**
 5b. **Authentication → URL Configuration**: Site URL `https://ospalek.cz`, Redirect URLs `https://ospalek.cz/admin/` (sem vede odkaz z e-mailu „Zapomenuté heslo“).
    **Authentication → Multi-Factor**: TOTP (App Authenticator) musí být *Enabled*.
-6. Nasadit (push na `main`). Administrace pak po hesle chce přihlášení e-mailem z kroku 4 a ukazuje ostrá data.
+6. Nasadit (push na `main`). Administrace pak chce přihlášení e-mailem z kroku 4, heslem a kódem z Google Authenticatoru a ukazuje ostrá data.
    Přepnout zpět na ukázková data jde v sekci Napojení dat.
 
 ## Přihlášení týmu: heslo + Google Authenticator
