@@ -459,8 +459,9 @@ function cloudClip(text, mood) {
   }
   return cloudClips.get(id);
 }
-const linesNote = 'Čte Jana (ElevenLabs). Společné věty jsou namluvené jednou pro všechny, věty se jmény pro vaši rodinu.';
-const cloudNote = 'Čte Jana (ElevenLabs). Každý odstavec se připraví zvlášť, na začátku to chvilku trvá.';
+// Vypravěčka pohádek. Výběr hlasu v přehrávači není, hlas (ElevenLabs „Jana“) určuje tts-worker.
+const NARRATOR = 'teta Terezka';
+const voiceFail = (e) => `${e.message} Teta Terezka se teď nenačetla, zatím čte náhradní hlas.`;
 // stejné rozhraní jako speak(): zavolá onend, vrací funkci pro zastavení; při chybě dočte hlasem prohlížeče
 function cloudSpeak(text, onend) {
   let stopped = false, fallback = null;
@@ -473,7 +474,7 @@ function cloudSpeak(text, onend) {
   }).catch((e) => {
     if (stopped) return;
     P.cloudFailed = true;
-    document.getElementById('voicewarn').textContent = `${e.message} Zatím čte hlas prohlížeče.`;
+    document.getElementById('voicewarn').textContent = voiceFail(e);
     fallback = speak(text, onend);
   });
   return () => { stopped = true; el.onended = null; el.pause(); fallback && fallback(); };
@@ -490,14 +491,13 @@ function openPlayer(st) {
   P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null };
   // jeden přehrávač vytvořený při kliknutí – iOS pak pustí i další odstavce bez dalšího klepnutí
   if (TTS_URL) P.cloudEl = new Audio();
-  const voiceChips = linesOk ? [['lines', `${I.mic} Jana`]] : rec ? rec.voices.map((v) => [v.id, `${I.mic} ${v.name}`]) : TTS_URL ? [['cloud', `${I.mic} Jana`]] : [];
   $app.insertAdjacentHTML('beforeend', `
     <div class="player" id="player" style="--c:${catColor(st)}">
       <div class="inner">
         <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
-        ${voiceChips.length ? `<div class="chips voices">${voiceChips.map(([id, label]) => `<button class="chip ${P.voice === id ? 'on' : ''}" data-a="setVoice" data-v="${id}">${label}</button>`).join('')}<button class="chip" data-a="setVoice" data-v="browser">Prohlížeč</button></div>` : ''}
+        <p class="narrator">${I.mic} Čte ${NARRATOR}</p>
         <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}</div>
         <div class="waiting" id="waiting"></div>
         <div class="controls">
@@ -506,7 +506,7 @@ function openPlayer(st) {
           <button class="skip" data-a="nextSeg" aria-label="Další">${I.next}</button>
         </div>
         <div class="mix">${I.music} Hudba <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol ?? 0.5}"></div>
-        <div class="voicewarn" id="voicewarn">${linesOk ? linesNote : rec ? 'Realistický hlas ElevenLabs. Ukázka nahraná pro tuto rodinu.' : TTS_URL ? cloudNote : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
+        <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
@@ -556,7 +556,7 @@ function playSeg() {
     P.stop = lines
       ? voiceLines.speak(P.plan[P.i], after, { fallback, onerror: (e) => {
         P.cloudFailed = true;
-        document.getElementById('voicewarn').textContent = `${e.message} Zatím čte hlas prohlížeče.`;
+        document.getElementById('voicewarn').textContent = voiceFail(e);
         P.stop = speak(seg.t, after);
       } })
       : (cloud ? cloudSpeak : speak)(seg.t, after);
@@ -615,15 +615,6 @@ function stopVoice() {
   P.stop && P.stop();
   P.audio && P.audio.pause();
   P.cloudEl && P.cloudEl.pause();
-}
-function setVoice(el) {
-  const wasPlaying = P.playing;
-  stopVoice();
-  P.voice = el.dataset.v;
-  el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el));
-  if (P.voice === 'cloud' || P.voice === 'lines') P.cloudFailed = false;
-  document.getElementById('voicewarn').textContent = recVoice() ? 'Realistický hlas ElevenLabs. Ukázka nahraná pro tuto rodinu.' : P.voice === 'lines' ? linesNote : P.voice === 'cloud' ? cloudNote : 'Ukázkový hlas prohlížeče pro srovnání.';
-  if (wasPlaying) recVoice() ? playRec() : playSeg();
 }
 
 // pauza na odpověď u hádanek – vrací funkci, která odpočet zruší
@@ -746,7 +737,6 @@ const actions = {
   nextSeg: () => jump(1),
   toggleText: () => document.getElementById('ptext').classList.toggle('hide'),
   closePlayer,
-  setVoice,
 };
 
 function applyTheme() {
