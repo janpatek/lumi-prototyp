@@ -24,6 +24,8 @@ node tools/hlas/namluvit.mjs nahrat tools/hlas/davky/*-spolecne.json tools/hlas/
 
 `odhad` vypíše počet vět a znaků (ElevenLabs účtuje znaky včetně značky nálady). `nahrat` stáhne věty z Workeru do `tools/hlas/nahravky/el/` (po přerušení pokračuje), ořízne ticho na krajích (0,05 / 0,08 s), srovná hlasitost na −19 LUFS a přepíše `audio/hlas/jana/` a `index.json`. Bez `ZNOVU=1` naplánuje `plan.mjs` jen věty, které ještě nahrané nejsou.
 
+**Po přepsání nahrávek zvyš číslo cache `AUDIO`** v `app/sw.js` i `app/offline.js` (např. `ospalek-hlas-1` → `ospalek-hlas-2`). Webová aplikace si nahrávky ukládá kvůli poslechu bez internetu a bez nového čísla by dál hrála ty staré.
+
 **Když změníš hlas, model nebo stabilitu ve Workeru, musíš znovu namluvit všechny hotové věty** (příkazy výše), jinak se na spojích budou střídat dva přednesy. Worker má stabilitu v klíči mezipaměti, takže osobní věty se přegenerují samy.
 
 Poslech celé pohádky: `node tools/hlas/slozit.mjs tools/hlas/rodiny/<rodina>.json <pohádka>` ji složí do `tools/hlas/ukazky/`.

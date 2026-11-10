@@ -40,8 +40,11 @@ const store = {
 const blank = () => ({ user: null, onboarded: false, premium: false, heroIds: [], family: { children: [], parents: [], home: { town: '', inTown: '', near: [], attr: [], nearOpts: [], attrOpts: [] } } });
 let S = store.get() || blank();
 if (!S.heroIds) S.heroIds = S.heroId ? [S.heroId] : []; // starší uložená data měla jen jednoho hrdinu
-let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false };
-const save = () => { store.set(S); SYNC.family(S); }; // SYNC: app/sync.js, odešle do databáze, je-li nastavená
+let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false, unheard: false };
+// SYNC: app/sync.js, odešle do databáze, je-li nastavená. Po změně rodiny se přepočítá, co je stažené na cestu,
+// a věty se starými jmény se ze zařízení smažou (pruneOffline).
+let pruneT = null;
+const save = () => { store.set(S); SYNC.family(S); offlineMemo.clear(); clearTimeout(pruneT); pruneT = setTimeout(pruneOffline, 2000); };
 const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -57,6 +60,8 @@ const I = {
   home: ico('<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>'),
   star: ico('<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/>'),
   music: ico('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
+  down: ico('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  hist: ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   mic: ico('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
@@ -203,12 +208,13 @@ const screens = {
   lib: () => {
     const hs = heroes();
     const c = ctx(hs);
-    const list = STORIES.filter((s) => (ui.cat === 'all' || s.cats.includes(ui.cat)) && (!ui.ageOnly || hs.every((k) => k.age >= s.ages[0] && k.age <= s.ages[1])));
+    const list = STORIES.filter((s) => (ui.cat === 'all' || s.cats.includes(ui.cat)) && (!ui.ageOnly || hs.every((k) => k.age >= s.ages[0] && k.age <= s.ages[1])) && (!ui.unheard || !heardCount(s.id)));
     return `
       <div class="top">
         <h1>Pohádky pro ${esc(c.h.acc)}</h1>
-        <button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button>
+        <div class="top-btns"><button class="icon-btn" data-a="history" aria-label="Co jsme už slyšeli">${I.hist}</button><button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button></div>
       </div>
+      ${navigator.onLine ? '' : `<div class="netnote">${I.down}<span><b>Jsi bez internetu.</b> Pustit jdou pohádky se značkou Offline.</span></div>`}
       ${S.family.children.length > 1 ? `
         <div class="section-t">Hlavní hrdinové <span class="hint">– vyber jednoho nebo víc</span></div>
         <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
@@ -216,6 +222,7 @@ const screens = {
       <div class="hscroll">
         ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${catIcon(k.id)}${k.label}</button>`).join('')}
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
+        <button class="chip ${ui.unheard ? 'on' : ''}" data-a="unheard">Ještě neslyšené</button>
       </div>
       ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak 129 Kč měsíčně</span></div></button>`}
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžeš nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změníš to kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
@@ -228,12 +235,37 @@ const screens = {
               ${s.cover.img ? `<img src="${coverImg(s, hs)}" alt="" loading="lazy">` : s.cover.emoji}
               ${s.free && !S.premium ? '<span class="badge free">Zdarma</span>' : ''}
               ${unlocked(s) ? '' : `<span class="badge lock">${I.lock}Zamčeno</span>`}
+              <span class="badge off" hidden>${I.down}Offline</span>
+              ${heardCount(s.id) ? `<span class="badge heard">✓ Slyšeno${heardCount(s.id) > 1 ? ` ${heardCount(s.id)}×` : ''}</span>` : ''}
             </div>
             <h3>${esc(s.title(c))}</h3>
             <div class="meta">${catIcon(s.cats[0], 'cat-ico sm')}${minutes(segs)} min · ${s.ages[0]}–${s.ages[1]} let</div>
           </button>`;
-        }).join('') || `<div class="empty"><img src="${MASCOT.trip}" alt="">V téhle kategorii zatím nic není.</div>`}
+        }).join('') || `<div class="empty"><img src="${MASCOT.trip}" alt="">${ui.unheard ? 'Všechny pohádky z výběru už jste slyšeli.' : 'V téhle kategorii zatím nic není.'}</div>`}
       </div>`;
+  },
+
+  history: () => {
+    const h = S.history || [];
+    const done = h.filter((x) => x.done);
+    const kinds = new Set(done.map((x) => x.id)).size;
+    const when = (t) => new Date(t).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `
+    <div class="top">
+      <h1>Co jsme už slyšeli</h1>
+      <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
+    </div>
+    ${h.length ? `
+      <p class="note">Dohráno ${done.length}× · ${kinds} z ${STORIES.length} pohádek. Ukládá se jen v tomhle zařízení.</p>
+      <div class="hist">${h.slice(0, 50).map((x) => {
+        const st = STORIES.find((s) => s.id === x.id);
+        return `<button class="person" data-a="open" data-id="${x.id}"${st ? '' : ' disabled'}>
+          <div class="av" style="background:${st ? catColor(st) : 'var(--line)'}">${st ? catIcon(st.cats[0], 'cat-ico') : ''}</div>
+          <div class="nm"><b>${esc(x.title)}</b><span>${when(x.at)} · ${esc(x.who)} · ${x.done ? 'celá' : `rozposlechnutá (${Math.round(x.part * 100)} %)`}</span></div>
+        </button>`;
+      }).join('')}</div>
+      <div class="footer-actions"><button class="btn ghost" data-a="clearHistory">Smazat historii poslechu</button></div>`
+    : `<div class="empty"><img src="${MASCOT.head}" alt="">Zatím jste žádnou pohádku neposlouchali. Až nějakou pustíte, objeví se tady.</div>`}`;
   },
 
   settings: () => `
@@ -245,6 +277,9 @@ const screens = {
     <div class="section-t">Rodiče a blízcí</div>${peopleList('parent')}
     <div class="section-t">Bydliště</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
+    <div class="section-t">Poslech bez internetu</div>
+    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Stažené pohádky pustíš v autě nebo na chalupě bez signálu. Co dohrajete do konce, uloží se samo.</span></div></div>
+    <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus (demo)` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
       ${S.premium ? '<button class="btn small ghost" data-a="unsub">Zrušit</button>' : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
@@ -444,7 +479,8 @@ function paywall() {
         <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
         <li>Pro celou rodinu, až ${LIMIT.children} děti</li>
-        <li>Brzy i poslech offline a časovač usínání</li>
+        <li>Poslech bez internetu: pohádky si stáhneš na cestu</li>
+        <li>Brzy i časovač usínání</li>
       </ul>
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>129 Kč / měsíc · zrušit můžeš kdykoli</small></div></div>
@@ -485,11 +521,17 @@ const cloudClips = new Map();
 function cloudClip(text, mood) {
   const id = (mood || '') + '|' + text;
   if (!cloudClips.has(id)) {
-    const p = fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.');
-        return URL.createObjectURL(await r.blob());
-      });
+    // věta už stažená v zařízení (offline.js), jinak z Workeru a hned ji uložit na příště i na cestu
+    const p = OFFLINE.get(id)
+      .then((buf) => buf || fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
+        .catch(() => { throw Object.assign(new Error('Bez připojení k internetu se hlas nenačte.'), { status: 0 }); })
+        .then(async (r) => {
+          if (!r.ok) throw Object.assign(new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.'), { status: r.status });
+          const b = await r.arrayBuffer();
+          await OFFLINE.put(id, b);
+          return b;
+        }))
+      .then((b) => URL.createObjectURL(new Blob([b], { type: 'audio/mpeg' })));
     p.catch(() => cloudClips.delete(id)); // chybu příště zkusit znovu
     cloudClips.set(id, p);
   }
@@ -515,6 +557,104 @@ function cloudSpeak(text, onend) {
   return () => { stopped = true; el.onended = null; el.pause(); fallback && fallback(); };
 }
 
+// ---------- Poslech bez internetu (offline.js, sw.js) ----------
+const lineId = (t, mood) => (mood || '') + '|' + t;
+// co pohádka pro dané hrdiny potřebuje: věty s rodinou (IndexedDB) a soubory (společné věty, obálka)
+async function storyNeeds(st, hs = heroes()) {
+  await voiceLines.ready;
+  const lines = VOICE_LINES.planStory(st.text(ctx(hs))).flatMap((p) => p.lines);
+  return {
+    family: [...new Set(lines.filter((l) => !voiceLines.has(l)).map((l) => l.t))],
+    files: [...new Set([...lines.filter((l) => voiceLines.has(l)).map(voiceLines.url), ...(st.cover.img ? [coverImg(st, hs)] : [])])],
+  };
+}
+const offlineMemo = new Map(); // pohádka + hrdinové → Promise<true/false>
+const memoKey = (st, hs) => st.id + '|' + hs.map((k) => k.id).join(',');
+function storyOffline(st, hs = heroes()) {
+  const k = memoKey(st, hs);
+  if (!offlineMemo.has(k)) {
+    offlineMemo.set(k, (async () => {
+      const n = await storyNeeds(st, hs);
+      const have = await OFFLINE.keys();
+      if (!n.family.every((t) => have.has(lineId(t, st.mood)))) return false;
+      for (const f of n.files) if (!(await OFFLINE.hasFile(f))) return false;
+      return true;
+    })().catch(() => false));
+  }
+  return offlineMemo.get(k);
+}
+// stáhne vše, co pohádka potřebuje; věty rodiny jdou přes cloudClip, takže se zaplatí jen jednou
+async function downloadStory(st, onprog) {
+  const n = await storyNeeds(st);
+  const jobs = [...n.family.map((t) => () => cloudClip(t, st.mood)), ...n.files.map((f) => () => OFFLINE.saveFile(f))];
+  const run = async (job) => {
+    for (let a = 1; ; a++) {
+      try { return await job(); } catch (e) {
+        // limit nových vět ve Workeru (120 za minutu) – chvilku počkat
+        if (e.status === 429 && a < 4) { await new Promise((r) => setTimeout(r, 20000)); continue; }
+        throw navigator.onLine ? e : new Error('Bez internetu se pohádka stáhnout nedá.');
+      }
+    }
+  };
+  let done = 0;
+  const q = [...jobs];
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    while (q.length) { await run(q.shift()); onprog && onprog(++done, jobs.length); }
+  }));
+  offlineMemo.delete(memoKey(st, heroes()));
+}
+// věty se jmény, které už žádná pohádka nepotřebuje (změna jména, smazané dítě), ze zařízení smazat
+async function pruneOffline() {
+  try {
+    await voiceLines.ready;
+    const kids = S.family.children, need = new Set();
+    for (let m = 1; m < 1 << kids.length; m++) {
+      const c = kids.filter((_, i) => m & (1 << i));
+      if (c.length > LIMIT.heroes) continue;
+      STORIES.forEach((st) => VOICE_LINES.planStory(st.text(ctx(c))).forEach((p) => p.lines.forEach((l) => need.add(lineId(l.t, st.mood)))));
+    }
+    await OFFLINE.remove([...(await OFFLINE.keys())].filter((k) => !need.has(k)));
+  } catch (e) { /* příště znovu */ }
+}
+// značky Offline v knihovně; bez internetu nestažené pohádky zešednou
+function markOffline() {
+  const hs = heroes();
+  document.querySelectorAll('.card[data-id]').forEach(async (card) => {
+    const st = STORIES.find((s) => s.id === card.dataset.id);
+    const ok = unlocked(st) && (await storyOffline(st, hs));
+    const b = card.querySelector('.badge.off');
+    if (b) b.hidden = !ok;
+    card.classList.toggle('dim', !navigator.onLine && !ok);
+  });
+}
+async function offlineStats() {
+  const el = document.getElementById('offStat');
+  if (!el) return;
+  const list = STORIES.filter(unlocked);
+  const ok = (await Promise.all(list.map((st) => storyOffline(st)))).filter(Boolean).length;
+  if (el.dataset.busy) return;
+  el.textContent = `Staženo ${ok} z ${list.length} pohádek`;
+}
+function notOffline() {
+  $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+    <img class="sheet-mascot" src="${MASCOT.trip}" alt="">
+    <h2 style="text-align:center">Tahle pohádka není stažená</h2>
+    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budeš zase připojený, otevři pohádku a klepni na <b>Stáhnout na cestu</b>.</p>
+    <button class="btn" data-a="closeModal">Rozumím</button>
+  </div></div>`;
+}
+const dlLabel = (ok) => (ok ? '✓ Staženo' : `${I.down} Stáhnout na cestu`);
+
+// ---------- Co jsme už slyšeli (jen v zařízení, S.history) ----------
+const heardCount = (id) => (S.history || []).filter((x) => x.id === id && x.done).length;
+function logListen(done) {
+  if (!P || P.logged || (!done && P.i === 0)) return;
+  P.logged = true;
+  const c = ctx(heroes());
+  S.history = [{ id: P.st.id, title: P.st.title(c), who: c.H, at: Date.now(), done, part: done ? 1 : Math.round((P.i / P.segs.length) * 100) / 100 }, ...(S.history || [])].slice(0, 200);
+  store.set(S); // historie zůstává v zařízení, na server se neposílá
+}
+
 function openPlayer(st) {
   const c = ctx(heroes());
   // nahrávky z ElevenLabs existují jen pro rodinu, pro kterou byly vygenerované
@@ -530,7 +670,7 @@ function openPlayer(st) {
   $app.insertAdjacentHTML('beforeend', `
     <div class="player" id="player" style="--c:${catColor(st)}">
       <div class="inner">
-        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
+        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="chip dl" data-a="download" id="dlBtn">${dlLabel(false)}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
         ${voiceChips.length ? `<div class="chips voices">${voiceChips.map(([id, label]) => `<button class="chip ${P.voice === id ? 'on' : ''}" data-a="setVoice" data-v="${id}">${label}</button>`).join('')}<button class="chip" data-a="setVoice" data-v="browser">Prohlížeč</button></div>` : ''}
@@ -546,6 +686,7 @@ function openPlayer(st) {
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
+  storyOffline(st).then((ok) => { const b = document.getElementById('dlBtn'); if (b && ok && P && P.st === st) { b.innerHTML = dlLabel(true); b.classList.add('on'); } });
   highlight();
 }
 
@@ -671,7 +812,7 @@ function playPause() {
     highlight();
   } else {
     P.playing = true;
-    if (P.i >= P.segs.length) P.i = 0;
+    if (P.i >= P.segs.length) { P.i = 0; P.logged = false; }
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
     ambience.startMusic(P.st.mood);
     document.querySelector('.the-end')?.remove();
@@ -688,6 +829,9 @@ function jump(d) {
 
 function theEnd() {
   P.playing = false;
+  logListen(true);
+  // dohraná pohádka je teď celá v zařízení (věty i soubory se uložily při přehrávání)
+  offlineMemo.delete(memoKey(P.st, heroes()));
   SYNC.playEnd(P.sync, true);
   ambience.stopMusic(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
@@ -697,7 +841,8 @@ function theEnd() {
 }
 
 function closePlayer() {
-  if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); stopVoice(); P = null; }
+  if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
+  if (ui.screen === 'lib' || ui.screen === 'history') render();
   ambience.stopMusic(true);
   document.getElementById('player')?.remove();
 }
@@ -751,7 +896,48 @@ const actions = {
   },
   cat: (el) => { ui.cat = el.dataset.id; render(); },
   age: () => { ui.ageOnly = !ui.ageOnly; render(); },
-  open: (el) => { const st = STORIES.find((s) => s.id === el.dataset.id); unlocked(st) ? openPlayer(st) : paywall(); },
+  open: async (el) => {
+    const st = STORIES.find((s) => s.id === el.dataset.id);
+    if (!st) return;
+    if (!unlocked(st)) return paywall();
+    if (!navigator.onLine && !(await storyOffline(st))) return notOffline();
+    openPlayer(st);
+  },
+  unheard: () => { ui.unheard = !ui.unheard; render(); },
+  history: () => go('history'),
+  clearHistory: () => { if (confirm('Smazat historii poslechu v tomhle zařízení?')) { S.history = []; store.set(S); render(); } },
+  download: async (el) => {
+    if (!P || P.dl || el.classList.contains('on')) return;
+    const st = P.st;
+    P.dl = true;
+    try {
+      await downloadStory(st, (d, n) => { el.innerHTML = `${I.down} ${Math.round((d / n) * 100)} %`; });
+      el.innerHTML = dlLabel(true); el.classList.add('on');
+    } catch (e) {
+      el.innerHTML = `${I.down} Zkusit znovu`;
+      const w = document.getElementById('voicewarn'); if (w) w.textContent = e.message || 'Stažení se nepovedlo.';
+    } finally { if (P) P.dl = false; }
+  },
+  downloadAll: async (el) => {
+    if (el.dataset.busy) return;
+    const stat = document.getElementById('offStat');
+    const todo = [];
+    for (const st of STORIES.filter(unlocked)) if (!(await storyOffline(st))) todo.push(st);
+    if (!todo.length) return offlineStats();
+    el.dataset.busy = stat.dataset.busy = '1';
+    try {
+      for (let i = 0; i < todo.length; i++) {
+        await downloadStory(todo[i], (d, n) => { stat.textContent = `Stahuji ${i + 1}. z ${todo.length}: ${Math.round((d / n) * 100)} %`; });
+      }
+      delete stat.dataset.busy; offlineStats();
+    } catch (e) {
+      stat.textContent = e.message || 'Stažení se nepovedlo.';
+    } finally { delete el.dataset.busy; delete stat.dataset.busy; }
+  },
+  clearOffline: async () => {
+    if (!confirm('Smazat pohádky stažené na cestu? Bez internetu pak nepůjdou pustit.')) return;
+    await OFFLINE.clear(); offlineMemo.clear(); render();
+  },
   paywall,
   subscribe: () => { S.premium = true; save(); closeModal(); render(); },
   unsub: () => { S.premium = false; save(); render(); },
@@ -764,7 +950,7 @@ const actions = {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
   saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
-  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
@@ -783,8 +969,10 @@ function applyTheme() {
 function go(screen) { ui.screen = screen; render(); window.scrollTo(0, 0); }
 
 function render() {
-  if ((ui.screen === 'lib' || ui.screen === 'settings') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
+  if ((ui.screen === 'lib' || ui.screen === 'settings' || ui.screen === 'history') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
   $app.innerHTML = screens[ui.screen]();
+  if (ui.screen === 'lib') markOffline();
+  if (ui.screen === 'settings') offlineStats();
   // formulář bydliště může být i v modalu – překreslit ho s novými daty
   if ($modal.querySelector('#town') && ui.screen !== 'onb') actions.editHome();
 }
@@ -796,6 +984,8 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   actions[el.dataset.a]?.(el, e);
 });
+// připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
+['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
@@ -804,3 +994,4 @@ document.addEventListener('input', (e) => {
 const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 
 render();
+pruneOffline();
