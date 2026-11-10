@@ -43,7 +43,7 @@
   <main class="terms">
     <div class="wrap wrap-narrow">
       <h1>Ochrana osobních údajů</h1>
-      <p class="meta">Verze 1.4 · účinné od 9. 11. 2026</p>
+      <p class="meta">Verze 1.5 · účinné od 10. 11. 2026</p>
 
       <section class="summary" aria-labelledby="kratce">
         <h2 id="kratce">Krátce a lidsky</h2>
@@ -53,6 +53,7 @@
           <li>Statistiky poslechu (které pohádky posloucháte a jak dlouho) přiřazujeme k vaší rodině jen s tvým souhlasem. Bez něj je počítáme jen anonymně. Souhlas zapneš a vypneš v nastavení aplikace.</li>
           <li>Aby pohádku přečetl hlas, posíláme její text (i se jménem dítěte) poskytovateli syntetického hlasu. Namluvené věty ukládáme bez vazby na účet a použijeme je znovu pro každou rodinu, kde zazní stejná věta, třeba „Dobrou noc, Toníku.“</li>
           <li>Předplatné platíš jen přes App Store nebo Google Play. Číslo karty ani jiné platební údaje nevidíme, od obchodu (přes službu RevenueCat) dostáváme jen informaci o stavu předplatného.</li>
+          <li>Přihlásit se můžeš i přes Apple nebo Google. Pak od nich dostaneme jen identifikátor účtu, e-mail (u Applu můžeš skutečný e-mail skrýt) a případně jméno. Heslo nevidíme.</li>
           <li>Údaje neprodáváme a nepoužíváme je k reklamě. Nemáme reklamní ani analytické cookies.</li>
           <li>Všechno můžeš kdykoli smazat jedním tlačítkem v aplikaci.</li>
         </ul>
@@ -88,7 +89,7 @@
             <tr><td>Křestní jméno dítěte a jeho tvary pro skloňování, pohlaví, věk, oblíbené jídlo a zvíře</td><td>Aby pohádka byla o tvém dítěti a hodila se k jeho věku</td><td>Plnění smlouvy (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;b GDPR)</td></tr>
             <tr><td>Role a případně křestní jména rodičů a blízkých (např. „maminka Petra“)</td><td>Aby v pohádce vystupovala vaše rodina</td><td>Plnění smlouvy</td></tr>
             <tr><td>Obec bydliště a vybraná místa v okolí</td><td>Aby se pohádka odehrávala v místech, která dítě zná</td><td>Plnění smlouvy</td></tr>
-            <tr><td>E-mail a údaje o účtu (při přihlášení)</td><td>Přihlášení, správa předplatného, důležitá oznámení (např. změna ceny)</td><td>Plnění smlouvy</td></tr>
+            <tr><td>E-mail a údaje o účtu (při přihlášení). Při přihlášení přes Apple nebo Google navíc identifikátor účtu u Applu nebo Googlu a případně jméno; e-mail od Applu může být skrytá adresa @privaterelay.appleid.com, která zprávy přeposílá na tvůj e-mail.</td><td>Přihlášení, správa předplatného, důležitá oznámení (např. změna ceny)</td><td>Plnění smlouvy</td></tr>
             <tr><td>Údaje o předplatném a platbách (tarif, data plateb, stav). Platby přijímá jen obchod s aplikacemi (App Store, Google Play), číslo karty ani jiné platební údaje nevidíme.</td><td>Vyúčtování, účetnictví, reklamace</td><td>Plnění smlouvy; právní povinnost (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;c) u účetních dokladů</td></tr>
             <tr><td>Zprávy, které nám pošleš na podporu</td><td>Odpověď a vyřízení požadavku nebo reklamace</td><td>Plnění smlouvy; oprávněný zájem (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;f)</td></tr>
             <tr><td>Typ zařízení a verze aplikace</td><td>Pomoct, když něco nejde (podpora), a opravovat chyby</td><td>Plnění smlouvy; oprávněný zájem</td></tr>
@@ -106,7 +107,7 @@
       <h2 id="kde">4. Kde se údaje ukládají</h2>
       <p><b>V prohlížeči</b> (localStorage na tvém zařízení) je celá rodina tak, jak ji vyplníš: jména a tvary jmen, věk, oblíbené věci, blízcí, obec, místa v okolí a nastavení.</p>
       <p><b>Na našem serveru</b> v databázi Supabase v EU (Irsko) ukládáme jen část: křestní jména, pohlaví a věk dětí, obec, informaci, zda máš předplatné, a technické údaje o zařízení. Statistiky poslechu k rodině přiřazujeme jen s tvým souhlasem (viz článek 2); když souhlas odvoláš, dosavadní poslechy od rodiny odpojíme a zůstanou jen v anonymních součtech. Aplikace k tomu vytvoří anonymní účet bez e-mailu; e-mail ukládáme jen tehdy, když se přihlásíš. Údaje vidí jen náš tým po přihlášení a jen v rozsahu, který potřebuje pro svou práci.</p>
-      <p>Když v aplikaci zvolíš <i>Rodina a nastavení → Smazat všechna data a začít znovu</i>, smažeme údaje v prohlížeči i na serveru včetně anonymního účtu a historie poslechu.</p>
+      <p>Když v aplikaci zvolíš <i>Rodina a nastavení → Smazat všechna data a začít znovu</i>, smažeme údaje v prohlížeči i na serveru včetně anonymního účtu a historie poslechu. Pokud ses přihlásil přes Apple, zrušíme zároveň u Applu oprávnění aplikace k tvému účtu.</p>
 
       <h2 id="prijemci">5. Komu údaje předáváme</h2>
       <p>Údaje předáváme jen zpracovatelům, kteří nám pomáhají službu provozovat, a jen v rozsahu, který potřebují:</p>
@@ -121,6 +122,7 @@
             <tr><td>Supabase (databáze, server v EU – Irsko)</td><td>Křestní jména, pohlaví a věk dětí, obec, údaje o poslechu a zařízení, případně e-mail</td><td>Uložení údajů na serveru a přihlášení</td></tr>
             <tr><td>Google Fonts</td><td>Technické údaje, například IP adresu</td><td>Načtení písma webu</td></tr>
             <tr><td>Apple (App Store; prodávající Apple Distribution International Ltd., Irsko) a Google (Google Play; prodávající Google Commerce Limited, Irsko)</td><td>Údaje o nákupu: stav předplatného a identifikátor transakce. Obchod je přitom samostatným správcem údajů ze svého účtu (jméno, e-mail, platební údaje) podle svých zásad.</td><td>Prodej, vyúčtování a obnovování předplatného v mobilní aplikaci. Od obchodu dostáváme potvrzení o nákupu a jeho stav, abychom ti mohli odemknout pohádky.</td></tr>
+            <tr><td>Apple (Přihlášení přes Apple; Apple Distribution International Ltd., Irsko) a Google (Přihlášení přes Google; Google Ireland Limited)</td><td>Žádost o přihlášení z aplikace. Od nich dostáváme identifikátor účtu, e-mail (u Applu případně skrytou adresu) a případně jméno, heslo nevidíme. Apple i Google jsou samostatnými správci údajů ze svého účtu podle svých zásad.</td><td>Přihlášení k účtu Ospalek bez zvláštního hesla, jen když tuto možnost zvolíš. Při smazání účtu u Applu zrušíme přihlašovací oprávnění aplikace (token).</td></tr>
             <tr><td>RevenueCat, Inc. (USA; správa předplatných v mobilní aplikaci)</td><td>Anonymní ID rodiny (stejné jako v naší databázi, bez jména a e-mailu), údaje o nákupu a stavu předplatného z App Store a Google Play, typ zařízení, verze aplikace a IP adresa</td><td>Ověření nákupu u obchodu a zjištění, jestli máš aktivní předplatné. Číslo karty ani platební údaje nedostává.</td></tr>
           </tbody>
         </table>
@@ -169,6 +171,7 @@
         <table class="tbl">
           <thead><tr><th>Verze</th><th>Datum</th><th>Co se změnilo</th></tr></thead>
           <tbody>
+            <tr><td>1.5</td><td>10. 11. 2026</td><td>Přihlášení přes Apple (v aplikaci pro iOS) a přes Google: jaké údaje od nich dostáváme (identifikátor účtu, e-mail, případně skrytý přes Apple, případně jméno). Při smazání účtu zrušíme oprávnění u Applu.</td></tr>
             <tr><td>1.4</td><td>9. 11. 2026</td><td>Předplatné se platí jen přes App Store a Google Play, platební brána na webu (Stripe) se ze seznamu příjemců vypouští. Apple, Google a RevenueCat (správa předplatných v aplikaci) jako příjemci údajů o nákupu.</td></tr>
             <tr><td>1.3</td><td>9. 11. 2026</td><td>Nahrávky vět se ukládají bez vazby na účet a sdílí se mezi rodinami se stejnou větou (např. stejným jménem dítěte). Nemažou se s účtem, ale automaticky 12 měsíců od namluvení.</td></tr>
             <tr><td>1.2</td><td>9. 11. 2026</td><td>Upřesněno umístění serveru Supabase: EU, Irsko (dříve uvedeno Frankfurt).</td></tr>
