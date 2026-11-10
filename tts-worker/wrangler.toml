@@ -11,7 +11,7 @@ ALLOWED_ORIGINS = "https://janpatek.github.io,https://ospalek.cz,https://www.osp
 VOICES = '{"jana":"bF7C2fCv7Zf30iT84wZ1"}'
 # Model musí být stejný jako u nahrávek vět v audio/hlas (eleven_v4), jinak budou na spojích slyšet rozdíly
 MODEL_ID = "eleven_v4"
-STABILITY = "0.6"
+STABILITY = "0.75"
 # Nejdelší text v jednom požadavku (aplikace posílá po odstavcích)
 MAX_CHARS = "1500"
 
