@@ -1,14 +1,14 @@
 <title>Nové pohádky Ospalka</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
 <style>
 /* Layout: jeden sloupec karet pohádek pod lepkavou lištou s výběrem rodiny a filtry; text čte jako kniha */
 :root {
   --bg: #F7F5FC; --card: #FFFFFF; --line: #E3DFF2; --ink: #2E3150; --muted: #5E6180;
   --accent: #5B4FB0; --accent-soft: #ECE9FA; --mark: #FCE7C8; --mark-ink: #6B4410;
   --ok: #2F7D57; --ok-soft: #DDF2E7; --fix: #9A5B00; --fix-soft: #FBEBCF; --no: #A33A3A; --no-soft: #F8E0E0;
-  --display: "Fredoka", "Nunito", ui-rounded, system-ui, sans-serif;
+  --display: "Nunito", ui-rounded, system-ui, sans-serif;
   --body: "Nunito", ui-rounded, system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
@@ -23,7 +23,7 @@ body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); pa
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
 .wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; }
 header { padding-top: 28px; display: grid; gap: 6px; }
-h1 { font: 600 clamp(26px, 5vw, 34px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+h1 { font: 800 clamp(26px, 5vw, 34px)/1.15 var(--display); margin: 0; text-wrap: balance; }
 .lead { color: var(--muted); margin: 0; max-width: 62ch; }
 .tally { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-variant-numeric: tabular-nums; }
 .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 11px; font-weight: 700; font-size: 13px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
@@ -39,7 +39,7 @@ details.story > summary { list-style: none; cursor: pointer; display: grid; grid
 summary::-webkit-details-marker { display: none; }
 .cov { width: 56px; height: 72px; border-radius: 14px; display: grid; place-items: center; font-size: 28px; }
 .head { min-width: 0; display: grid; gap: 4px; }
-.head h2 { font: 600 19px/1.25 var(--display); margin: 0; text-wrap: balance; }
+.head h2 { font: 800 19px/1.25 var(--display); margin: 0; text-wrap: balance; }
 .meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .meta b { color: var(--ink); }
 .pozn { margin: 0; font-size: 14px; color: var(--muted); }
