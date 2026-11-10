@@ -272,6 +272,12 @@ body.locked .shell, body.locked #modal, body.locked .toast { display: none; }
 .login-card label { text-align: left; }
 .login-card .check { margin-bottom: 4px; }
 .login-card .err { min-height: 18px; margin: 4px 0 10px; }
+.login-card .err.ok { color: var(--ok, #2F8A73); }
+.login-card .muted { margin-bottom: 6px; }
+.login-card .qr { width: 184px; height: 184px; margin: 8px auto 6px; padding: 10px; border-radius: var(--radius-md); background: #fff; filter: none; object-fit: contain; }
+.login-card .secret { font-family: var(--mono); font-size: 13px; letter-spacing: .04em; user-select: all; word-break: break-all; }
+.login-card .code { text-align: center; font-family: var(--mono); font-size: 22px; letter-spacing: .3em; }
+.linkbtn { margin-top: 12px; align-self: center; background: none; border: 0; padding: 4px 8px; color: var(--lavender-ink); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .side-foot { display: flex; flex-direction: column; gap: 2px; }
 @media (max-width: 760px) { .side-foot { flex-direction: row; } }
 
@@ -496,3 +502,4 @@ table.clickable tbody tr { cursor: pointer; }
 .side-foot .mode.live i { background: var(--ok); }
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; }
 .steps code, .data-page code { font-family: var(--mono); font-size: 12px; background: var(--lavender-soft); padding: 1px 6px; border-radius: 6px; }
+.row-acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }

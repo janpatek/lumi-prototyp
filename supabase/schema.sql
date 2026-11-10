@@ -5,7 +5,7 @@
 -- Zásady:
 --  * Klienti nesmí do tabulek přímo (RLS zapnuté, žádné politiky). Aplikace zapisuje jen přes funkce app_*,
 --    které vždy pracují s rodinou přihlášeného uživatele (auth.uid()); administrace čte přes admin_*,
---    které nejdřív ověří, že volající je v tabulce staff.
+--    které nejdřív ověří, že volající je v tabulce staff a přihlásil se i kódem z Google Authenticatoru (aal2).
 --  * Rodina = anonymní účet Supabase (anonymous sign-in), e-mail jen při skutečném přihlášení. Rodina (účet, děti, obec,
 --    zařízení) je v databázi vždy – je to evidence zákazníků pro podporu (CRM).
 --  * Statistiky poslechu a zdroj návštěvy jsou analytika: k rodině se přiřadí jen se souhlasem (families.analytics).
@@ -224,9 +224,12 @@ end $$;
 create or replace function public.is_staff() returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from staff where user_id = auth.uid());
 $$;
+-- Člen týmu musí být přihlášený heslem i kódem z Google Authenticatoru (aal2), jinak administrace nic nedostane.
+-- admin_me záměrně stačí heslo: administrace podle něj pozná člena týmu a teprve pak chce kód.
 create or replace function public.require_staff() returns void language plpgsql stable security definer set search_path = public as $$
 begin
   if not public.is_staff() then raise exception 'forbidden' using errcode = '42501'; end if;
+  if coalesce(auth.jwt()->>'aal', '') <> 'aal2' then raise exception 'forbidden: mfa required' using errcode = '42501'; end if;
 end $$;
 
 create or replace function public.admin_me() returns table (name text, role text) language sql stable security definer set search_path = public as $$
@@ -332,10 +335,45 @@ begin
     where f.seq = fseq and p.started_at > now() - make_interval(days => n) order by p.started_at;
 end $$;
 
-create or replace function public.admin_staff() returns table (user_id uuid, name text, role text, email text, last_sign_in_at timestamptz) language plpgsql stable security definer set search_path = public, auth as $$
+drop function if exists public.admin_staff();
+-- Tým včetně toho, jestli má člověk nastavený Google Authenticator (ověřený TOTP faktor).
+create or replace function public.admin_staff() returns table (user_id uuid, name text, role text, email text, last_sign_in_at timestamptz, twofa boolean) language plpgsql stable security definer set search_path = public, auth as $$
 begin
   perform require_staff();
-  return query select s.user_id, s.name, s.role, u.email::text, u.last_sign_in_at from staff s join auth.users u on u.id = s.user_id order by s.created_at;
+  return query select s.user_id, s.name, s.role, u.email::text, u.last_sign_in_at,
+    exists (select 1 from auth.mfa_factors m where m.user_id = s.user_id and m.status = 'verified')
+  from staff s join auth.users u on u.id = s.user_id order by s.created_at;
+end $$;
+
+-- Správa týmu smí jen vlastník (role owner, přihlášený i kódem). Zakládání účtů a hesla řeší Edge Function
+-- staff-admin (potřebuje tajný klíč Supabase, ten na web nepatří); tady je jen změna role a zrušení ověření kódem.
+create or replace function public.require_owner() returns void language plpgsql stable security definer set search_path = public as $$
+begin
+  perform require_staff();
+  if (select s.role from staff s where s.user_id = auth.uid()) <> 'owner' then raise exception 'forbidden: owner only' using errcode = '42501'; end if;
+end $$;
+
+create or replace function public.admin_set_role(uid uuid, new_role text) returns void language plpgsql security definer set search_path = public as $$
+declare who text; old text;
+begin
+  perform require_owner();
+  if uid = auth.uid() then raise exception 'Vlastní roli si změnit nemůžeš.' using errcode = '22023'; end if;
+  select s.name, s.role into who, old from staff s where s.user_id = uid;
+  if who is null then raise exception 'Člen týmu neexistuje.' using errcode = '02000'; end if;
+  update staff set role = new_role where user_id = uid;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'team.role', who, 'Role: ' || old || ' → ' || new_role);
+end $$;
+
+-- Ztracený telefon: smaže člověku Google Authenticator, při dalším přihlášení si naskenuje nový QR kód.
+create or replace function public.admin_reset_mfa(uid uuid) returns void language plpgsql security definer set search_path = public, auth as $$
+declare who text;
+begin
+  perform require_owner();
+  if uid = auth.uid() then raise exception 'Vlastní ověření tady zrušit nejde.' using errcode = '22023'; end if;
+  select s.name into who from staff s where s.user_id = uid;
+  if who is null then raise exception 'Člen týmu neexistuje.' using errcode = '02000'; end if;
+  delete from auth.mfa_factors where user_id = uid;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'team.mfa_reset', who, 'Zrušené ověření kódem (Google Authenticator)');
 end $$;
 
 create or replace function public.admin_log(action text, target text, detail text) returns void language plpgsql security definer set search_path = public as $$
@@ -395,4 +433,5 @@ revoke execute on all functions in schema public from public, anon, authenticate
 grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family() to authenticated;
 grant execute on function public.admin_me(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_staff(),
-  public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint) to authenticated;
+  public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint),
+  public.admin_set_role(uuid, text), public.admin_reset_mfa(uuid) to authenticated;
