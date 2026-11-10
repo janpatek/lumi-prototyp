@@ -10,7 +10,8 @@
 #  5. před tělo přidá PAD sekund jeho konce a za něj PAD sekund začátku.
 # Díky okrajům je smyčka bez mezery, i když dekodér MP3 posune začátek (kodér přidává ticho):
 # přehrávač smyčkuje mezi PAD a PAD + délka těla, a obojí se posune stejně.
-# Délky těl zapíše do audio/pozadi/index.json.
+# Délky těl doplní do audio/pozadi/index.json (ostatní pohádky v něm nechá). Pohádky ze sdilene.json
+# dostanou v indexu odkaz na smyčku jiné pohádky, takže se nic nekopíruje.
 
 import json, os, re, subprocess, sys
 import numpy as np
@@ -67,13 +68,23 @@ def normalize(x):
     e = env_db(x, SR // 2)
     g = 10 ** ((TARGET_DB - np.median(e)) / 20)
     y = x * g
+    # rychlý limiter: krátké špičky (lupnutí ohně, hrom) ztlumí jen v okně 10 ms, ne celý soubor
+    win = SR // 100
+    n = -(-len(y) // win)
+    pk = np.pad(np.abs(y).max(axis=1), (0, n * win - len(y))).reshape(n, win).max(axis=1)
+    gw = np.minimum(1, 0.89 / np.maximum(pk, 1e-9))
+    gw = np.minimum(gw, np.minimum(np.roll(gw, 1), np.roll(gw, -1)))  # sousední okna taky, ať limiter nepraská
+    gw = np.convolve(gw, np.ones(3) / 3, mode='same')
+    gs = np.interp(np.arange(len(y)), np.arange(n) * win + win / 2, gw)
+    y = y * gs[:, None]
     peak = np.abs(y).max()
     return y * (0.89 / peak) if peak > 0.89 else y
 
 
-manifest = {'pad': PAD, 'clips': {}}
+INDEX = os.path.join(OUT, 'index.json')
+manifest = json.load(open(INDEX)) if os.path.exists(INDEX) else {'pad': PAD, 'clips': {}}
 for name in sorted(os.listdir(SRC)):
-    m = re.fullmatch(r'(kulisa|hudba)-([a-z]+)\.mp3', name)
+    m = re.fullmatch(r'(kulisa|hudba)-([a-z][a-z-]*)\.mp3', name)
     if not m:
         continue
     kind, story = m.groups()
@@ -88,5 +99,12 @@ for name in sorted(os.listdir(SRC)):
     manifest['clips'].setdefault(story, {})[kind] = {'file': f'{story}-{kind}.mp3', 'body': round(len(body) / SR, 4)}
     print(f'{out}: tělo {len(body) / SR:.2f} s')
 
-with open(os.path.join(OUT, 'index.json'), 'w') as f:
+shared = json.load(open(os.path.join(os.path.dirname(__file__), 'sdilene.json')))
+for story, kinds in shared.items():
+    if story.startswith('_'):
+        continue
+    for kind, src in kinds.items():
+        manifest['clips'].setdefault(story, {})[kind] = manifest['clips'][src][kind]
+
+with open(INDEX, 'w') as f:
     json.dump(manifest, f, ensure_ascii=False, indent=1)
