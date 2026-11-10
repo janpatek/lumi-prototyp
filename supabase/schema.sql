@@ -5,7 +5,7 @@
 -- Zásady:
 --  * Klienti nesmí do tabulek přímo (RLS zapnuté, žádné politiky). Aplikace zapisuje jen přes funkce app_*,
 --    které vždy pracují s rodinou přihlášeného uživatele (auth.uid()); administrace čte přes admin_*,
---    které nejdřív ověří, že volající je v tabulce staff.
+--    které nejdřív ověří, že volající je v tabulce staff a přihlásil se i kódem z Google Authenticatoru (aal2).
 --  * Rodina = anonymní účet Supabase (anonymous sign-in), e-mail jen při skutečném přihlášení. Rodina (účet, děti, obec,
 --    zařízení) je v databázi vždy – je to evidence zákazníků pro podporu (CRM).
 --  * Statistiky poslechu a zdroj návštěvy jsou analytika: k rodině se přiřadí jen se souhlasem (families.analytics).
@@ -224,9 +224,12 @@ end $$;
 create or replace function public.is_staff() returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from staff where user_id = auth.uid());
 $$;
+-- Člen týmu musí být přihlášený heslem i kódem z Google Authenticatoru (aal2), jinak administrace nic nedostane.
+-- admin_me záměrně stačí heslo: administrace podle něj pozná člena týmu a teprve pak chce kód.
 create or replace function public.require_staff() returns void language plpgsql stable security definer set search_path = public as $$
 begin
   if not public.is_staff() then raise exception 'forbidden' using errcode = '42501'; end if;
+  if coalesce(auth.jwt()->>'aal', '') <> 'aal2' then raise exception 'forbidden: mfa required' using errcode = '42501'; end if;
 end $$;
 
 create or replace function public.admin_me() returns table (name text, role text) language sql stable security definer set search_path = public as $$

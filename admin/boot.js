@@ -35,8 +35,8 @@ async function bootAdmin() {
   } catch (e) {
     const el = bootMessage(`<h1>Data se nepodařilo načíst</h1><p class="err">${String(e.message).replace(/[<>&]/g, '')}</p>
       <button class="btn" type="button" onclick="location.reload()">Zkusit znovu</button>
-      <button class="btn white" type="button" style="margin-top:8px" id="toDemo">Zobrazit ukázková data</button>`);
-    el.querySelector('#toDemo').onclick = () => { LIVE.setMode('demo'); location.reload(); };
+      <button class="linkbtn" type="button" id="sbOut">Odhlásit z databáze</button>`);
+    el.querySelector('#sbOut').onclick = () => { LIVE.signOut(); location.reload(); };
     return;
   }
   document.getElementById('bootMsg')?.remove();
