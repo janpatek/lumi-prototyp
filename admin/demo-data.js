@@ -146,7 +146,7 @@ window.makeDemo = function () {
       // preference kategorií: každá rodina má svou oblíbenou
       const fav = weighted([['noc', 0.5], ['auto', 0.2], ['dobro', 0.18], ['zivot', 0.12]]);
       const catW = CAT_IDS.map((c) => [c, c === fav ? 0.55 : 0.15]);
-      // předplatné: zkušební týden, pak jediný tarif (měsíční, 129 Kč za celou rodinu); fanoušci kupují častěji
+      // předplatné: zkušební týden, pak jediný tarif (měsíční, 129 Kč za jeden účet); fanoušci kupují častěji
       // (rnd() u tarifu zůstává, aby se nerozhodila posloupnost náhodných čísel a data zůstala stejná)
       const wantP = guest ? 0 : { fan: 0.62, regular: 0.34, casual: 0.08, tried: 0.01 }[arch];
       let subI = -1, subEnd = -1, plan = null, status = null, trialI = -1, failed = false;

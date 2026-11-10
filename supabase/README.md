@@ -12,10 +12,6 @@ Dokud je `config.js` v kořeni webu prázdný, nic se neodesílá a administrace
 | `plays` | pohádka, kategorie, začátek, délka poslechu, dohráno; `family_id` jen se souhlasem | aplikace přes `app_play` |
 | `family_day`, `daily_cat` | denní souhrny, plní je trigger při zápisu poslechu | databáze |
 | `staff`, `audit_log` | tým administrace a záznam jeho akcí | ručně / administrace |
-| `family_devices` | další telefony připojené k rodině (druhý rodič) | aplikace přes `app_join`, `app_unlink` |
-| `family_invites` | kód pro připojení telefonu (6 číslic, 15 minut) s kopií rodiny a historie k předání | aplikace přes `app_invite` |
-| `family_join_tries` | špatné pokusy o kód (nejvýš 5 za hodinu) | `app_join` |
-| `families.profile`, `listens` | jen u propojené rodiny: celý profil rodiny a historie „Co jsme už slyšeli“; po odpojení se smažou | aplikace přes `app_push_profile`, `app_listen` |
 
 Účet rodiny (CRM) se ukládá vždy, kvůli podpoře. Statistiky poslechu a zdroj návštěvy se k rodině přiřadí jen se souhlasem
 (`families.analytics`, přepínač v aplikaci); bez souhlasu se poslech uloží anonymně (bez rodiny, čas na hodinu, souhrn `daily_anon`)
@@ -27,6 +23,11 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
 
 1. Na [supabase.com](https://supabase.com) založ projekt. **Region: EU (náš projekt běží v West EU – Irsko, eu-west-1; Frankfurt by šel také).** Tarif Free na začátek stačí.
 2. **SQL Editor** → vlož celý `supabase/schema.sql` → Run. Dá se spustit i znovu po úpravách.
+   Když se ze schématu něco odebírá, leží úklid v `supabase/migrations/` a spouští se jednou ručně, také v SQL Editoru.
+   `20261110_zruseni_propojenych_telefonu.sql` ruší párování telefonů kódem (tabulky `family_devices`, `family_invites`,
+   `family_join_tries`, `listens`, sloupce `families.profile` a `profile_rev` a funkce `app_pull`, `app_push_profile`, `app_listen`,
+   `app_clear_listens`, `app_invite`, `app_join`, `app_unlink`, `app_family_id`). Předplatné patří jednomu účtu a přehled
+   „Co jsme už slyšeli“ zůstává jen v zařízení. Potřeba jen v databázi, kde běželo schéma z 10. 11. 2026 s propojenými telefony.
 3. **Authentication → Sign In / Providers → Anonymous sign-ins: zapnout.** Rodiny díky tomu nemusí zadávat e-mail.
    Doporučení: v Authentication → Rate Limits nech limit anonymních přihlášení nízký (výchozích 30 za hodinu z jedné IP), později přidat captchu (Turnstile).
 4. Pozvi se do týmu (SQL Editor), pak v **Authentication → Users → Add user** založ účet se stejným e-mailem a heslem (Auto Confirm).

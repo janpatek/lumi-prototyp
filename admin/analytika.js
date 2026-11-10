@@ -124,7 +124,7 @@ function pagePayments() {
   const opt = (k, v, l) => `<option value="${v}" ${PAY[k] === v ? 'selected' : ''}>${l}</option>`;
   const bars = (list, f = fmt) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${f(c)}</span></div>`).join('')}</div>`; };
   return `
-    ${head('Předplatné a platby', 'Měsíční předplatné 129 Kč za celou rodinu přes App Store, Google Play a Stripe')}
+    ${head('Předplatné a platby', 'Měsíční předplatné 129 Kč za jeden účet přes App Store, Google Play a Stripe')}
     <div class="demo"><b>Ukázková data</b><span>Nic se neúčtuje ani nevrací. Skutečná data dodají webhooky z RevenueCat (obchody) a Stripe (web). Poplatky obchodů jsou odhad (15 %, Stripe 1,5 % + 6,50 Kč), kurz 1 € = ${D.eur} Kč. Cena pro Slovensko (4,99 €) je zatím předpoklad.</span></div>
     <div class="tiles t8">
       ${tile('MRR', kc(mrr), `${trend(mrr, dl.mrr[N - 31], 'za 30 dní')}`)}
