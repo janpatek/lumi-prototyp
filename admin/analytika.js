@@ -220,7 +220,25 @@ function loadCosts(force) {
   if (COST.state === 'loading' || (COST.state === 'ok' && !force)) return;
   COST.state = 'loading';
   D.ttsCosts().then((d) => { COST.state = 'ok'; COST.data = d; COST.err = ''; }, (e) => { COST.state = 'err'; COST.err = e.message; })
-    .then(() => { if (route() === 'hlas') render(); });
+    .then(() => { if (route() === 'hlas' || route() === 'prehled') render(); });
+}
+// cena jednoho kreditu v Kč: tarif ÷ kredity v tarifu × kurz ČNB, jinak ručně zadaná cena za 1 000 kreditů
+function creditPrice(d) {
+  const p = d.plan, rate = d.rates || {}, cur = p && p.currency === 'EUR' ? 'EUR' : 'USD';
+  const monthly = p && p.next_invoice && p.next_invoice.amount ? p.next_invoice.amount / (/annual|year/i.test(p.billing_period || '') ? 12 : 1) : 0;
+  const auto = monthly && p.credits_limit ? (monthly * (rate[cur] || 0)) / p.credits_limit : 0;
+  return { auto, perCredit: auto || (Number(store.get(TTS_KEY)) || 4) / 1000, monthly, cur, rate };
+}
+// náklady v Kč po dnech (iso → Kč) pro Přehled; v ostrém režimu až po načtení z workeru, jinak null
+function costsByDay() {
+  if (!D.live) {
+    const price = (Number(store.get(TTS_KEY)) || 4) / 1000;
+    return new Map(Array.from({ length: D.days }, (_, i) => [iso(D.dayAt(i)), D.daily.genChars[i] * price]));
+  }
+  loadCosts();
+  if (COST.state !== 'ok') return null;
+  const { perCredit } = creditPrice(COST.data);
+  return new Map((COST.data.days || []).map((x) => [x.day, x.credits * perCredit]));
 }
 const tierName = (t) => ({ free: 'Free', starter: 'Starter', creator: 'Creator', pro: 'Pro', scale: 'Scale', business: 'Business' }[String(t || '').split('_')[0]] || t || '–');
 function pageVoiceLive() {
@@ -233,11 +251,8 @@ function pageVoiceLive() {
   if (COST.state === 'loading' || COST.state === 'idle') return `${top}<section class="panel"><p class="muted">Načítám spotřebu kreditů z ElevenLabs…</p></section>`;
   if (COST.state === 'err') return `${top}<section class="panel"><h2>Náklady se nepodařilo načíst</h2><p class="err">${esc(COST.err)}</p><button class="btn sm" data-a="costReload">Zkusit znovu</button></section>`;
 
-  const d = COST.data, p = d.plan, rate = d.rates || {};
-  const cur = p && p.currency === 'EUR' ? 'EUR' : 'USD';
-  const monthly = p && p.next_invoice && p.next_invoice.amount ? p.next_invoice.amount / (/annual|year/i.test(p.billing_period || '') ? 12 : 1) : 0;
-  const auto = monthly && p.credits_limit ? (monthly * (rate[cur] || 0)) / p.credits_limit : 0;
-  const perCredit = auto || manual / 1000;
+  const d = COST.data, p = d.plan;
+  const { auto, perCredit, monthly, cur, rate } = creditPrice(d);
   const days = d.days || [], today = iso(TODAY), month = today.slice(0, 7);
   const sumC = (f) => days.filter(f).reduce((a, x) => a + x.credits, 0);
   const total = sumC(() => true), todayC = sumC((x) => x.day === today), monthC = sumC((x) => x.day.startsWith(month));

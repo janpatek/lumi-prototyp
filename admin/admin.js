@@ -184,18 +184,22 @@ const roundTop = (x, y, w, h, r) => {
   return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
 };
 
+// Série s axis: 'r' mají vlastní měřítko na pravé ose (např. počet rodin vedle Kč); unit se ukáže v bublině.
 function chart(el, { type, labels, titles, series }) {
   const W = Math.max(260, el.clientWidth), small = W < 520, H = small ? 190 : 230;
-  const pad = { l: 40, r: type === 'line' && !small ? 82 : 10, t: 12, b: 26 };
+  const dual = type === 'line' && series.some((s) => s.axis === 'r');
+  const pad = { l: 40, r: dual ? 44 : type === 'line' && !small ? 82 : 10, t: 12, b: 26 };
   const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b, n = labels.length;
-  const max = niceMax(Math.max(1, ...series.flatMap((s) => s.values)));
-  const y = (v) => pad.t + ih - (v / max) * ih;
+  const maxOf = (list) => niceMax(Math.max(1, ...list.flatMap((s) => s.values)));
+  const max = maxOf(series.filter((s) => s.axis !== 'r')), maxR = dual ? maxOf(series.filter((s) => s.axis === 'r')) : max;
+  const y = (v, sr) => pad.t + ih - (v / (sr && sr.axis === 'r' ? maxR : max)) * ih;
   const bw = iw / Math.max(n, 1);
   const x = type === 'bar' ? (i) => pad.l + i * bw + bw / 2 : (i) => pad.l + (n < 2 ? iw / 2 : (i * iw) / (n - 1));
   let s = '<g class="grid">';
   [0, 0.25, 0.5, 0.75, 1].forEach((f) => {
     const yy = y(f * max);
     s += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${yy}" y2="${yy}"/><text x="${pad.l - 8}" y="${yy + 4}" text-anchor="end">${fmt(f * max)}</text>`;
+    if (dual) s += `<text x="${W - pad.r + 8}" y="${yy + 4}" text-anchor="start">${fmt(f * maxR)}</text>`;
   });
   s += '</g>';
   const step = Math.ceil(n / (small ? 4 : 7));
@@ -208,10 +212,10 @@ function chart(el, { type, labels, titles, series }) {
     s += '<line class="cross" stroke="var(--line)" stroke-width="1.5" opacity="0"/>';
     const ends = [];
     series.forEach((sr) => {
-      s += `<path d="${sr.values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('')}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-      ends.push({ name: sr.name, color: sr.color, y: y(sr.values[n - 1] || 0) });
+      s += `<path d="${sr.values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v, sr).toFixed(1)}`).join('')}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${sr.dash ? ' stroke-dasharray="5 4"' : ''}/>`;
+      ends.push({ name: sr.name, color: sr.color, y: y(sr.values[n - 1] || 0, sr) });
     });
-    if (!small) {
+    if (!small && !dual) {
       ends.sort((a, b) => a.y - b.y);
       for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
       ends.forEach((e) => { s += `<circle cx="${x(n - 1)}" cy="${e.y}" r="0"/><text class="lab" x="${W - pad.r + 10}" y="${e.y + 4}">${esc(e.name)}</text>`; });
@@ -225,15 +229,15 @@ function chart(el, { type, labels, titles, series }) {
   const show = (ev) => {
     const r = svg.getBoundingClientRect(), px = ((ev.clientX - r.left) / r.width) * W;
     const i = Math.max(0, Math.min(n - 1, type === 'bar' ? Math.floor((px - pad.l) / bw) : Math.round(((px - pad.l) / iw) * (n - 1))));
-    const top = Math.min(...series.map((sr) => y(sr.values[i])));
+    const top = Math.min(...series.map((sr) => y(sr.values[i], sr)));
     if (type === 'bar') {
       el.querySelectorAll('.marks path').forEach((p, j) => p.setAttribute('opacity', j === i ? 1 : 0.45));
     } else {
       const c = $('.cross', el);
       c.setAttribute('x1', x(i)); c.setAttribute('x2', x(i)); c.setAttribute('y1', pad.t); c.setAttribute('y2', pad.t + ih); c.setAttribute('opacity', 1);
-      el.querySelectorAll('.dot').forEach((d) => { const v = series[d.dataset.k].values[i]; d.setAttribute('cx', x(i)); d.setAttribute('cy', y(v)); d.setAttribute('opacity', 1); });
+      el.querySelectorAll('.dot').forEach((d) => { const sr = series[d.dataset.k], v = sr.values[i]; d.setAttribute('cx', x(i)); d.setAttribute('cy', y(v, sr)); d.setAttribute('opacity', 1); });
     }
-    tip.innerHTML = `<b>${esc(titles[i])}</b>${series.map((sr) => `<div class="row"><span><i class="key" style="--c:${sr.color}"></i>${esc(sr.name)}</span><strong class="num">${fmt(sr.values[i])}</strong></div>`).join('')}`;
+    tip.innerHTML = `<b>${esc(titles[i])}</b>${series.map((sr) => `<div class="row"><span><i class="key" style="--c:${sr.color}"></i>${esc(sr.name)}</span><strong class="num">${fmt(sr.values[i])}${sr.unit ? ' ' + sr.unit : ''}</strong></div>`).join('')}`;
     const sc = r.width / W;
     tip.style.left = Math.max(70, Math.min(r.width - 70, x(i) * sc)) + 'px';
     tip.style.top = top * sc + 'px';
@@ -271,7 +275,7 @@ const LIVE_GAPS = {
   hlas: 'Kredity jsou skutečná spotřeba z ElevenLabs (přes tts-worker), Kč odhad podle tarifu a kurzu ČNB.',
   kupony: 'Kódy zatím nejde uplatnit v aplikaci; kampaně, které tu založíš, se drží jen v tomhle prohlížeči.',
   helpdesk: 'Helpdesk zatím nepřijímá e-maily ani zprávy z aplikace.',
-  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami.',
+  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami. Tržby jsou zatím nulové, platby ještě nejsou napojené.',
   pouzivani: 'Přehrání, pohádky a heatmapa zahrnují i anonymní poslechy; aktivní rodiny a retence jen rodiny se souhlasem se statistikami.',
   rodiny: 'Rodiny bez souhlasu se statistikami vidíš celé, jen bez poslechů (štítek „bez statistik“).',
 };
@@ -323,6 +327,28 @@ function pageOverview() {
     type: 'line', labels: all.map((i) => fshort(D.dayAt(i))), titles: all.map((i) => fday(D.dayAt(i))),
     series: [{ name: 'MRR (Kč)', color: 'var(--s3)', values: all.map((i) => Math.round(dl.mrr[i])) }],
   }));
+  // Rodiny, tržby a náklady po týdnech (pondělí–neděle) za celé období: rodiny celkem na pravé ose, Kč na levé
+  const costMap = costsByDay();
+  const weeks = [];
+  for (let i = 0; i < N; i++) {
+    const d = D.dayAt(i);
+    if (!weeks.length || d.getDay() === 1) weeks.push({ start: d, end: d, rev: 0, cost: 0 });
+    const w = weeks[weeks.length - 1]; w.end = d; w.cost += costMap ? costMap.get(iso(d)) || 0 : 0;
+  }
+  const weekOf = (dt) => { for (let j = weeks.length - 1; j >= 0; j--) if (dt >= weeks[j].start) return weeks[j]; return null; };
+  D.payments.forEach((pm) => { if (pm.status === 'zaplaceno') { const w = weekOf(pm.at); if (w) w.rev += pm.czk; } });
+  const created = fams.map((f) => +f.created).sort((a, b) => a - b);
+  weeks.forEach((w) => { const lim = +addDays(w.end, 1); let lo = 0, hi = created.length; while (lo < hi) { const m = (lo + hi) >> 1; if (created[m] < lim) lo = m + 1; else hi = m; } w.users = lo; });
+  const revSum = weeks.reduce((a, w) => a + w.rev, 0), costSum = weeks.reduce((a, w) => a + w.cost, 0);
+  after.push(() => chart($('#chMoney'), {
+    type: 'line', labels: weeks.map((w) => fshort(w.start)), titles: weeks.map((w) => `Týden ${fshort(w.start)}–${fshort(w.end)}`),
+    series: [
+      { name: 'Tržby', unit: 'Kč', color: 'var(--s3)', values: weeks.map((w) => Math.round(w.rev)) },
+      { name: 'Náklady', unit: 'Kč', color: 'var(--s4)', values: weeks.map((w) => Math.round(w.cost)) },
+      { name: 'Rodiny celkem', color: 'var(--s1)', axis: 'r', dash: true, values: weeks.map((w) => w.users) },
+    ],
+  }));
+  const moneyNote = `Za 6 měsíců: tržby ${kc(revSum)}, náklady ${costMap ? `${kc(costSum)} · rozdíl <b class="${revSum - costSum >= 0 ? 'up' : 'down'}">${kc(revSum - costSum)}</b>` : 'se načítají…'}. Tržby jsou zaplacené platby, náklady zatím jen hlas ElevenLabs (<a class="link" href="#hlas">Hlas a náklady</a>).`;
   const cats = D.catIds.map((c) => [catLabel(c), sumR(dl.cat[c], N - 30, L)]).sort((a, b) => b[1] - a[1]);
   const src = D.sources.map((s) => [s, fams.filter((f) => f.source === s).length]).sort((a, b) => b[1] - a[1]);
   const bars = (list) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>`; };
@@ -354,6 +380,10 @@ function pageOverview() {
         ${att.length ? `<div class="stack">${att.map(([n, l, h, c]) => `<a class="link" style="display:flex;gap:10px;align-items:baseline" href="${h}"><b class="num ${c === 'bad' ? 'down' : ''}" style="min-width:34px;text-align:right;font-size:18px">${fmt(n)}</b><span>${l}</span></a>`).join('')}</div>` : '<p class="muted">Všechno je vyřízené.</p>'}
       </section>
     </div>
+    <section class="panel"><div class="panel-head"><h2>Rodiny, tržby a náklady po týdnech</h2>
+        <div class="legend"><span><i class="key" style="--c:var(--s3)"></i>Tržby (Kč, vlevo)</span><span><i class="key" style="--c:var(--s4)"></i>Náklady (Kč, vlevo)</span><span><i class="key" style="--c:var(--s1)"></i>Rodiny celkem (vpravo, čárkovaně)</span></div></div>
+      <div class="chart" id="chMoney"></div><p class="hint">${moneyNote}</p>
+    </section>
     <div class="grid3">
       <section class="panel"><div class="panel-head"><h2>MRR za 6 měsíců</h2><a class="btn white sm" href="#platby">Platby</a></div><div class="chart" id="chMrr"></div></section>
       <section class="panel"><div class="panel-head"><h2>Registrace po týdnech</h2><a class="btn white sm" href="#registrace">Detail</a></div><div class="chart" id="chReg"></div></section>
