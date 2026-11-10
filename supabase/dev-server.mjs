@@ -23,6 +23,7 @@ await db.exec(`
   create role anon; create role authenticated;
   create schema auth;
   create table auth.users (id uuid primary key, email text, password text, last_sign_in_at timestamptz, is_anonymous boolean default false);
+  create table auth.mfa_factors (id uuid primary key, user_id uuid not null references auth.users(id) on delete cascade, factor_type text, status text, friendly_name text, secret text);
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
   grant usage on schema public to authenticated, anon;
@@ -60,7 +61,6 @@ export function totp(secret, t = Date.now()) {
   const h = crypto.createHmac('sha1', b32decode(secret)).update(msg).digest(), o = h[19] & 15;
   return String((h.readUInt32BE(o) & 0x7fffffff) % 1e6).padStart(6, '0');
 }
-const factors = new Map(); // uid -> [{ id, factor_type, status, secret, friendly_name }]
 const challenges = new Map(); // challenge id -> factor id
 // jeden dotaz najednou, ať se nepletou nastavení role mezi požadavky
 let chain = Promise.resolve();
@@ -118,7 +118,7 @@ http.createServer(async (req, res) => {
       const t = tokenOf(req);
       if (!t) return send(res, 401, { msg: 'JWT expired' });
       const u = (await serial(() => db.query(`select id, email from auth.users where id = $1`, [t.uid]))).rows[0];
-      const list = factors.get(t.uid) || []; factors.set(t.uid, list);
+      const list = (await serial(() => db.query(`select * from auth.mfa_factors where user_id = $1`, [t.uid]))).rows;
       const pub = (f) => ({ id: f.id, factor_type: f.factor_type, status: f.status, friendly_name: f.friendly_name });
       const body = req.method === 'GET' || req.method === 'DELETE' ? {} : await read(req);
       if (url.pathname === '/auth/v1/user' && req.method === 'GET') return send(res, 200, { id: u.id, email: u.email, factors: list.map(pub) });
@@ -133,7 +133,7 @@ http.createServer(async (req, res) => {
         if (list.some((f) => f.friendly_name === body.friendly_name)) return send(res, 422, { error_code: 'mfa_factor_name_conflict', msg: 'A factor with the friendly name already exists' });
         const secret = Array.from(crypto.randomBytes(20), (b) => B32[b & 31]).join('');
         const f = { id: crypto.randomUUID(), factor_type: 'totp', status: 'unverified', secret, friendly_name: body.friendly_name };
-        list.push(f);
+        await serial(() => db.query(`insert into auth.mfa_factors (id, user_id, factor_type, status, friendly_name, secret) values ($1, $2, $3, $4, $5, $6)`, [f.id, t.uid, f.factor_type, f.status, f.friendly_name, f.secret]));
         const uri = `otpauth://totp/${encodeURIComponent(body.issuer || 'test')}:${encodeURIComponent(u.email)}?secret=${secret}&issuer=${encodeURIComponent(body.issuer || 'test')}`;
         const qr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#eee"/><text x="50" y="54" font-size="10" text-anchor="middle">QR (test)</text></svg>`;
         console.log(`TOTP klíč pro ${u.email}: ${secret}`);
@@ -142,17 +142,54 @@ http.createServer(async (req, res) => {
       const fm = url.pathname.match(/^\/auth\/v1\/factors\/([\w-]+)(?:\/(challenge|verify))?$/);
       const f = fm && list.find((x) => x.id === fm[1]);
       if (!f) return send(res, 404, { msg: 'Factor not found' });
-      if (req.method === 'DELETE') { list.splice(list.indexOf(f), 1); return send(res, 200, { id: f.id }); }
+      if (req.method === 'DELETE') { await serial(() => db.query(`delete from auth.mfa_factors where id = $1`, [f.id])); return send(res, 200, { id: f.id }); }
       if (fm[2] === 'challenge') { const id = crypto.randomUUID(); challenges.set(id, f.id); return send(res, 200, { id, type: 'totp', expires_at: Math.floor(Date.now() / 1000) + 300 }); }
       if (fm[2] === 'verify') {
         if (challenges.get(body.challenge_id) !== f.id) return send(res, 422, { error_code: 'mfa_challenge_expired', msg: 'Challenge not found' });
         challenges.delete(body.challenge_id);
         const now = Date.now();
         if (![now - 30000, now, now + 30000].some((at) => totp(f.secret, at) === String(body.code))) return send(res, 422, { error_code: 'mfa_verification_failed', msg: 'Invalid TOTP code entered' });
-        f.status = 'verified';
+        await serial(() => db.query(`update auth.mfa_factors set status = 'verified' where id = $1`, [f.id]));
         return send(res, 200, session(u.id, u.email, 'aal2'));
       }
       return send(res, 404, { msg: 'not found' });
+    }
+    // napodobenina Edge Function staff-admin (supabase/functions/staff-admin): stejná pravidla, místo admin API přímo tabulky
+    if (req.method === 'POST' && url.pathname === '/functions/v1/staff-admin') {
+      const t = tokenOf(req), body = await read(req), q = (sql, a) => serial(() => db.query(sql, a));
+      if (!t) return send(res, 401, { message: 'Nejsi přihlášený.' });
+      if (t.aal !== 'aal2') return send(res, 403, { message: 'Přihlas se i kódem z Google Authenticatoru.' });
+      const me = (await q(`select role from public.staff where user_id = $1`, [t.uid])).rows[0];
+      if (!me || me.role !== 'owner') return send(res, 403, { message: 'Tým může spravovat jen vlastník.' });
+      const pwOk = (pw) => typeof pw === 'string' && pw.length >= 12 && pw.length <= 72;
+      const audit = (action, target, detail) => q(`insert into public.audit_log (actor, action, target, detail) values ($1, $2, $3, $4)`, [t.uid, action, target, detail]);
+      if (body.action === 'create') {
+        const email = String(body.email || '').trim().toLowerCase(), name = String(body.name || '').trim();
+        if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email) || !name) return send(res, 400, { message: 'Zadej jméno a platný e-mail.' });
+        if (!['owner', 'support', 'content', 'analyst', 'finance'].includes(body.role)) return send(res, 400, { message: 'Neznámá role.' });
+        if (!pwOk(body.password)) return send(res, 400, { message: 'Heslo musí mít aspoň 12 znaků.' });
+        if ((await q(`select 1 from auth.users where email = $1`, [email])).rows.length) return send(res, 409, { message: 'Účet s tímhle e-mailem už existuje.' });
+        const id = crypto.randomUUID();
+        await q(`insert into auth.users (id, email, password) values ($1, $2, $3)`, [id, email, body.password]);
+        await q(`insert into public.staff (user_id, name, role) values ($1, $2, $3) on conflict (user_id) do nothing`, [id, name, body.role]);
+        await audit('team.create', name, `Nový člen týmu · ${email} · ${body.role}`);
+        return send(res, 200, { user_id: id });
+      }
+      const target = (await q(`select user_id, name from public.staff where user_id::text = $1`, [String(body.user_id || '')])).rows[0];
+      if (!target) return send(res, 404, { message: 'Člen týmu neexistuje.' });
+      if (body.action === 'password') {
+        if (!pwOk(body.password)) return send(res, 400, { message: 'Heslo musí mít aspoň 12 znaků.' });
+        await q(`update auth.users set password = $2 where id = $1`, [target.user_id, body.password]);
+        await audit('team.password', target.name, 'Nastavené nové heslo');
+        return send(res, 200, { ok: true });
+      }
+      if (body.action === 'remove') {
+        if (target.user_id === t.uid) return send(res, 400, { message: 'Sám sebe odebrat nemůžeš.' });
+        await q(`delete from auth.users where id = $1`, [target.user_id]);
+        await audit('team.remove', target.name, 'Odebraný z týmu, účet smazaný');
+        return send(res, 200, { ok: true });
+      }
+      return send(res, 400, { message: 'Neznámá akce.' });
     }
     const m = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)$/);
     if (req.method === 'POST' && m) {

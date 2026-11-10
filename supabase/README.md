@@ -48,7 +48,10 @@ Funkce `admin_*` (kromě `admin_me`) vydají data jen přihlášení s úrovní 
 Google Authenticator (nebo jiné TOTP aplikace). Při prvním přihlášení administrace ukáže QR kód k naskenování, potom chce kód pokaždé.
 - **Zapomenuté heslo:** odkaz na přihlašovací stránce. Supabase pošle e-mail s odkazem zpět do administrace, kde se nastaví nové heslo.
   Bez vlastního SMTP posílá Supabase jen pár e-mailů za hodinu a jen na adresy členů organizace v Supabase.
-- **Ztracený telefon:** vlastník smaže člověku v Supabase (Authentication → Users → uživatel → MFA factors) ověření a ten si
+- **Správa týmu** (stránka Tým, jen vlastník): přidat člena s heslem, změnit roli, nastavit heslo, zrušit kód, odebrat.
+  Účty a hesla zakládá Edge Function `supabase/functions/staff-admin` (tajný klíč zůstává na serveru Supabase),
+  role a zrušení kódu databáze (`admin_set_role`, `admin_reset_mfa`). Po úpravě funkce ji nasaď znovu v Supabase → Edge Functions.
+- **Ztracený telefon:** vlastník dá na stránce Tým „Zrušit kód“ (nebo smaže v Supabase Authentication → Users → uživatel → MFA factors) a člověk si
   při dalším přihlášení naskenuje nový QR kód. Jde to i SQL: `delete from auth.mfa_factors where user_id = (select id from auth.users where email = '…');`
 
 ## Lokální vyzkoušení bez účtu

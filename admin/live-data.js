@@ -56,6 +56,16 @@ const LIVE = (() => {
     return j;
   }
 
+  // Edge Function v Supabase (správa týmu: supabase/functions/staff-admin)
+  async function fn(name, body) {
+    const s = await session();
+    if (!s) throw Object.assign(new Error('Nejsi přihlášený do databáze'), { status: 401 });
+    const r = await fetch(`${URL_}/functions/v1/${name}`, { method: 'POST', headers: headers(s.access_token), body: JSON.stringify(body) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw Object.assign(new Error((j && (j.message || j.msg)) || `${name}: ${r.status}`), { status: r.status });
+    return j;
+  }
+
   // ---------- Přihlašovací okna ----------
   // Jedna karta, ve které se střídají kroky: heslo → (nové heslo) → kód z Google Authenticatoru.
   let box = null;
@@ -267,7 +277,8 @@ const LIVE = (() => {
       return f;
     });
     D.sources = [...new Set(D.families.map((f) => f.source))];
-    D.staff = staff.map((s, i) => ({ id: s.user_id, name: s.name, role: s.role, email: s.email || '', twofa: null, last: s.last_sign_in_at ? new Date(s.last_sign_in_at) : null }));
+    const staffOf = (rows) => rows.map((s) => ({ id: s.user_id, name: s.name, role: s.role, email: s.email || '', twofa: !!s.twofa, last: s.last_sign_in_at ? new Date(s.last_sign_in_at) : null }));
+    D.staff = staffOf(staff);
     // přihlášený člen týmu jako první (administrace ho bere jako „já“)
     D.staff.sort((a, b) => (a.name === me.name && a.role === me.role ? -1 : b.name === me.name && b.role === me.role ? 1 : 0));
     D.audit = audit.map((a) => ({ at: new Date(a.at), actor: a.actor_name || 'systém', action: a.action, target: a.target || '', detail: a.detail || '' }));
@@ -290,6 +301,15 @@ const LIVE = (() => {
       return out;
     };
     D.familyDetail = () => null;
+    // správa týmu (jen vlastník): účty a hesla přes Edge Function, role a zrušení kódu přes databázi
+    D.team = {
+      create: (b) => fn('staff-admin', { action: 'create', ...b }),
+      password: (id, password) => fn('staff-admin', { action: 'password', user_id: id, password }),
+      remove: (id) => fn('staff-admin', { action: 'remove', user_id: id }),
+      role: (id, role) => rpc('admin_set_role', { uid: id, new_role: role }),
+      resetMfa: (id) => rpc('admin_reset_mfa', { uid: id }),
+      list: async () => staffOf(await rpc('admin_staff')),
+    };
     D.deleteFamily = (f) => rpc('admin_delete_family', { fseq: f.n });
     D.log = (action, target, detail) => rpc('admin_log', { action, target: String(target || ''), detail: String(detail || '') }).catch(() => {});
     return D;

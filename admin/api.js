@@ -42,9 +42,10 @@ const API = (() => {
     analyst: { label: 'Analytik', perms: ['families.read', 'analytics.read', 'billing.read', 'ops.read'] },
     finance: { label: 'Účetní', perms: ['billing.read', 'billing.refund', 'coupons.manage', 'families.read', 'families.pii', 'analytics.read'] },
   };
-  const roleOver = ls.get('ospalek.admin.roles.v1', {});
+  // ukázkové změny týmu jsou jen v prohlížeči; v ostrém režimu je tým jen z databáze
+  const roleOver = D.live ? {} : ls.get('ospalek.admin.roles.v1', {});
   const staff = D.staff.map((s) => ({ ...s, role: roleOver[s.id] || s.role }));
-  ls.get('ospalek.admin.invites.v1', []).forEach((s) => staff.push(revive(s)));
+  if (!D.live) ls.get('ospalek.admin.invites.v1', []).forEach((s) => staff.push(revive(s)));
   const ME = staff[0];
   // v ostrém režimu rozhoduje role v databázi; „Zobrazit jako“ jde jen k menším oprávněním
   const realRole = D.live ? D.me.role : 'owner';
