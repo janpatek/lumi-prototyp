@@ -461,7 +461,8 @@ function cloudClip(text, mood) {
 }
 // Vypravěčka pohádek. Výběr hlasu v přehrávači není, hlas (ElevenLabs „Jana“) určuje tts-worker.
 const NARRATOR = 'teta Terezka';
-const voiceFail = (e) => `${e.message} Teta Terezka se teď nenačetla, zatím čte náhradní hlas.`;
+// Síťová chyba (TypeError: „Failed to fetch“, na iOS „Load failed“) je anglicky, tu nezobrazujeme. České chyby z workeru ano.
+const voiceFail = (e) => `${e instanceof TypeError ? '' : e.message + ' '}Teta Terezka se teď nenačetla, zatím čte náhradní hlas.`;
 // stejné rozhraní jako speak(): zavolá onend, vrací funkci pro zastavení; při chybě dočte hlasem prohlížeče
 function cloudSpeak(text, onend) {
   let stopped = false, fallback = null;
