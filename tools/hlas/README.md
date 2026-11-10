@@ -8,34 +8,29 @@ Pohádka se nečte jako jedna nahrávka, ale po větách. Každá věta je samos
 
 ## Jak vznikají nahrávky
 
+Všechno se generuje přes ElevenLabs, a to **po jedné větě přes `tts-worker`**, stejně jako aplikace dotahuje věty se jmény. Společné i osobní věty tak mají stejný hlas, model, stabilitu i značku nálady a na spojích není slyšet, že jde o dva zdroje. Magnific se nepoužívá.
+
+- hlas Jana (ElevenLabs `bF7C2fCv7Zf30iT84wZ1`), model `eleven_v4`, stabilita 0.75 – nastavení je jen ve `tts-worker/wrangler.toml`,
+- na začátku každé věty značka nálady podle pohádky (`MOOD_TAG` v `lib.mjs` a ve Workeru),
+- klíč ElevenLabs zůstává ve Workeru, skripty ho nepotřebují.
+
+```bash
+ZNOVU=1 node tools/hlas/plan.mjs spolecne                         # všechny společné věty
+ZNOVU=1 node tools/hlas/plan.mjs rodina tools/hlas/rodiny/tonik.json   # testovací rodiny
+ZNOVU=1 node tools/hlas/plan.mjs rodina tools/hlas/rodiny/anicka.json
+node tools/hlas/namluvit.mjs odhad tools/hlas/davky/*-spolecne.json tools/hlas/davky/*-tonik.json tools/hlas/davky/*-anicka.json
+node tools/hlas/namluvit.mjs nahrat tools/hlas/davky/*-spolecne.json tools/hlas/davky/*-tonik.json tools/hlas/davky/*-anicka.json
 ```
-plan.mjs  →  dávka textu (jedna na pohádku)  →  TTS (Jana, eleven_v4, stability 0.6)
-          →  casovani.py (kde začíná každá věta)  →  cut.mjs (střih v pauzách, hlasitost, kontrola)
-```
 
-1. Vytvoř plán dávek:
-   - pro všechny pohádky: `node tools/hlas/plan.mjs spolecne`
-   - pro jednu rodinu: `node tools/hlas/plan.mjs rodina tools/hlas/rodiny/<rodina>.json`
+`odhad` vypíše počet vět a znaků (ElevenLabs účtuje znaky včetně značky nálady). `nahrat` stáhne věty z Workeru do `tools/hlas/nahravky/el/` (po přerušení pokračuje), ořízne ticho na krajích (0,05 / 0,08 s), srovná hlasitost na −19 LUFS a přepíše `audio/hlas/jana/` a `index.json`. Bez `ZNOVU=1` naplánuje `plan.mjs` jen věty, které ještě nahrané nejsou.
 
-   Vzniknou soubory `tools/hlas/davky/<pohádka>-<dávka>.txt` (text pro TTS) a `.json` (seznam vět). Věty, které už jsou nahrané, se přeskočí.
-2. Text z `.txt` nech namluvit:
-   - hlas Jana (Magnific voice 857 = ElevenLabs „Jana Procházková“),
-   - model `eleven_v4`, stability 0.6,
-   - značku nálady na začátku nech být, drží stejný přednes ve všech dávkách.
+**Když změníš hlas, model nebo stabilitu ve Workeru, musíš znovu namluvit všechny hotové věty** (příkazy výše), jinak se na spojích budou střídat dva přednesy. Worker má stabilitu v klíči mezipaměti, takže osobní věty se přegenerují samy.
 
-   Nahrávku ulož jako `tools/hlas/nahravky/<dávka>.mp3`.
-3. Najdi začátky vět. Rozpoznávání řeči běží lokálně, bez kreditů:
-   ```bash
-   uvx --with faster-whisper python tools/hlas/casovani.py <dávka> tools/hlas/nahravky/<dávka>.mp3
-   ```
-4. Rozstříhej nahrávku:
-   ```bash
-   node tools/hlas/cut.mjs <dávka> tools/hlas/nahravky/<dávka>.mp3 tools/hlas/nahravky/<dávka>.zacatky.json
-   ```
-   Skript srovná hlasitost dávky na −19 LUFS a stříhá v pauzách. Když dvě věty navazují bez pauzy, stříhá v nejtišším místě. Nakonec zkontroluje tempo každé věty. Když nějaká vybočuje, střih je špatně a skript `index.json` nezmění.
-5. Poslechni si výsledek: `node tools/hlas/slozit.mjs tools/hlas/rodiny/<rodina>.json <pohádka>` složí celou pohádku do `tools/hlas/ukazky/`.
+Poslech celé pohádky: `node tools/hlas/slozit.mjs tools/hlas/rodiny/<rodina>.json <pohádka>` ji složí do `tools/hlas/ukazky/`.
 
 ffmpeg: proměnná `FFMPEG`, jinak `ffmpeg` z PATH. Bez Homebrew stačí `uvx --from imageio-ffmpeg python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"`.
+
+`casovani.py` a `cut.mjs` jsou ze starší cesty (celá pohádka jako jedna nahrávka, pak střih na věty). Teď se nepoužívají.
 
 ## Psaní nových pohádek, aby vyšly levně a zněly sourodě
 
@@ -74,4 +69,4 @@ node tools/hlas/predehrat.mjs https://ospalek-tts.<tvuj-ucet>.workers.dev
 - `predehrat.mjs` pošle věty Workeru, který je namluví a uloží. Věta, která už uložená je, nic nestojí, takže skript jde pouštět opakovaně. Bez Workeru se dá vyzkoušet proti atrapě `node tts-worker/dev-mock.mjs` na adrese `http://localhost:8787`.
 - Seznam v `jmena.json` je zatím jen odhad: nejčastější jména podle ČSÚ a domácké tvary. Až poběží provoz, nahraď ho nejčastějšími jmény z administrace.
 
-Aby věty z Workeru seděly ke společným, Worker používá stejný model (`eleven_v4`), stabilitu 0.6 a značku nálady podle pohádky (`mood`). Přehrávač jim navíc ořízne ticho a srovná hlasitost jako `cut.mjs`. Dokud ve Workeru není skutečné Voice ID Jany (`wrangler.toml`) a zapnuté R2, sdílení mezi rodinami v provozu neběží. Hotové nahrávky z `audio/hlas` ale hrají i bez Workeru.
+Aby věty z Workeru seděly ke společným, Worker používá stejný model (`eleven_v4`), stabilitu 0.75 a značku nálady podle pohádky (`mood`). Přehrávač jim navíc ořízne ticho a srovná hlasitost jako `namluvit.mjs`. Dokud ve Workeru není zapnuté R2, drží sdílené věty jen mezipaměť Cloudflaru. Hotové nahrávky z `audio/hlas` ale hrají i bez Workeru.

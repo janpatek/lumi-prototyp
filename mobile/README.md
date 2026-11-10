@@ -1,7 +1,7 @@
 # Ospalek pro Android a iOS (Capacitor)
 
 Nativní obal webové aplikace z `../app`. Jeden projekt pro obě platformy:
-`android/` je v repu, `ios/` přidá `npx cap add ios` (session iOS).
+`android/` a `ios/` (Xcode projekt, Swift Package Manager, bez CocoaPods) jsou v repu.
 
 ## Proč Capacitor, ne TWA
 
@@ -31,7 +31,17 @@ npm run android:build   # APK přes Gradle (potřebuje JDK 21 a Android SDK)
 npm run android:run     # spustí v emulátoru nebo na telefonu
 ```
 
-Potřeba: Android Studio, Android SDK 36, build-tools 35.0.0 (chce je AGP 8.13) a emulátor s Androidem 16.
+```bash
+npm run ios             # otevře projekt v Xcode
+npm run ios:build       # sestavení pro iOS Simulator (xcodebuild)
+npm run ios:run         # spustí v iOS Simulatoru
+```
+
+iOS: potřeba plné Xcode (ne jen Command Line Tools) s iOS platformou: `sudo xcode-select -s /Applications/Xcode.app`.
+Nastaveno: `UIBackgroundModes: audio` a `AVAudioSession` `.playback` (hraje se zamčenou obrazovkou i s přepínačem ticha), jazyk cs/sk.
+Checklist pro App Store a technický návrh pro iOS: poznámka `ios-app-store.md` ve sdílené složce poznámek sessions.
+
+Android: Android Studio, Android SDK 36, build-tools 35.0.0 (chce je AGP 8.13) a emulátor s Androidem 16.
 **JDK 21**: Java přibalená k Android Studiu 2026.2 je verze 25 a Gradle 8.14 na ní nejede. Před sestavením:
 
 ```bash
@@ -39,6 +49,7 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/
 ```
 
 Ověřeno 10. 11. 2026: debug APK se sestaví a běží v emulátoru Pixel 8, Android 16 (Google Play). Hláška „Error injecting safe area CSS“ při startu je neškodná, Capacitor zapisuje okraje displeje dřív, než se stránka načte.
+
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
 ## Co ještě chybí (další kroky)

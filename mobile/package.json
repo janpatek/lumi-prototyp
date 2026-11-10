@@ -9,11 +9,15 @@
     "sync": "npm run web && cap sync",
     "android": "npm run sync && cap open android",
     "android:build": "npm run sync && cd android && ./gradlew assembleDebug",
-    "android:run": "npm run sync && cap run android"
+    "android:run": "npm run sync && cap run android",
+    "ios": "npm run sync && cap open ios",
+    "ios:build": "npm run sync && cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build build",
+    "ios:run": "npm run sync && cap run ios"
   },
   "dependencies": {
     "@capacitor/android": "8.6.0",
     "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0",
     "@revenuecat/purchases-capacitor": "14.1.0"
   },
   "devDependencies": {

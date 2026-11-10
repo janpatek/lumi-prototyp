@@ -60,7 +60,8 @@
       const url = own ? Promise.resolve(BASE + line.key + '.mp3') : fallback ? fallback(line.t) : Promise.reject(new Error('Věta zatím není namluvená.'));
       const p = url
         .then((u) => fetch(u))
-        .then((r) => { if (!r.ok) throw new Error('Nahrávku se nepodařilo načíst.'); return r.arrayBuffer(); })
+        // v aplikaci pro iOS vrací Capacitor vlastní soubory .mp3 se stavem 0 (bez HTTP hlavičky), data ale dorazí
+        .then((r) => { if (!r.ok && !(own && r.status === 0)) throw new Error('Nahrávku se nepodařilo načíst.'); return r.arrayBuffer(); })
         .then((b) => ctx().decodeAudioData(b))
         .then((b) => (own ? b : tidy(b)));
       p.catch(() => buffers.delete(line.key)); // chybu příště zkusit znovu

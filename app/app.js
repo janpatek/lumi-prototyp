@@ -167,6 +167,7 @@ const screens = {
     <div class="login">
       <div class="logo"><img src="${MASCOT.mark}" alt=""><h1 class="wordmark">${APP_NAME}</h1></div>
       <p class="tag">Pohádky, kde je hrdinou tvoje dítě.</p>
+      ${SHOW_APPLE ? `<button class="btn apple" data-a="apple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}
       <button class="btn white" data-a="google">${GOOGLE_SVG} Pokračovat přes Google</button>
       <button class="btn ghost" data-a="guest">Vyzkoušet bez přihlášení</button>
       <p class="fine">Prototyp: přihlášení je zatím jen simulované.</p>
@@ -458,8 +459,9 @@ function cloudClip(text, mood) {
   }
   return cloudClips.get(id);
 }
-const linesNote = 'Čte Jana (ElevenLabs). Společné věty jsou namluvené jednou pro všechny, věty se jmény pro vaši rodinu.';
-const cloudNote = 'Čte Jana (ElevenLabs). Každý odstavec se připraví zvlášť, na začátku to chvilku trvá.';
+// Vypravěčka pohádek. Výběr hlasu v přehrávači není, hlas (ElevenLabs „Jana“) určuje tts-worker.
+const NARRATOR = 'teta Terezka';
+const voiceFail = (e) => `${e.message} Teta Terezka se teď nenačetla, zatím čte náhradní hlas.`;
 // stejné rozhraní jako speak(): zavolá onend, vrací funkci pro zastavení; při chybě dočte hlasem prohlížeče
 function cloudSpeak(text, onend) {
   let stopped = false, fallback = null;
@@ -472,7 +474,7 @@ function cloudSpeak(text, onend) {
   }).catch((e) => {
     if (stopped) return;
     P.cloudFailed = true;
-    document.getElementById('voicewarn').textContent = `${e.message} Zatím čte hlas prohlížeče.`;
+    document.getElementById('voicewarn').textContent = voiceFail(e);
     fallback = speak(text, onend);
   });
   return () => { stopped = true; el.onended = null; el.pause(); fallback && fallback(); };
@@ -489,14 +491,13 @@ function openPlayer(st) {
   P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null };
   // jeden přehrávač vytvořený při kliknutí – iOS pak pustí i další odstavce bez dalšího klepnutí
   if (TTS_URL) P.cloudEl = new Audio();
-  const voiceChips = linesOk ? [['lines', `${I.mic} Jana`]] : rec ? rec.voices.map((v) => [v.id, `${I.mic} ${v.name}`]) : TTS_URL ? [['cloud', `${I.mic} Jana`]] : [];
   $app.insertAdjacentHTML('beforeend', `
     <div class="player" id="player" style="--c:${catColor(st)}">
       <div class="inner">
         <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
-        ${voiceChips.length ? `<div class="chips voices">${voiceChips.map(([id, label]) => `<button class="chip ${P.voice === id ? 'on' : ''}" data-a="setVoice" data-v="${id}">${label}</button>`).join('')}<button class="chip" data-a="setVoice" data-v="browser">Prohlížeč</button></div>` : ''}
+        <p class="narrator">${I.mic} Čte ${NARRATOR}</p>
         <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}</div>
         <div class="waiting" id="waiting"></div>
         <div class="controls">
@@ -505,18 +506,26 @@ function openPlayer(st) {
           <button class="skip" data-a="nextSeg" aria-label="Další">${I.next}</button>
         </div>
         <div class="mix">${I.music} Hudba <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol ?? 0.5}"></div>
-        <div class="voicewarn" id="voicewarn">${linesOk ? linesNote : rec ? 'Realistický hlas ElevenLabs. Ukázka nahraná pro tuto rodinu.' : TTS_URL ? cloudNote : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
+        <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
   highlight();
 }
 
+// posouvá jen textem pohádky; scrollIntoView by posunul i celou stránku a v iOS aplikaci
+// by horní lišta přehrávače zajela pod stavový řádek
+function scrollInText(el, center) {
+  const box = document.getElementById('ptext');
+  const off = el.getBoundingClientRect().top - box.getBoundingClientRect().top;
+  box.scrollBy({ top: center ? off - (box.clientHeight - el.offsetHeight) / 2 : off, behavior: 'smooth' });
+}
+
 function highlight() {
   document.querySelectorAll('#ptext p').forEach((p) => {
     const i = +p.dataset.i;
     p.className = i === P.i ? 'now' : i < P.i ? 'done' : '';
-    if (i === P.i) p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (i === P.i) scrollInText(p, true);
   });
   const b = document.getElementById('playBtn');
   b.innerHTML = P.playing ? I.pause : I.play;
@@ -547,7 +556,7 @@ function playSeg() {
     P.stop = lines
       ? voiceLines.speak(P.plan[P.i], after, { fallback, onerror: (e) => {
         P.cloudFailed = true;
-        document.getElementById('voicewarn').textContent = `${e.message} Zatím čte hlas prohlížeče.`;
+        document.getElementById('voicewarn').textContent = voiceFail(e);
         P.stop = speak(seg.t, after);
       } })
       : (cloud ? cloudSpeak : speak)(seg.t, after);
@@ -607,15 +616,6 @@ function stopVoice() {
   P.audio && P.audio.pause();
   P.cloudEl && P.cloudEl.pause();
 }
-function setVoice(el) {
-  const wasPlaying = P.playing;
-  stopVoice();
-  P.voice = el.dataset.v;
-  el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el));
-  if (P.voice === 'cloud' || P.voice === 'lines') P.cloudFailed = false;
-  document.getElementById('voicewarn').textContent = recVoice() ? 'Realistický hlas ElevenLabs. Ukázka nahraná pro tuto rodinu.' : P.voice === 'lines' ? linesNote : P.voice === 'cloud' ? cloudNote : 'Ukázkový hlas prohlížeče pro srovnání.';
-  if (wasPlaying) recVoice() ? playRec() : playSeg();
-}
 
 // pauza na odpověď u hádanek – vrací funkci, která odpočet zruší
 function waitAnswer(sec, done) {
@@ -655,7 +655,7 @@ function theEnd() {
   ambience.stopMusic(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
-  document.querySelector('.the-end').scrollIntoView({ behavior: 'smooth' });
+  scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
 }
 
@@ -669,6 +669,7 @@ function closePlayer() {
 const closeModal = () => { $modal.innerHTML = ''; ui.edit = null; };
 const actions = {
   google: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
+  apple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
   guest: () => { S.user = { email: 'host', provider: 'guest' }; save(); go('onb'); },
   next: () => { ui.step++; render(); },
   prev: () => { syncHome(); ui.step--; render(); },
@@ -736,7 +737,6 @@ const actions = {
   nextSeg: () => jump(1),
   toggleText: () => document.getElementById('ptext').classList.toggle('hide'),
   closePlayer,
-  setVoice,
 };
 
 function applyTheme() {
@@ -767,6 +767,9 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
 });
 
+// Přihlášení přes Apple: na iOS povinné vedle Google (App Review 4.8). Na Androidu ho nenabízíme.
+const SHOW_APPLE = !(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android');
+const APPLE_SVG = '<svg width="18" height="22" viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
 const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 
 render();

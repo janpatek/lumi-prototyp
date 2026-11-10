@@ -10,7 +10,7 @@
 //   ALLOWED_ORIGINS  čárkou oddělené adresy webu, odkud se smí volat
 //   VOICES           JSON { "jana": "<voice_id>" } – jen tyhle hlasy jdou použít
 //   MODEL_ID         model ElevenLabs (výchozí eleven_v4 – stejný jako nahrávky v audio/hlas)
-//   STABILITY        stabilita hlasu 0–1 (výchozí 0.6, stejná jako nahrávky v audio/hlas)
+//   STABILITY        stabilita hlasu 0–1 (wrangler.toml má 0.75; hotové věty v audio/hlas vznikly se stejnou hodnotou)
 //   MAX_CHARS        nejdelší povolený text v jednom požadavku (jeden odstavec pohádky)
 //   LANGUAGE_CODE    volitelně "cs" – jen pro modely, které vynucení jazyka podporují
 
