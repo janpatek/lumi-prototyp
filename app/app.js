@@ -513,11 +513,19 @@ function openPlayer(st) {
   highlight();
 }
 
+// posouvá jen textem pohádky; scrollIntoView by posunul i celou stránku a v iOS aplikaci
+// by horní lišta přehrávače zajela pod stavový řádek
+function scrollInText(el, center) {
+  const box = document.getElementById('ptext');
+  const off = el.getBoundingClientRect().top - box.getBoundingClientRect().top;
+  box.scrollBy({ top: center ? off - (box.clientHeight - el.offsetHeight) / 2 : off, behavior: 'smooth' });
+}
+
 function highlight() {
   document.querySelectorAll('#ptext p').forEach((p) => {
     const i = +p.dataset.i;
     p.className = i === P.i ? 'now' : i < P.i ? 'done' : '';
-    if (i === P.i) p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (i === P.i) scrollInText(p, true);
   });
   const b = document.getElementById('playBtn');
   b.innerHTML = P.playing ? I.pause : I.play;
@@ -656,7 +664,7 @@ function theEnd() {
   ambience.stopMusic(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
-  document.querySelector('.the-end').scrollIntoView({ behavior: 'smooth' });
+  scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
 }
 
