@@ -11,7 +11,8 @@
 //   VOICES           JSON { "jana": "<voice_id>" } – jen tyhle hlasy jdou použít
 //   MODEL_ID         model ElevenLabs (výchozí eleven_v4 – stejný jako nahrávky v audio/hlas)
 //   STABILITY        stabilita hlasu 0–1 (wrangler.toml má 0.75; hotové věty v audio/hlas vznikly se stejnou hodnotou)
-//   MAX_CHARS        nejdelší povolený text v jednom požadavku (jeden odstavec pohádky)
+//   MAX_CHARS        nejdelší povolený text v jednom požadavku (jedna věta pohádky; nejdelší má ~190 znaků)
+//   TTS_LIMIT        (binding ratelimits) kolik nových vět smí jedna IP adresa vygenerovat za minutu
 //   LANGUAGE_CODE    volitelně "cs" – jen pro modely, které vynucení jazyka podporují
 
 const API = 'https://api.elevenlabs.io/v1/text-to-speech/';
@@ -45,7 +46,7 @@ export default {
     let body;
     try { body = await request.json(); } catch { return json({ error: 'Neplatný požadavek.' }, 400, cors); }
     const text = String(body.text || '').trim();
-    const maxChars = Number(env.MAX_CHARS) || 1500;
+    const maxChars = Number(env.MAX_CHARS) || 400;
     if (!text) return json({ error: 'Chybí text.' }, 400, cors);
     if (text.length > maxChars) return json({ error: `Text je delší než ${maxChars} znaků.` }, 413, cors);
     const vs = voices(env);
@@ -73,6 +74,12 @@ export default {
       }
     }
 
+    // Limit nových vět na jednu IP adresu (Cloudflare Rate Limiting, wrangler.toml → TTS_LIMIT). Počítá se jen to,
+    // co jde do ElevenLabs; věty z mezipaměti jsou zdarma a neomezené. Celkový strop drží limit kreditů u klíče.
+    if (env.TTS_LIMIT) {
+      const { success } = await env.TTS_LIMIT.limit({ key: request.headers.get('CF-Connecting-IP') || 'neznama' });
+      if (!success) return json({ error: 'Příliš mnoho nových vět najednou. Zkus to za chvilku.' }, 429, cors);
+    }
     const res = await fetch(`${API}${voiceId}?output_format=mp3_44100_128`, {
       method: 'POST',
       headers: { 'xi-api-key': env.ELEVENLABS_API_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },

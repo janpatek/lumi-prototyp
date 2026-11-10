@@ -12,8 +12,15 @@ VOICES = '{"jana":"bF7C2fCv7Zf30iT84wZ1"}'
 # Model musí být stejný jako u nahrávek vět v audio/hlas (eleven_v4), jinak budou na spojích slyšet rozdíly
 MODEL_ID = "eleven_v4"
 STABILITY = "0.75"
-# Nejdelší text v jednom požadavku (aplikace posílá po odstavcích)
-MAX_CHARS = "1500"
+# Nejdelší text v jednom požadavku. Aplikace posílá po větách, nejdelší věta v pohádkách má ~190 znaků.
+MAX_CHARS = "400"
+
+# Kolik nových vět (těch, co jdou do ElevenLabs) smí jedna IP adresa vygenerovat za minutu.
+# Jedna pohádka pro novou rodinu potřebuje řádově desítky vět. Věty z mezipaměti se nepočítají.
+[[ratelimits]]
+name = "TTS_LIMIT"
+namespace_id = "1001"
+simple = { limit = 120, period = 60 }
 
 # Volitelně trvalé uložení hotových nahrávek (Cloudflare R2, v malém objemu zdarma).
 # Nejdřív `npx wrangler r2 bucket create ospalek-audio`, pak odkomentuj:

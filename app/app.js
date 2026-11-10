@@ -11,6 +11,26 @@ const TTS_URL = (() => {
   const q = new URLSearchParams(location.search).get('tts');
   return q && /^http:\/\/localhost(:\d+)?$/.test(q) ? q : TTS_URL_DEFAULT;
 })();
+// Limity formulářů: brání tomu, aby rodina (nebo skript) zbytečně pálila kredity za hlas. Worker má vlastní pojistky.
+const LIMIT = { children: 4, parents: 4, heroes: 3, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
+// jméno: jen písmena, mezera, spojovník a apostrof
+const cleanName = (s, max = LIMIT.name) => String(s || '').replace(/[^\p{L}\s'’-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
+const cleanText = (s, max) => String(s || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
+// Změny údajů, které mění text pohádek (jméno, jídlo, zvíře, obec, nové dítě…), po dokončení úvodního nastavení:
+// nejvýš LIMIT.changes za kalendářní měsíc. Každá změna znamená nové věty k namluvení.
+function changesLeft() {
+  const m = new Date().toISOString().slice(0, 7);
+  if (!S.changes || S.changes.m !== m) S.changes = { m, n: 0 };
+  return Math.max(0, LIMIT.changes - S.changes.n);
+}
+function useChange() {
+  if (!S.onboarded) return true;
+  if (!changesLeft()) return false;
+  S.changes.n++;
+  return true;
+}
+const changesNote = () => (S.onboarded ? `<p class="note" id="changesMsg">Změny jmen, jídla, zvířat a míst: tento měsíc zbývá ${changesLeft()} z ${LIMIT.changes}.</p>` : '');
+const changesOut = 'Tento měsíc už další změny udělat nejde. Nové budou možné od začátku příštího měsíce.';
 const LS_KEY = 'lumi.v1'; // klíč z doby pracovního názvu, ať se neztratí uložené rodiny
 const store = {
   get() { try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch (e) { return null; } },
@@ -153,7 +173,7 @@ function ctx(heroes) {
   };
 }
 const heroes = () => {
-  const sel = S.family.children.filter((k) => S.heroIds.includes(k.id));
+  const sel = S.family.children.filter((k) => S.heroIds.includes(k.id)).slice(0, LIMIT.heroes);
   return sel.length ? sel : S.family.children.slice(0, 1);
 };
 const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
@@ -246,13 +266,15 @@ function peopleList(kind) {
       <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
     </div>`).join('')}</div>
-    <button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`;
+    ${arr.length < LIMIT[kind === 'child' ? 'children' : 'parents']
+      ? `<button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`
+      : `<p class="note">${kind === 'child' ? `Víc než ${LIMIT.children} děti přidat nejde.` : `Víc než ${LIMIT.parents} dospělé přidat nejde.`}</p>`}`;
 }
 
 const stepKids = () => `
   <img class="onb-mascot" src="${MASCOT.head}" alt="">
   <h1>Kdo bude hlavní hrdina?</h1>
-  <p class="lead">Přidej své děti. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
+  <p class="lead">Přidej své děti, nejvýš ${LIMIT.children}. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
   ${peopleList('child')}
   <div class="footer-actions"><button class="btn" data-a="next" ${S.family.children.length ? '' : 'disabled'}>Pokračovat</button></div>`;
 
@@ -279,14 +301,14 @@ function homeForm() {
   const chips = (opts, sel, kind) => opts.map((o, i) => `<button class="chip ${sel.includes(o) ? 'on' : ''}" data-a="toggleSpot" data-kind="${kind}" data-i="${i}">${esc(o)}</button>`).join('');
   return `
     <label for="town">Obec nebo město</label>
-    <div class="row"><input id="town" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small" style="flex:0 0 auto" data-a="findSpots">Najít okolí</button></div>
+    <div class="row"><input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small" style="flex:0 0 auto" data-a="findSpots">Najít okolí</button></div>
     <label for="inTown">Jak doma říkáte: „bydlíme …“</label>
-    <input id="inTown" placeholder="v Benešově" value="${esc(h.inTown)}">
+    <input id="inTown" maxlength="${LIMIT.place + 4}" placeholder="v Benešově" value="${esc(h.inTown)}">
     <div id="spotsMsg" class="note" style="margin-top:8px"></div>
     ${h.nearOpts.length ? `<div class="section-t">Obce v okolí</div><div class="chips">${chips(h.nearOpts, h.near, 'near')}</div>` : ''}
     ${h.attrOpts.length ? `<div class="section-t">Výletní místa</div><div class="chips">${chips(h.attrOpts, h.attr, 'attr')}</div>` : ''}
     <label for="addSpot">Přidat vlastní oblíbené místo</label>
-    <div class="row"><input id="addSpot" placeholder="např. Zoo Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
+    <div class="row"><input id="addSpot" maxlength="${LIMIT.place}" placeholder="např. Zoo Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
 }
 
 // ---------- Okolí z OpenStreetMap ----------
@@ -294,7 +316,7 @@ async function findSpots() {
   const town = document.getElementById('town').value.trim();
   const msg = document.getElementById('spotsMsg');
   if (!town) { msg.textContent = 'Nejdřív napiš obec.'; return; }
-  syncHome();
+  if (syncHome() === false) return;
   msg.textContent = 'Hledám místa v okolí…';
   try {
     const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=cz,sk&accept-language=cs&q=${encodeURIComponent(town)}`).then((r) => r.json());
@@ -330,8 +352,15 @@ function syncHome() {
   const t = document.getElementById('town'), i = document.getElementById('inTown');
   if (!t) return;
   const h = S.family.home;
-  if (t.value.trim() !== h.town) { h.town = t.value.trim(); if (!i.value.trim() || i.dataset.auto) i.value = inTownGuess(h.town); }
-  h.inTown = i.value.trim() || inTownGuess(h.town);
+  const town = cleanText(t.value, LIMIT.place);
+  const inTown = cleanText(i.value, LIMIT.place + 4);
+  if ((town !== h.town || (inTown && inTown !== h.inTown)) && !useChange()) {
+    t.value = h.town; i.value = h.inTown;
+    const msg = document.getElementById('spotsMsg'); if (msg) msg.innerHTML = `<span class="err">${changesOut}</span>`;
+    return false;
+  }
+  if (town !== h.town) { h.town = town; if (!i.value.trim() || i.dataset.auto) i.value = inTownGuess(h.town); }
+  h.inTown = cleanText(i.value, LIMIT.place + 4) || inTownGuess(h.town);
   save();
 }
 
@@ -346,25 +375,26 @@ function personSheet(kind, id) {
       <h2>${p.id ? 'Upravit' : 'Přidat'} ${isChild ? 'dítě' : 'člena rodiny'}</h2>
       ${isChild ? `
         <label for="pName">Jak dítěti doma říkáte?</label>
-        <input id="pName" value="${esc(p.forms.nom)}" placeholder="např. Toník, Ema, Kubík">
+        <input id="pName" maxlength="${LIMIT.name}" value="${esc(p.forms.nom)}" placeholder="např. Toník, Ema, Kubík">
         <label>Je to</label>
         <div class="seg" id="gSeg"><button data-a="gender" data-v="m" class="${p.gender !== 'f' ? 'on' : ''}">Kluk</button><button data-a="gender" data-v="f" class="${p.gender === 'f' ? 'on' : ''}">Holka</button></div>
         <div class="row">
           <div><label for="pAge">Věk</label><select id="pAge">${[2, 3, 4, 5, 6, 7, 8, 9, 10].map((a) => `<option ${a === p.age ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
         </div>
         <label for="pFood">Oblíbené jídlo</label>
-        <input id="pFood" value="${esc(p.food || '')}" placeholder="např. palačinky">
+        <input id="pFood" maxlength="${LIMIT.item}" value="${esc(p.food || '')}" placeholder="např. palačinky">
         <label for="pAnimal">Oblíbené zvíře</label>
-        <input id="pAnimal" value="${esc(p.animal || '')}" placeholder="např. liška">
+        <input id="pAnimal" maxlength="${LIMIT.item}" value="${esc(p.animal || '')}" placeholder="např. liška">
       ` : `
         <label>Kdo to je</label>
         <div class="seg" id="rSeg">${Object.entries(ROLES).map(([k, r]) => `<button data-a="role" data-v="${k}" class="${p.role === k ? 'on' : ''}">${r.label}</button>`).join('')}</div>
                 <label for="pName">Jméno (nepovinné)</label>
-        <input id="pName" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra">
+        <input id="pName" maxlength="${LIMIT.name}" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra">
         <p class="note">V pohádce pak zazní třeba „maminka Petra“. Bez jména jen „maminka“.</p>
       `}
+      ${changesNote()}
       <details><summary>Skloňování jména (zkontroluj)</summary>
-        <div class="cases">${CASES.map(([k, l]) => `<div><label for="c_${k}">${l}</label><input id="c_${k}" value="${esc(p.forms[k])}"></div>`).join('')}</div>
+        <div class="cases">${CASES.map(([k, l]) => `<div><label for="c_${k}">${l}</label><input id="c_${k}" maxlength="${LIMIT.cases}" value="${esc(p.forms[k])}"></div>`).join('')}</div>
       </details>
       <div class="footer-actions">
         <button class="btn" data-a="savePerson">Uložit</button>
@@ -382,16 +412,23 @@ function refreshCases() {
 }
 
 function savePerson() {
-  const name = document.getElementById('pName').value.trim();
+  const name = cleanName(document.getElementById('pName').value);
   const isChild = ui.edit.kind === 'child';
   if (isChild && !name) { document.getElementById('pName').focus(); return; }
   const forms = {};
-  CASES.forEach(([k]) => { forms[k] = document.getElementById('c_' + k).value.trim() || name; });
+  CASES.forEach(([k]) => { forms[k] = cleanName(document.getElementById('c_' + k).value, LIMIT.cases) || name; });
+  if (name) forms.nom = name;
   const arr = isChild ? S.family.children : S.family.parents;
   let p = arr.find((x) => x.id === ui.edit.id);
+  if (!p && arr.length >= LIMIT[isChild ? 'children' : 'parents']) { closeModal(); return; }
+  const next = isChild
+    ? { forms, gender: ui.edit.gender || 'm', age: +document.getElementById('pAge').value, food: cleanText(document.getElementById('pFood').value, LIMIT.item), animal: cleanText(document.getElementById('pAnimal').value, LIMIT.item) }
+    : { forms, role: ui.edit.role, name: !!name };
+  // věk se do textu pohádky nepromítá, ostatní ano
+  const story = (o) => o && JSON.stringify([o.forms, o.gender, o.food, o.animal, o.role, o.name]);
+  if (story(p) !== story(next) && !useChange()) { document.getElementById('changesMsg').innerHTML = `<span class="err">${changesOut}</span>`; return; }
   if (!p) { p = { id: uid() }; arr.push(p); }
-  if (isChild) Object.assign(p, { forms, gender: ui.edit.gender || 'm', age: +document.getElementById('pAge').value, food: document.getElementById('pFood').value.trim(), animal: document.getElementById('pAnimal').value.trim() });
-  else Object.assign(p, { forms, role: ui.edit.role, name: !!name });
+  Object.assign(p, next);
   if (!S.heroIds.length && isChild) S.heroIds = [p.id];
   save(); closeModal(); render();
 }
@@ -402,11 +439,11 @@ function paywall() {
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
       <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
       <h2 style="text-align:center">${APP_NAME} Plus</h2>
-      <p class="lead" style="text-align:center">Celá knihovna pohádek pro všechny tvoje děti.</p>
+      <p class="lead" style="text-align:center">Celá knihovna pohádek pro celou rodinu.</p>
       <ul class="perks">
         <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
-        <li>Pro všechny děti v rodině</li>
+        <li>Pro celou rodinu, až ${LIMIT.children} děti</li>
         <li>Brzy i poslech offline a časovač usínání</li>
       </ul>
       <div class="plans">
@@ -690,21 +727,26 @@ const actions = {
     syncHome();
     const h = S.family.home; const kind = el.dataset.kind;
     const name = h[kind + 'Opts'][+el.dataset.i];
+    if (!h[kind].includes(name) && h[kind].length >= LIMIT.spots) return;
     h[kind] = h[kind].includes(name) ? h[kind].filter((x) => x !== name) : [...h[kind], name];
     save(); render();
   },
   addSpot: () => {
     syncHome();
-    const v = document.getElementById('addSpot').value.trim();
+    const v = cleanText(document.getElementById('addSpot').value, LIMIT.place);
     if (!v) return;
-    const h = S.family.home; h.attrOpts = [v, ...h.attrOpts.filter((x) => x !== v)]; h.attr = [v, ...h.attr.filter((x) => x !== v)];
+    const h = S.family.home;
+    if (h.attr.length >= LIMIT.spots && !h.attr.includes(v)) { document.getElementById('spotsMsg').textContent = `Vybraných může být nejvýš ${LIMIT.spots} výletních míst. Nějaké nejdřív vypni.`; return; }
+    if (!h.attr.includes(v) && !useChange()) { document.getElementById('spotsMsg').innerHTML = `<span class="err">${changesOut}</span>`; return; }
+    h.attrOpts = [v, ...h.attrOpts.filter((x) => x !== v)]; h.attr = [v, ...h.attr.filter((x) => x !== v)];
     save(); render();
   },
   hero: (el) => {
     // přepínání hrdinů – aspoň jeden musí zůstat vybraný
     const ids = heroes().map((k) => k.id);
     const id = el.dataset.id;
-    S.heroIds = ids.includes(id) ? (ids.length > 1 ? ids.filter((x) => x !== id) : ids) : [...ids, id];
+    // a nejvýš LIMIT.heroes najednou (každá kombinace hrdinů jsou nové věty k namluvení)
+    S.heroIds = ids.includes(id) ? (ids.length > 1 ? ids.filter((x) => x !== id) : ids) : ids.length < LIMIT.heroes ? [...ids, id] : ids;
     save(); render();
   },
   cat: (el) => { ui.cat = el.dataset.id; render(); },
@@ -719,9 +761,9 @@ const actions = {
   theme: (el) => { S.theme = el.dataset.v === 'auto' ? null : el.dataset.v; save(); applyTheme(); render(); },
   back: () => go('lib'),
   editHome: () => {
-    $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
+    $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
-  saveHome: () => { syncHome(); closeModal(); render(); },
+  saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
   reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),

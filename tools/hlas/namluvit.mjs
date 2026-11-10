@@ -48,6 +48,8 @@ async function fetchOne(l) {
       return;
     }
     const err = await r.text();
+    // 429 = limit nových vět ve Workeru (120 za minutu na IP) – počkat a zkusit znovu
+    if (r.status === 429 && attempt < 10) { await new Promise((res) => setTimeout(res, 30000)); continue; }
     if (attempt >= 3 || r.status === 403 || r.status === 413) throw new Error(`${r.status} ${err} – „${l.t}“`);
     await new Promise((res) => setTimeout(res, 2000 * attempt));
   }

@@ -9,7 +9,8 @@ aplikace (app/) ── POST /tts { text, voice } ──▶ Worker (klíč jako t
 
 Co Worker hlídá:
 - Přijme jen požadavky z webů v `ALLOWED_ORIGINS` (ospalek.cz, GitHub Pages, localhost).
-- Pustí jen hlasy z `VOICES` a text nejvýš `MAX_CHARS` znaků (aplikace posílá po odstavcích).
+- Pustí jen hlasy z `VOICES` a text nejvýš `MAX_CHARS` znaků (400; aplikace posílá po větách, nejdelší má ~190 znaků).
+- Jedna IP adresa smí nechat namluvit nejvýš 120 nových vět za minutu (`[[ratelimits]]` TTS_LIMIT ve `wrangler.toml`). Věty z mezipaměti se nepočítají. Celkový strop drží měsíční limit kreditů u klíče v ElevenLabs – ten nech nastavený.
 - Stejný text a hlas vrací z mezipaměti, takže se neplatí znovu.
 
 Skript mimo prohlížeč ale může hlavičku `Origin` podvrhnout. Hlavní pojistka proti zneužití je proto **limit kreditů nastavený přímo u klíče** v ElevenLabs.
