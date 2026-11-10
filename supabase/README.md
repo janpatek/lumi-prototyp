@@ -12,6 +12,10 @@ Dokud je `config.js` v kořeni webu prázdný, nic se neodesílá a administrace
 | `plays` | pohádka, kategorie, začátek, délka poslechu, dohráno; `family_id` jen se souhlasem | aplikace přes `app_play` |
 | `family_day`, `daily_cat` | denní souhrny, plní je trigger při zápisu poslechu | databáze |
 | `staff`, `audit_log` | tým administrace a záznam jeho akcí | ručně / administrace |
+| `family_devices` | další telefony připojené k rodině (druhý rodič) | aplikace přes `app_join`, `app_unlink` |
+| `family_invites` | kód pro připojení telefonu (6 číslic, 15 minut) s kopií rodiny a historie k předání | aplikace přes `app_invite` |
+| `family_join_tries` | špatné pokusy o kód (nejvýš 5 za hodinu) | `app_join` |
+| `families.profile`, `listens` | jen u propojené rodiny: celý profil rodiny a historie „Co jsme už slyšeli“; po odpojení se smažou | aplikace přes `app_push_profile`, `app_listen` |
 
 Účet rodiny (CRM) se ukládá vždy, kvůli podpoře. Statistiky poslechu a zdroj návštěvy se k rodině přiřadí jen se souhlasem
 (`families.analytics`, přepínač v aplikaci); bez souhlasu se poslech uloží anonymně (bez rodiny, čas na hodinu, souhrn `daily_anon`)

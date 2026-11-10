@@ -104,6 +104,54 @@ create table if not exists public.audit_log (
   detail text
 );
 
+-- ---------- Propojené telefony rodiny ----------
+-- Rodina = první telefon (families.id je jeho anonymní účet). Další telefon (druhý rodič) se připojí kódem
+-- a dostane řádek ve family_devices. Jen u propojené rodiny držíme na serveru celý profil (families.profile:
+-- děti s tvary jmen, oblíbené věci, blízcí, obec a místa – aby oba telefony četly stejné pohádky) a historii
+-- poslechu (listens, „Co jsme už slyšeli“). Historie je funkce aplikace, ne statistika: nezávisí na souhlasu
+-- s analytikou a administrace ji nečte. Po odpojení posledního telefonu se profil i historie smažou.
+alter table public.families add column if not exists profile jsonb;
+alter table public.families add column if not exists profile_rev bigint not null default 0;
+
+create table if not exists public.family_devices (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  family_id uuid not null references public.families(id) on delete cascade,
+  joined_at timestamptz not null default now()
+);
+create index if not exists family_devices_family_idx on public.family_devices (family_id);
+
+-- kód pro připojení dalšího telefonu: 6 číslic, platí 15 minut, jen jednou; nese profil a historii k předání
+create table if not exists public.family_invites (
+  code text primary key check (code ~ '^[0-9]{6}$'),
+  family_id uuid not null unique references public.families(id) on delete cascade,
+  expires_at timestamptz not null,
+  profile jsonb,
+  listens jsonb
+);
+
+-- pojistka proti hádání kódů: nejvýš 5 špatných pokusů za hodinu na účet
+create table if not exists public.family_join_tries (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  n smallint not null default 0,
+  at timestamptz not null default now()
+);
+
+create table if not exists public.listens (
+  id uuid primary key,
+  family_id uuid not null references public.families(id) on delete cascade,
+  story_id text not null check (char_length(story_id) <= 40),
+  title text check (char_length(title) <= 160),
+  who text check (char_length(who) <= 120),
+  at timestamptz not null,
+  done boolean not null default false,
+  part real not null default 0 check (part between 0 and 1)
+);
+create index if not exists listens_family_idx on public.listens (family_id, at desc);
+
+alter table public.family_devices enable row level security;
+alter table public.family_invites enable row level security;
+alter table public.family_join_tries enable row level security;
+alter table public.listens enable row level security;
 alter table public.families enable row level security;
 alter table public.children enable row level security;
 alter table public.plays enable row level security;
@@ -151,9 +199,14 @@ drop trigger if exists plays_rollup on public.plays;
 create trigger plays_rollup after insert or update or delete on public.plays for each row execute function public.plays_rollup();
 
 -- ---------- Funkce pro aplikaci ----------
+-- Rodina přihlášeného telefonu: připojený telefon patří do rodiny prvního, jinak je rodinou on sám.
+create or replace function public.app_family_id() returns uuid language sql stable security definer set search_path = public as $$
+  select coalesce((select d.family_id from family_devices d where d.user_id = auth.uid()), auth.uid())
+$$;
+
 -- Uloží rodinu přihlášeného (anonymního) uživatele a nahradí seznam dětí.
 create or replace function public.app_sync_family(p jsonb) returns bigint language plpgsql security definer set search_path = public as $$
-declare uid uuid := auth.uid(); s bigint; consent boolean; was boolean;
+declare uid uuid := app_family_id(); s bigint; consent boolean; was boolean;
 begin
   if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
   consent := coalesce((p->>'analytics')::boolean, false);
@@ -191,7 +244,7 @@ end $$;
 -- Zapíše nebo doplní jeden poslech (začátek i konec posílá aplikace pod stejným id).
 -- O tom, jestli se poslech přiřadí k rodině, rozhoduje souhlas uložený v databázi, ne aplikace.
 create or replace function public.app_play(p jsonb) returns void language plpgsql security definer set search_path = public as $$
-declare uid uuid := auth.uid(); consent boolean; fid uuid; at timestamptz;
+declare uid uuid := app_family_id(); consent boolean; fid uuid; at timestamptz;
 begin
   if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
   select f.analytics into consent from families f where f.id = uid;
@@ -212,12 +265,129 @@ begin
 end $$;
 
 -- Smaže rodinu i anonymní účet (tlačítko „Smazat všechna data“ v aplikaci).
+-- Na připojeném telefonu smaže jen ten telefon (odpojí se od rodiny), na prvním telefonu celou rodinu.
 create or replace function public.app_delete_family() returns void language plpgsql security definer set search_path = public, auth as $$
-declare uid uuid := auth.uid();
+declare uid uuid := auth.uid(); fid uuid;
 begin
   if uid is null then return; end if;
+  select family_id into fid from public.family_devices where user_id = uid;
   delete from public.families where id = uid;
   delete from auth.users where id = uid;
+  if fid is not null and not exists (select 1 from public.family_devices where family_id = fid) then
+    update public.families set profile = null where id = fid;
+    delete from public.listens where family_id = fid;
+  end if;
+end $$;
+
+-- Stav propojení, profil (je-li novější než rev, který telefon má) a historie poslechu rodiny.
+create or replace function public.app_pull(rev bigint default -1) returns jsonb language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); fid uuid := app_family_id(); f families; n int;
+begin
+  if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  select * into f from families where id = fid;
+  select count(*) into n from family_devices where family_id = fid;
+  if f.id is null or n = 0 then return jsonb_build_object('linked', false); end if;
+  update families set last_seen_at = now() where id = fid;
+  return jsonb_build_object('linked', true, 'owner', fid = uid, 'devices', n + 1, 'rev', f.profile_rev, 'premium', f.premium,
+    'profile', case when f.profile_rev > rev then f.profile end,
+    'listens', coalesce((select jsonb_agg(jsonb_build_object('id', l.id, 'story', l.story_id, 'title', l.title, 'who', l.who,
+      'at', (extract(epoch from l.at) * 1000)::bigint, 'done', l.done, 'part', l.part) order by l.at desc)
+      from (select * from listens where family_id = fid order by at desc limit 200) l), '[]'::jsonb));
+end $$;
+
+-- Nový profil z telefonu (po každé změně rodiny). Ukládá se jen u propojené rodiny.
+create or replace function public.app_push_profile(p jsonb) returns bigint language plpgsql security definer set search_path = public as $$
+declare fid uuid := app_family_id(); r bigint;
+begin
+  if auth.uid() is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  if octet_length(p::text) > 20000 then raise exception 'profile too large'; end if;
+  if not exists (select 1 from family_devices where family_id = fid) then return 0; end if;
+  update families set profile = p, profile_rev = profile_rev + 1, updated_at = now() where id = fid returning profile_rev into r;
+  return coalesce(r, 0);
+end $$;
+
+-- Jeden poslech do historie rodiny (jen u propojené rodiny; opakované odeslání nic nezdvojí).
+create or replace function public.app_listen(p jsonb) returns void language plpgsql security definer set search_path = public as $$
+declare fid uuid := app_family_id();
+begin
+  if auth.uid() is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  if not exists (select 1 from family_devices where family_id = fid) then return; end if;
+  insert into listens (id, family_id, story_id, title, who, at, done, part)
+  values ((p->>'id')::uuid, fid, left(p->>'story', 40), left(p->>'title', 160), left(p->>'who', 120),
+          least(to_timestamp(coalesce((p->>'at')::bigint, 0) / 1000.0), now()), coalesce((p->>'done')::boolean, false),
+          least(greatest(coalesce((p->>'part')::real, 0), 0), 1))
+  on conflict (id) do nothing;
+  delete from listens where family_id = fid and id not in (select id from listens where family_id = fid order by at desc limit 500);
+end $$;
+
+-- „Smazat historii poslechu“ na kterémkoli propojeném telefonu smaže společnou historii rodiny.
+create or replace function public.app_clear_listens() returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  delete from listens where family_id = app_family_id();
+end $$;
+
+-- Kód pro připojení dalšího telefonu. Profil a historie čekají v pozvánce, dokud se telefon nepřipojí (nejvýš 15 minut).
+create or replace function public.app_invite(profile jsonb, listens jsonb) returns text language plpgsql security definer set search_path = public as $$
+declare fid uuid := app_family_id(); c text;
+begin
+  if auth.uid() is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  if not exists (select 1 from families where id = fid) then raise exception 'family not synced'; end if;
+  if octet_length(profile::text) > 20000 or octet_length(listens::text) > 200000 then raise exception 'too large'; end if;
+  if (select count(*) from family_devices where family_id = fid) >= 3 then raise exception 'too many devices'; end if;
+  delete from family_invites where expires_at < now() or family_id = fid;
+  loop
+    c := lpad((floor(random() * 1000000))::int::text, 6, '0');
+    exit when not exists (select 1 from family_invites where code = c);
+  end loop;
+  insert into family_invites (code, family_id, expires_at, profile, listens) values (c, fid, now() + interval '15 minutes', profile, listens);
+  return c;
+end $$;
+
+-- Připojení tohoto telefonu kódem. Dosavadní samostatná rodina telefonu na serveru zanikne, telefon převezme
+-- rodinu z prvního telefonu.
+create or replace function public.app_join(code text) returns jsonb language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); i family_invites; t family_join_tries;
+begin
+  if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  select * into t from family_join_tries where user_id = uid;
+  if t.n >= 5 and t.at > now() - interval '1 hour' then return jsonb_build_object('error', 'too many tries'); end if;
+  delete from family_invites where expires_at < now();
+  select * into i from family_invites fi where fi.code = app_join.code;
+  if i.code is null then
+    insert into family_join_tries (user_id, n, at) values (uid, 1, now())
+    on conflict (user_id) do update set n = case when family_join_tries.at < now() - interval '1 hour' then 1 else family_join_tries.n + 1 end, at = now();
+    -- vrátit chybu, ne výjimku: výjimka by vrátila zpět i zápis pokusu
+    return jsonb_build_object('error', 'bad code');
+  end if;
+  if i.family_id = uid then return jsonb_build_object('error', 'own code'); end if;
+  if exists (select 1 from family_devices where family_id = uid) then return jsonb_build_object('error', 'family has devices'); end if;
+  delete from family_invites where family_invites.code = i.code;
+  delete from family_join_tries where user_id = uid;
+  delete from families where id = uid;
+  insert into family_devices (user_id, family_id) values (uid, i.family_id) on conflict (user_id) do update set family_id = excluded.family_id, joined_at = now();
+  update families set profile = coalesce(i.profile, profile), profile_rev = profile_rev + 1 where id = i.family_id;
+  insert into listens (id, family_id, story_id, title, who, at, done, part)
+  select (x->>'id')::uuid, i.family_id, left(x->>'story', 40), left(x->>'title', 160), left(x->>'who', 120),
+         least(to_timestamp(coalesce((x->>'at')::bigint, 0) / 1000.0), now()), coalesce((x->>'done')::boolean, false),
+         least(greatest(coalesce((x->>'part')::real, 0), 0), 1)
+  from jsonb_array_elements(coalesce(i.listens, '[]'::jsonb)) x where x->>'id' ~ '^[0-9a-f-]{36}$'
+  on conflict (id) do nothing;
+  return app_pull(-1);
+end $$;
+
+-- Odpojení: připojený telefon odejde z rodiny, první telefon odpojí všechny ostatní. Bez propojení se smaže
+-- profil i historie na serveru (v telefonech zůstanou).
+create or replace function public.app_unlink() returns void language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); fid uuid := app_family_id();
+begin
+  if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  if fid = uid then delete from family_devices where family_id = fid; else delete from family_devices where user_id = uid; end if;
+  delete from family_invites where family_id = fid;
+  if not exists (select 1 from family_devices where family_id = fid) then
+    update families set profile = null where id = fid;
+    delete from listens where family_id = fid;
+  end if;
 end $$;
 
 -- ---------- Funkce pro administraci ----------
@@ -437,7 +607,9 @@ create trigger staff_invite_apply after insert or update of email on auth.users 
 -- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení nic nezmůže.
 revoke all on all tables in schema public from anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
-grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family() to authenticated;
+grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family(), public.app_family_id(),
+  public.app_pull(bigint), public.app_push_profile(jsonb), public.app_listen(jsonb), public.app_invite(jsonb, jsonb),
+  public.app_join(text), public.app_unlink(), public.app_clear_listens() to authenticated;
 grant execute on function public.admin_me(), public.admin_role(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_staff(),
   public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint),

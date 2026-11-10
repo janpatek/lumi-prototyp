@@ -44,11 +44,12 @@ let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, ca
 // SYNC: app/sync.js, odešle do databáze, je-li nastavená. Po změně rodiny se přepočítá, co je stažené na cestu,
 // a věty se starými jmény se ze zařízení smažou (pruneOffline).
 let pruneT = null;
-const save = () => { store.set(S); SYNC.family(S); offlineMemo.clear(); clearTimeout(pruneT); pruneT = setTimeout(pruneOffline, 2000); };
+const save = () => { store.set(S); SYNC.family(S); if (S.link) SYNC.profile(profileOf(S)); offlineMemo.clear(); clearTimeout(pruneT); pruneT = setTimeout(pruneOffline, 2000); };
 const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const uid = () => Math.random().toString(36).slice(2, 9);
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 3) | 8).toString(16); }));
 
 // ---------- Značka: ikony, maskot, barvy kategorií ----------
 const ico = (d, cls = 'ico') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
@@ -61,6 +62,7 @@ const I = {
   star: ico('<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/>'),
   music: ico('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
   down: ico('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  phones: ico('<rect x="3" y="4" width="8" height="16" rx="2"/><rect x="13" y="4" width="8" height="16" rx="2"/><path d="M11 12h2"/>'),
   hist: ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   mic: ico('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
@@ -194,6 +196,7 @@ const screens = {
       <p class="tag">Pohádky, kde je hrdinou tvoje dítě.</p>
       <button class="btn white" data-a="google">${GOOGLE_SVG} Pokračovat přes Google</button>
       <button class="btn ghost" data-a="guest">Vyzkoušet bez přihlášení</button>
+      ${SYNC.on ? '<button class="btn ghost" data-a="joinSheet">Mám kód od druhého rodiče</button>' : ''}
       <p class="fine">Prototyp: přihlášení je zatím jen simulované.</p>
     </div>`,
 
@@ -256,7 +259,7 @@ const screens = {
       <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
     </div>
     ${h.length ? `
-      <p class="note">Dohráno ${done.length}× · ${kinds} z ${STORIES.length} pohádek. Ukládá se jen v tomhle zařízení.</p>
+      <p class="note">Dohráno ${done.length}× · ${kinds} z ${STORIES.length} pohádek. ${S.link ? 'Společné pro propojené telefony.' : 'Ukládá se jen v tomhle telefonu. Propojením s druhým telefonem ji uvidíte oba.'}</p>
       <div class="hist">${h.slice(0, 50).map((x) => {
         const st = STORIES.find((s) => s.id === x.id);
         return `<button class="person" data-a="open" data-id="${x.id}"${st ? '' : ' disabled'}>
@@ -277,6 +280,13 @@ const screens = {
     <div class="section-t">Rodiče a blízcí</div>${peopleList('parent')}
     <div class="section-t">Bydliště</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
+    ${SYNC.on ? `<div class="section-t">Propojené telefony</div>
+    <div class="person"><div class="av peach">${I.phones}</div><div class="nm">${S.link
+      ? `<b>Propojeno: ${S.link.devices || 2} telefony</b><span>Rodina, předplatné i to, co jste už slyšeli, jsou na propojených telefonech stejné.</span>`
+      : '<b>Jen tento telefon</b><span>Propoj telefon druhého rodiče. Uvidíte stejnou rodinu i to, co jste už slyšeli.</span>'}</div></div>
+    <div class="row-btns">${S.link
+      ? `<button class="btn small ghost" data-a="unlink">${S.link.owner ? 'Odpojit ostatní telefony' : 'Odpojit tento telefon'}</button>`
+      : '<button class="btn small" data-a="invite">Propojit další telefon</button><button class="btn small ghost" data-a="joinSheet">Mám kód</button>'}</div>` : ''}
     <div class="section-t">Poslech bez internetu</div>
     <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Stažené pohádky pustíš v autě nebo na chalupě bez signálu. Co dohrajete do konce, uloží se samo.</span></div></div>
     <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
@@ -651,8 +661,128 @@ function logListen(done) {
   if (!P || P.logged || (!done && P.i === 0)) return;
   P.logged = true;
   const c = ctx(heroes());
-  S.history = [{ id: P.st.id, title: P.st.title(c), who: c.H, at: Date.now(), done, part: done ? 1 : Math.round((P.i / P.segs.length) * 100) / 100 }, ...(S.history || [])].slice(0, 200);
-  store.set(S); // historie zůstává v zařízení, na server se neposílá
+  const h = { lid: uuid(), id: P.st.id, title: P.st.title(c), who: c.H, at: Date.now(), done, part: done ? 1 : Math.round((P.i / P.segs.length) * 100) / 100 };
+  S.history = [h, ...(S.history || [])].slice(0, 200);
+  store.set(S);
+  // na server jen u propojené rodiny (aby ji viděl i druhý telefon)
+  if (S.link) SYNC.listen(listenOut(h));
+}
+
+// ---------- Propojené telefony (sync.js → SYNC.link) ----------
+// profil = co potřebuje druhý telefon, aby četl stejné pohádky; výsledky hledání míst (…Opts) zůstávají v telefonu
+const profileOf = (st) => ({
+  family: { ...st.family, home: { ...st.family.home, nearOpts: undefined, attrOpts: undefined } },
+  changes: st.changes, premium: !!st.premium, analytics: st.analytics, onboarded: !!st.onboarded,
+});
+const listenOut = (h) => ({ id: h.lid || (h.lid = uuid()), story: h.id, title: h.title, who: h.who, at: h.at, done: !!h.done, part: h.part || 0 });
+const listenIn = (x) => ({ lid: x.id, id: x.story, title: x.title, who: x.who, at: +x.at, done: !!x.done, part: x.part || 0 });
+// výsledek app_pull / app_join: stav propojení, novější profil a společná historie
+function applyPull(d) {
+  if (!d || d.error) return false;
+  if (!d.linked) {
+    if (!S.link) return false;
+    S.link = null; store.set(S); return true;
+  }
+  const before = JSON.stringify([S.family, S.history, S.premium, S.link]);
+  S.link = { rev: S.link && !d.profile ? S.link.rev : d.rev, owner: !!d.owner, devices: d.devices };
+  if (d.profile && d.profile.family && !SYNC.profilePending()) {
+    const p = d.profile, h = S.family.home || {};
+    S.family = { ...p.family, home: { ...p.family.home, nearOpts: h.nearOpts || [], attrOpts: h.attrOpts || [] } };
+    S.changes = p.changes; S.analytics = p.analytics; S.onboarded = S.onboarded || !!p.onboarded;
+    S.heroIds = S.heroIds.filter((id) => S.family.children.some((k) => k.id === id));
+  }
+  S.premium = !!d.premium;
+  // historie: platí stav na serveru (up = server poslech potvrdil). Místní poslechy, které server ještě nemá,
+  // se pošlou; potvrzené, které na serveru chybí, smazal druhý telefon („Smazat historii poslechu“).
+  const srv = (d.listens || []).map((x) => ({ ...listenIn(x), up: true }));
+  const ids = new Set(srv.map((x) => x.lid));
+  const mine = (S.history || []).filter((x) => !x.up && !ids.has(x.lid));
+  mine.forEach((x) => SYNC.listen(listenOut(x)));
+  S.history = [...srv, ...mine].sort((a, b) => b.at - a.at).slice(0, 200);
+  store.set(S);
+  return before !== JSON.stringify([S.family, S.history, S.premium, S.link]);
+}
+let pulling = null;
+function linkPull() {
+  if (!SYNC.on || !S.user || pulling) return pulling;
+  pulling = SYNC.link.pull(S.link ? S.link.rev : -1)
+    .then((d) => {
+      const changed = applyPull(d);
+      // překreslit jen obrazovky, které se tím mění, a ne uprostřed úprav nebo poslechu
+      if (changed && !P && !$modal.innerHTML && ['lib', 'history', 'settings'].includes(ui.screen)) { offlineMemo.clear(); render(); }
+      return d;
+    })
+    .catch(() => null)
+    .finally(() => { pulling = null; });
+  return pulling;
+}
+const LINK_ERR = {
+  'bad code': 'Kód nesedí nebo už vypršel. Na prvním telefonu vytvoř nový.',
+  'too many tries': 'Příliš mnoho špatných pokusů. Zkus to znovu za hodinu.',
+  'own code': 'Tohle je kód z tohohle telefonu. Zadej ho na telefonu, který chceš připojit.',
+  'family has devices': 'K tomuhle telefonu je připojený jiný telefon. Nejdřív ho v nastavení odpoj.',
+  'too many devices': 'Propojit jde nejvýš 4 telefony.',
+  'family not synced': 'Rodinu se nepodařilo uložit. Zkontroluj připojení k internetu a zkus to znovu.',
+};
+const linkErr = (e) => LINK_ERR[e && (e.error || e.message)] || 'Propojení teď nejde. Zkontroluj připojení k internetu a zkus to za chvíli.';
+let invitePoll = null;
+async function inviteSheet() {
+  $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+    <h2>Propojit další telefon</h2>
+    <p class="lead" id="inviteBody">Připravuji kód…</p>
+  </div></div>`;
+  const body = document.getElementById('inviteBody');
+  try {
+    const code = await SYNC.link.invite(S, profileOf(S), (S.history || []).map(listenOut));
+    store.set(S);
+    body.outerHTML = `<p class="lead">Na druhém telefonu otevři ${APP_NAME} a klepni na <b>Mám kód od druhého rodiče</b> (nebo v nastavení na <b>Mám kód</b>). Pak zadej:</p>
+      <div class="code" id="inviteCode">${code.slice(0, 3)} ${code.slice(3)}</div>
+      <p class="note" style="text-align:center">Kód platí 15 minut. Druhý telefon převezme rodinu z tohohle telefonu.</p>`;
+    clearInterval(invitePoll);
+    invitePoll = setInterval(async () => {
+      if (!document.getElementById('inviteCode')) return clearInterval(invitePoll);
+      const d = await SYNC.link.pull(S.link ? S.link.rev : -1).catch(() => null);
+      if (d && d.linked) {
+        clearInterval(invitePoll);
+        applyPull(d);
+        $modal.querySelector('.sheet').innerHTML = `<img class="sheet-mascot" src="${MASCOT.head}" alt=""><h2 style="text-align:center">Propojeno</h2>
+          <p class="lead" style="text-align:center">Telefony teď mají stejnou rodinu i přehled toho, co jste už slyšeli.</p><button class="btn" data-a="closeModal">Hotovo</button>`;
+        if (ui.screen === 'settings') render();
+      }
+    }, 4000);
+  } catch (e) {
+    body.textContent = linkErr(e);
+  }
+}
+function joinSheet() {
+  const has = S.onboarded && S.family.children.length;
+  $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+    <h2>Připojit k rodině</h2>
+    <p class="lead">Na telefonu druhého rodiče otevři <b>Rodina a nastavení → Propojit další telefon</b> a opiš kód.</p>
+    <input id="joinCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123 456" class="code-input">
+    ${has ? '<p class="note">Rodina, kterou máš v tomhle telefonu, se nahradí rodinou z druhého telefonu. Historie poslechu se spojí.</p>' : ''}
+    <p class="note" id="joinMsg"></p>
+    <div class="footer-actions"><button class="btn" data-a="join">Připojit</button></div>
+  </div></div>`;
+  document.getElementById('joinCode').focus();
+}
+async function join(el) {
+  const code = document.getElementById('joinCode').value.replace(/\D/g, '');
+  const msg = document.getElementById('joinMsg');
+  if (code.length !== 6) { msg.innerHTML = '<span class="err">Kód má 6 číslic.</span>'; return; }
+  el.disabled = true; msg.textContent = 'Připojuji…';
+  try {
+    if (!S.user) S.user = { email: 'host', provider: 'guest' };
+    const d = await SYNC.link.join(code);
+    if (!d || d.error || !d.linked) throw d || {};
+    S.link = { rev: -1 };
+    applyPull(d);
+    S.onboarded = true; ui.step = 0;
+    save(); closeModal(); go('lib');
+  } catch (e) {
+    msg.innerHTML = `<span class="err">${esc(linkErr(e))}</span>`;
+    el.disabled = false;
+  }
 }
 
 function openPlayer(st) {
@@ -904,8 +1034,19 @@ const actions = {
     openPlayer(st);
   },
   unheard: () => { ui.unheard = !ui.unheard; render(); },
-  history: () => go('history'),
-  clearHistory: () => { if (confirm('Smazat historii poslechu v tomhle zařízení?')) { S.history = []; store.set(S); render(); } },
+  history: () => { go('history'); linkPull(); },
+  invite: inviteSheet,
+  joinSheet,
+  join,
+  unlink: async () => {
+    if (!confirm(S.link.owner ? 'Odpojit ostatní telefony? Rodina i historie v nich zůstanou, ale přestanou se sdílet.' : 'Odpojit tento telefon od rodiny? Rodina i historie v něm zůstanou, ale přestanou se sdílet.')) return;
+    try { await SYNC.link.unlink(); S.link = null; store.set(S); render(); } catch (e) { alert(linkErr(e)); }
+  },
+  clearHistory: async () => {
+    if (!confirm(S.link ? 'Smazat historii poslechu na všech propojených telefonech?' : 'Smazat historii poslechu v tomhle telefonu?')) return;
+    if (S.link) { try { await SYNC.link.clearListens(); } catch (e) { return alert(linkErr(e)); } }
+    S.history = []; store.set(S); render();
+  },
   download: async (el) => {
     if (!P || P.dl || el.classList.contains('on')) return;
     const st = P.st;
@@ -950,7 +1091,7 @@ const actions = {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
   saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
-  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  reset: () => { if (confirm(S.link ? (S.link.owner ? 'Opravdu smazat všechna data rodiny? Rodina zmizí i z propojených telefonů.' : 'Opravdu smazat data v tomhle telefonu? Telefon se odpojí od rodiny, na ostatních telefonech rodina zůstane.') : 'Opravdu smazat všechna data rodiny?')) { SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
@@ -986,6 +1127,9 @@ document.addEventListener('click', (e) => {
 });
 // připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
 ['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
+// propojené telefony: změny z druhého telefonu při otevření aplikace, návratu do ní a jednou za minutu
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') linkPull(); });
+setInterval(() => { if (S.link && document.visibilityState === 'visible') linkPull(); }, 60000);
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
@@ -995,3 +1139,4 @@ const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="
 
 render();
 pruneOffline();
+linkPull();

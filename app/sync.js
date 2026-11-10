@@ -6,6 +6,8 @@
 //    pošle anonymně (databáze ho nepřiřadí k rodině) a na zařízení se kvůli statistikám nic neukládá.
 //    Jídlo, zvíře, rodiče a místa v okolí zůstávají jen v telefonu.
 //  – Co se nepovede odeslat, čeká ve frontě v localStorage (poslechy bez souhlasu ne, ty se jen zkusí poslat).
+//  – Propojené telefony (SYNC.link): první telefon vytvoří kód, druhý ho zadá. Jen u propojené rodiny se posílá celý
+//    profil (SYNC.profile) a historie poslechu (SYNC.listen), aby oba telefony měly stejnou rodinu i „Co jsme už slyšeli“.
 // Lokální zkouška: ?db=http://localhost:54321 (supabase/dev-server.mjs).
 
 const SYNC = (() => {
@@ -14,7 +16,7 @@ const SYNC = (() => {
   const devOk = dev && /^http:\/\/localhost(:\d+)?$/.test(dev);
   const URL_ = devOk ? dev : C.supabaseUrl;
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
-  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, forget: async () => {} };
+  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, forget: async () => {}, profile() {}, listen() {}, profilePending: () => false, link: null };
   if (!URL_ || !KEY_) return noop;
 
   const SKEY = 'ospalek.sb.v1', QKEY = 'ospalek.sbq.v1', SRC = 'ospalek.src.v1';
@@ -52,7 +54,9 @@ const SYNC = (() => {
     const s = await session();
     const r = await fetch(`${URL_}/rest/v1/rpc/${fn}`, { method: 'POST', headers: headers(s.access_token), body: JSON.stringify(args), keepalive: !!keepalive });
     if (r.status === 401) { set(SKEY, { ...s, expires_at: 0 }); throw new Error('401'); }
-    if (!r.ok) throw new Error(fn + ' ' + r.status);
+    if (!r.ok) throw Object.assign(new Error((await r.json().catch(() => ({}))).message || fn + ' ' + r.status), { status: r.status });
+    const t = await r.text();
+    return t ? JSON.parse(t) : null;
   }
 
   // fronta: rodina se drží jen jednou (poslední stav), poslechy v pořadí
@@ -71,7 +75,8 @@ const SYNC = (() => {
     } catch (e) { /* zkusí se znovu později */ } finally { flushing = false; }
   }
   const push = (job, keepalive) => {
-    if (job.fn === 'app_sync_family') queue = queue.filter((x) => x.fn !== 'app_sync_family');
+    // rodina a profil: stačí poslední stav
+    if (job.fn === 'app_sync_family' || job.fn === 'app_push_profile') queue = queue.filter((x) => x.fn !== job.fn);
     // rodina musí být v databázi dřív než její poslechy
     if (job.fn === 'app_sync_family') queue.unshift(job); else queue.push(job);
     persist(); flush(keepalive);
@@ -117,6 +122,22 @@ const SYNC = (() => {
       p.done = !!completed;
       const sec = Math.min(7200, Math.round((Date.now() - p.t0) / 1000));
       push({ fn: 'app_play', volatile: p.volatile, args: { p: { id: p.id, story: p.story, sec, progress: completed ? 1 : Math.max(0, Math.min(1, progress || 0)), completed: !!completed } } }, true);
+    },
+    // propojená rodina: celý profil a poslechy do historie
+    profile(p) { push({ fn: 'app_push_profile', args: { p } }); },
+    listen(entry) { push({ fn: 'app_listen', args: { p: entry } }); },
+    profilePending: () => queue.some((j) => j.fn === 'app_push_profile'),
+    link: {
+      pull: (rev) => rpc('app_pull', { rev: rev ?? -1 }),
+      // rodina musí být v databázi dřív, než pro ni vznikne kód
+      async invite(S, profile, listens) {
+        clearTimeout(famT); famT = null; push(familyJob(S));
+        for (let i = 0; i < 40 && queue.some((j) => j.fn === 'app_sync_family'); i++) { await flush(); await new Promise((r) => setTimeout(r, 250)); }
+        return rpc('app_invite', { profile, listens });
+      },
+      join: (code) => rpc('app_join', { code }),
+      unlink: () => rpc('app_unlink', {}),
+      clearListens: () => rpc('app_clear_listens', {}),
     },
     // „Smazat všechna data“: smaže rodinu i anonymní účet v databázi
     async forget() {

@@ -242,3 +242,7 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .hist .person { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
 .hist .av .cat-ico { width: 26px; height: 26px; }
 .badge[hidden] { display: none; }
+
+/* Propojené telefony: kód pro připojení */
+.code { font-family: var(--display); font-weight: 800; font-size: 44px; letter-spacing: .12em; text-align: center; margin: 14px 0 6px; color: var(--ink); }
+.code-input { display: block; width: 100%; font: 800 32px/1.2 var(--display); letter-spacing: .12em; text-align: center; padding: 12px; margin: 14px 0 8px; border-radius: var(--radius-md); border: 2px solid var(--line); background: var(--surface-raised); color: var(--ink); }

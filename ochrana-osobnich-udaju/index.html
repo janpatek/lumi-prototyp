@@ -43,7 +43,7 @@
   <main class="terms">
     <div class="wrap wrap-narrow">
       <h1>Ochrana osobních údajů</h1>
-      <p class="meta">Verze 1.4 · účinné od 10. 11. 2026</p>
+      <p class="meta">Verze 1.5 · účinné od 10. 11. 2026</p>
 
       <section class="summary" aria-labelledby="kratce">
         <h2 id="kratce">Krátce a lidsky</h2>
@@ -53,7 +53,8 @@
           <li>Statistiky poslechu (které pohádky posloucháte a jak dlouho) přiřazujeme k vaší rodině jen s tvým souhlasem. Bez něj je počítáme jen anonymně. Souhlas zapneš a vypneš v nastavení aplikace.</li>
           <li>Aby pohádku přečetl hlas, posíláme její text (i se jménem dítěte) poskytovateli syntetického hlasu. Namluvené věty ukládáme bez vazby na účet a použijeme je znovu pro každou rodinu, kde zazní stejná věta, třeba „Dobrou noc, Toníku.“</li>
           <li>Údaje neprodáváme a nepoužíváme je k reklamě. Nemáme reklamní ani analytické cookies.</li>
-          <li>Pohádky stažené na cestu (nahrávky vět i se jménem dítěte) a přehled toho, co jste už slyšeli, leží jen ve tvém zařízení. Na server je neposíláme.</li>
+          <li>Pohádky stažené na cestu (nahrávky vět i se jménem dítěte) leží jen ve tvém zařízení. Přehled toho, co jste už slyšeli, také, dokud nepropojíš telefon druhého rodiče.</li>
+          <li>Když propojíš telefony, uložíme na server celou rodinu (i oblíbené věci, blízké a místa) a přehled poslechů, aby je viděly oba telefony. Odpojením je ze serveru smažeme.</li>
           <li>Všechno můžeš kdykoli smazat jedním tlačítkem v aplikaci.</li>
         </ul>
       </section>
@@ -104,10 +105,11 @@
       <p>Aplikaci používá dospělý, typicky rodič, a údaje o dítěti zadává on. Děti si účet zakládat nemají. Údaje o dětech nepoužíváme k marketingu, k profilování ani k automatizovanému rozhodování. Nikomu je neprodáváme.</p>
 
       <h2 id="kde">4. Kde se údaje ukládají</h2>
-      <p><b>V prohlížeči</b> (localStorage na tvém zařízení) je celá rodina tak, jak ji vyplníš: jména a tvary jmen, věk, oblíbené věci, blízcí, obec, místa v okolí a nastavení. Je tu i přehled <i>Co jsme už slyšeli</i>: která pohádka, kdy, pro které děti a jestli dohrála do konce (nejvýš 200 posledních poslechů). Ten na server neposíláme.</p>
+      <p><b>V prohlížeči</b> (localStorage na tvém zařízení) je celá rodina tak, jak ji vyplníš: jména a tvary jmen, věk, oblíbené věci, blízcí, obec, místa v okolí a nastavení. Je tu i přehled <i>Co jsme už slyšeli</i>: která pohádka, kdy, pro které děti a jestli dohrála do konce (nejvýš 200 posledních poslechů). Na server ho posíláme jen u propojených telefonů (viz níže).</p>
       <p><b>Pohádky stažené na cestu</b> ukládá aplikace do úložiště zařízení (IndexedDB a Cache Storage prohlížeče, v mobilní aplikaci do jejích dat), aby šly pustit bez internetu. Jsou to nahrávky vět, takže v nich zní jméno dítěte, blízkých a obec. Ukládají se i věty pohádek, které jste dohráli do konce. Nahrávky se starými jmény po změně rodiny aplikace sama smaže. Všechny stažené pohádky smažeš v <i>Rodina a nastavení → Poslech bez internetu → Smazat stažené</i>.</p>
       <p><b>Na našem serveru</b> v databázi Supabase v EU (Irsko) ukládáme jen část: křestní jména, pohlaví a věk dětí, obec, informaci, zda máš předplatné, a technické údaje o zařízení. Statistiky poslechu k rodině přiřazujeme jen s tvým souhlasem (viz článek 2); když souhlas odvoláš, dosavadní poslechy od rodiny odpojíme a zůstanou jen v anonymních součtech. Aplikace k tomu vytvoří anonymní účet bez e-mailu; e-mail ukládáme jen tehdy, když se přihlásíš. Údaje vidí jen náš tým po přihlášení a jen v rozsahu, který potřebuje pro svou práci.</p>
-      <p>Když v aplikaci zvolíš <i>Rodina a nastavení → Smazat všechna data a začít znovu</i>, smažeme údaje v prohlížeči i na serveru včetně anonymního účtu a historie poslechu. Smažou se i pohádky stažené na cestu.</p>
+      <p><b>Propojené telefony.</b> Když v <i>Rodina a nastavení → Propojené telefony</i> propojíš telefon druhého rodiče, uložíme na server navíc celou rodinu tak, jak je v aplikaci (tvary jmen, oblíbené jídlo a zvíře, blízcí, obec a místa v okolí, počet změn v měsíci) a přehled <i>Co jsme už slyšeli</i> (nejvýš 500 posledních poslechů). Je to nutné, aby oba telefony četly stejné pohádky a viděly stejný přehled. Přehled poslechů je funkce aplikace, ne statistika: ukládáme ho bez ohledu na souhlas se statistikami a náš tým ho v administraci nevidí. Kód pro propojení platí 15 minut a do té doby u sebe drží kopii rodiny a přehledu, po použití nebo vypršení ho smažeme. Abychom zabránili hádání kódů, evidujeme u telefonu počet špatných pokusů (nejvýš 5 za hodinu). Odpojením posledního propojeného telefonu se rodina i přehled poslechů ze serveru smažou, v telefonech zůstanou.</p>
+      <p>Když v aplikaci zvolíš <i>Rodina a nastavení → Smazat všechna data a začít znovu</i>, smažeme údaje v prohlížeči i na serveru včetně anonymního účtu a historie poslechu. Smažou se i pohádky stažené na cestu. U propojených telefonů: na prvním telefonu se smaže celá rodina pro všechny propojené telefony, na připojeném telefonu se smaže jen tento telefon a odpojí se od rodiny.</p>
 
       <h2 id="prijemci">5. Komu údaje předáváme</h2>
       <p>Údaje předáváme jen zpracovatelům, kteří nám pomáhají službu provozovat, a jen v rozsahu, který potřebují:</p>
@@ -119,7 +121,7 @@
             <tr><td>Cloudflare</td><td>Text, který se posílá k přečtení, a technické údaje</td><td>Bezpečné předání textu hlasové službě a ukládání hotových nahrávek</td></tr>
             <tr><td>GitHub (GitHub Pages)</td><td>Technické údaje, například IP adresu</td><td>Hosting webu a aplikace</td></tr>
             <tr><td>OpenStreetMap (Nominatim, Overpass)</td><td>Název obce, kterou zadáš při hledání míst v okolí</td><td>Nalezení okolních obcí a zajímavých míst</td></tr>
-            <tr><td>Supabase (databáze, server v EU – Irsko)</td><td>Křestní jména, pohlaví a věk dětí, obec, údaje o poslechu a zařízení, případně e-mail</td><td>Uložení údajů na serveru a přihlášení</td></tr>
+            <tr><td>Supabase (databáze, server v EU – Irsko)</td><td>Křestní jména, pohlaví a věk dětí, obec, údaje o poslechu a zařízení, případně e-mail. U propojených telefonů celá rodina a přehled poslechů.</td><td>Uložení údajů na serveru a přihlášení</td></tr>
             <tr><td>Google Fonts</td><td>Technické údaje, například IP adresu</td><td>Načtení písma webu ospalek.cz. Aplikace má písmo vlastní a Google Fonts nenačítá.</td></tr>
             <tr><td>Po spuštění předplatného: platební brána (např. Stripe), Apple App Store, Google Play a správa předplatných (RevenueCat)</td><td>Údaje o objednávce a platbě</td><td>Zpracování plateb a předplatného</td></tr>
           </tbody>
@@ -133,6 +135,7 @@
       <h2 id="doba">7. Jak dlouho údaje držíme</h2>
       <ul>
         <li>Údaje o rodině v prohlížeči: dokud je nesmažeš.</li>
+        <li>Rodina a přehled poslechů propojených telefonů na serveru: dokud jsou telefony propojené. Po odpojení nebo smazání je smažeme hned. Kód pro propojení nejvýš 15 minut.</li>
         <li>Pohádky stažené na cestu a přehled poslechnutých pohádek v zařízení: dokud je nesmažeš. Nahrávky se jmény, která už v rodině nejsou, aplikace smaže sama.</li>
         <li>Údaje o rodině a poslechu na serveru: dokud je nesmažeš v aplikaci nebo nás nepožádáš o smazání. Pak je smažeme hned, nejpozději do 30 dnů.</li>
         <li>Údaje o účtu: po dobu trvání účtu. Po jeho zrušení je smažeme do 30 dnů.</li>
@@ -170,6 +173,7 @@
         <table class="tbl">
           <thead><tr><th>Verze</th><th>Datum</th><th>Co se změnilo</th></tr></thead>
           <tbody>
+            <tr><td>1.5</td><td>10. 11. 2026</td><td>Propojené telefony: u propojené rodiny ukládáme na server celou rodinu a přehled poslechů, aby je viděly oba telefony. Odpojením se smažou.</td></tr>
             <tr><td>1.4</td><td>10. 11. 2026</td><td>Poslech bez internetu: stažené pohádky (nahrávky vět se jménem) a přehled poslechnutých pohádek se ukládají jen v zařízení. Aplikace už nenačítá písmo z Google Fonts.</td></tr>
             <tr><td>1.3</td><td>9. 11. 2026</td><td>Nahrávky vět se ukládají bez vazby na účet a sdílí se mezi rodinami se stejnou větou (např. stejným jménem dítěte). Nemažou se s účtem, ale automaticky 12 měsíců od namluvení.</td></tr>
             <tr><td>1.2</td><td>9. 11. 2026</td><td>Upřesněno umístění serveru Supabase: EU, Irsko (dříve uvedeno Frankfurt).</td></tr>
