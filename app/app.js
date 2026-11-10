@@ -4,8 +4,8 @@
 
 const APP_NAME = 'Ospalek';
 // Server s hlasem ElevenLabs (složka tts-worker/). Prázdné = čte hlas prohlížeče.
-// Doplň adresu nasazeného Workeru, např. 'https://ospalek-tts.<tvuj-ucet>.workers.dev'.
-const TTS_URL_DEFAULT = '';
+// Nasazený Worker; hlas Jany nastavuje tts-worker/wrangler.toml (VOICES).
+const TTS_URL_DEFAULT = 'https://ospalek-tts.jan-patek.workers.dev';
 // lokální zkouška: ?tts=http://localhost:8787 (jen localhost, aby odkaz nemohl poslat pohádku jinam)
 const TTS_URL = (() => {
   const q = new URLSearchParams(location.search).get('tts');
