@@ -31,7 +31,14 @@ npm run android:build   # APK přes Gradle (potřebuje JDK 21 a Android SDK)
 npm run android:run     # spustí v emulátoru nebo na telefonu
 ```
 
-Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s Android 15/16.
+Potřeba: Android Studio, Android SDK 36, build-tools 35.0.0 (chce je AGP 8.13) a emulátor s Androidem 16.
+**JDK 21**: Java přibalená k Android Studiu 2026.2 je verze 25 a Gradle 8.14 na ní nejede. Před sestavením:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/sdk
+```
+
+Ověřeno 10. 11. 2026: debug APK se sestaví a běží v emulátoru Pixel 8, Android 16 (Google Play). Hláška „Error injecting safe area CSS“ při startu je neškodná, Capacitor zapisuje okraje displeje dřív, než se stránka načte.
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
 ## Co ještě chybí (další kroky)
