@@ -94,3 +94,12 @@ Platí se jen za větu, která ještě nikdy nezazněla, a to u kterékoli rodin
 Druhá rodina se stejným jménem dítěte dnes použije zhruba 83 % hotových nahrávek. Platí jen věty se svým městem, jídlem nebo jménem rodiče. Věty pro nejčastější jména jde namluvit předem: `node tools/hlas/plan.mjs jmena`, víc v `tools/hlas/README.md`.
 
 Do ElevenLabs odchází text pohádky včetně jmen dětí a obce. Měl by to zmínit text o ochraně údajů.
+
+## Náklady v administraci (GET /naklady)
+
+Stránka **Hlas a náklady** v administraci ukazuje skutečnou spotřebu kreditů: celkem od začátku, tento měsíc, dnes, průměr na den a graf po dnech. Worker se na ni ptá ElevenLabs svým klíčem (endpointy `user/subscription` a `usage/character-stats`) a kurz bere z ČNB. Výsledek drží 10 minut v mezipaměti.
+
+- Pustí jen člena týmu přihlášeného do administrace i kódem z Google Authenticatoru. Worker to ověří u Supabase funkcí `admin_role` (`SUPABASE_URL`, `SUPABASE_KEY` ve `wrangler.toml`; publishable klíč je veřejný).
+- Klíč ElevenLabs k tomu potřebuje navíc oprávnění **User: Read** (tarif a zbývající kredity) a **Usage** / **Workspace analytics: Read** (spotřeba po dnech). Bez nich administrace ukáže, co chybí, a hlas funguje dál.
+- Kredity jsou za celý účet ElevenLabs. Kč jsou odhad: cena tarifu ÷ kredity v tarifu × kurz ČNB, bez DPH.
+- Lokálně: `node tts-worker/dev-mock.mjs` (vymyšlená spotřeba, ověření přes `supabase/dev-server.mjs`), administrace s `?db=http://localhost:54321&tts=http://localhost:8787`.

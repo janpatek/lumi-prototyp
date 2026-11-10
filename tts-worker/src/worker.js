@@ -14,6 +14,11 @@
 //   MAX_CHARS        nejdelší povolený text v jednom požadavku (jedna věta pohádky; nejdelší má ~190 znaků)
 //   TTS_LIMIT        (binding ratelimits) kolik nových vět smí jedna IP adresa vygenerovat za minutu
 //   LANGUAGE_CODE    volitelně "cs" – jen pro modely, které vynucení jazyka podporují
+//   SUPABASE_URL, SUPABASE_KEY  databáze administrace (veřejný publishable klíč); GET /naklady podle ní pozná člena týmu
+//
+// GET /naklady (pro administraci): spotřeba kreditů ElevenLabs po dnech od začátku, tarif a kurz ČNB.
+// Pustí jen člena týmu přihlášeného i kódem z Google Authenticatoru (token Supabase v hlavičce Authorization).
+// Klíč ElevenLabs k tomu potřebuje oprávnění „User: Read“ (tarif) a „Usage“ / „Workspace analytics: Read“ (spotřeba).
 
 const API = 'https://api.elevenlabs.io/v1/text-to-speech/';
 // musí být stejné jako MOOD_TAG v tools/hlas/lib.mjs
@@ -29,7 +34,7 @@ export default {
     const origin = request.headers.get('Origin') || '';
     const allowed = list(env.ALLOWED_ORIGINS);
     const cors = allowed.includes(origin)
-      ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' }
+      ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Max-Age': '86400', Vary: 'Origin' }
       : { Vary: 'Origin' };
     const url = new URL(request.url);
 
@@ -37,6 +42,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/') {
       return json({ ok: true, voices: Object.keys(voices(env)), model: model(env), key: !!env.ELEVENLABS_API_KEY }, 200, cors);
     }
+    if (request.method === 'GET' && url.pathname === '/naklady') return costs(request, env, ctx, cors);
     if (request.method !== 'POST' || url.pathname !== '/tts') return json({ error: 'Nenalezeno.' }, 404, cors);
 
     // prohlížeč vždy posílá Origin – cizí weby tak hlas nevyužijí (skript mimo prohlížeč ano, proto i limit kreditů u klíče)
@@ -103,6 +109,65 @@ export default {
     return new Response(buf, { headers: { ...audioHeaders, 'X-Ospalek-Cache': 'miss' } });
   },
 };
+
+// ---------- Náklady na kredity (administrace) ----------
+const COST_ROLES = ['owner', 'finance', 'analyst', 'content'];
+const START = Date.UTC(2026, 0, 1); // od kdy hledat spotřebu (před založením Ospalku nic nebylo)
+async function costs(request, env, ctx, cors) {
+  // 1) kdo se ptá: databáze vrátí roli jen členovi týmu s kódem (aal2), jinak chybu
+  const auth = request.headers.get('Authorization') || '';
+  if (!env.SUPABASE_URL || !env.SUPABASE_KEY) return json({ error: 'Worker nemá nastavenou databázi (SUPABASE_URL).' }, 500, cors);
+  const who = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/admin_role`, { method: 'POST', headers: { apikey: env.SUPABASE_KEY, Authorization: auth, 'Content-Type': 'application/json' }, body: '{}' });
+  const role = who.ok ? await who.json().catch(() => null) : null;
+  if (!COST_ROLES.includes(role)) return json({ error: 'Náklady vidí jen přihlášený člen týmu s oprávněním.' }, 403, cors);
+  if (!env.ELEVENLABS_API_KEY) return json({ error: 'Chybí API klíč ElevenLabs.' }, 500, cors);
+
+  // 2) výsledek se drží 10 minut, ať se ElevenLabs a ČNB neptáme při každém otevření stránky
+  const cacheKey = new Request(CACHE_HOST + 'naklady/' + Math.floor(Date.now() / 6e5));
+  const hit = await caches.default.match(cacheKey);
+  if (hit) return new Response(hit.body, { headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
+
+  const el = (path) => fetch('https://api.elevenlabs.io/v1/' + path, { headers: { 'xi-api-key': env.ELEVENLABS_API_KEY } })
+    .then(async (r) => (r.ok ? r.json() : Promise.reject(new Error(r.status === 401 ? 'klíč nemá oprávnění' : 'chyba ' + r.status))));
+  const now = Date.now(), errors = [];
+  const [sub, usage, rates] = await Promise.all([
+    el('user/subscription').catch((e) => { errors.push('Tarif: ' + e.message + ' (User: Read)'); return null; }),
+    el(`usage/character-stats?start_unix=${START}&end_unix=${now}&aggregation_interval=day&metric=credits`).catch((e) => { errors.push('Spotřeba: ' + e.message + ' (Usage)'); return null; }),
+    cnb().catch(() => { errors.push('Kurz ČNB se nepodařilo načíst, použit odhad.'); return { USD: 23, EUR: 25, date: null }; }),
+  ]);
+  const days = [];
+  if (usage && Array.isArray(usage.time)) {
+    const series = Object.values(usage.usage || {});
+    usage.time.forEach((t, i) => {
+      const credits = series.reduce((a, s) => a + (Number(s[i]) || 0), 0);
+      if (credits || days.length) days.push({ day: new Date(t).toISOString().slice(0, 10), credits });
+    });
+  }
+  const out = {
+    fetched_at: new Date(now).toISOString(), model: model(env), errors, rates,
+    plan: sub && {
+      tier: sub.tier, status: sub.status, currency: (sub.currency || (sub.next_invoice && sub.next_invoice.currency) || 'usd').toUpperCase(),
+      credits_limit: sub.character_limit, credits_used: sub.character_count, reset_at: sub.next_character_count_reset_unix ? new Date(sub.next_character_count_reset_unix * 1000).toISOString() : null,
+      billing_period: sub.billing_period || null,
+      next_invoice: sub.next_invoice ? { amount: (sub.next_invoice.amount_due_cents || 0) / 100, at: sub.next_invoice.next_payment_attempt_unix ? new Date(sub.next_invoice.next_payment_attempt_unix * 1000).toISOString() : null } : null,
+    },
+    days,
+  };
+  const body = JSON.stringify(out);
+  ctx.waitUntil(caches.default.put(cacheKey, new Response(body, { headers: { 'Cache-Control': 'max-age=600' } })));
+  return new Response(body, { headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
+}
+// denní kurz ČNB (text: „země|měna|množství|kód|kurz“)
+async function cnb() {
+  const t = await (await fetch('https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt')).text();
+  const out = { date: t.split('\n')[0].split(' ')[0] };
+  for (const line of t.split('\n')) {
+    const p = line.split('|');
+    if (p.length === 5 && (p[3] === 'USD' || p[3] === 'EUR')) out[p[3]] = Number(p[4].replace(',', '.')) / Number(p[2]);
+  }
+  if (!out.USD) throw new Error('kurz');
+  return out;
+}
 
 const list = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
 const model = (env) => env.MODEL_ID || 'eleven_v4';

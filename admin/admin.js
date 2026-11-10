@@ -268,7 +268,7 @@ const legend = () => '<div class="legend"><span><i class="key" style="--c:var(--
 const LIVE_GAPS = {
   navstevy: 'Návštěvy webu zatím neměříme (doplní se Plausible), proto jsou nulové.',
   platby: 'Předplatné je v aplikaci zatím jen simulované a platby nejsou napojené (RevenueCat, Stripe), čísla o penězích jsou nulová.',
-  hlas: 'Fronta generování hlasu zatím není napojená na tts-worker.',
+  hlas: 'Kredity jsou skutečná spotřeba z ElevenLabs (přes tts-worker), Kč odhad podle tarifu a kurzu ČNB.',
   kupony: 'Kódy zatím nejde uplatnit v aplikaci; kampaně, které tu založíš, se drží jen v tomhle prohlížeči.',
   helpdesk: 'Helpdesk zatím nepřijímá e-maily ani zprávy z aplikace.',
   prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami.',

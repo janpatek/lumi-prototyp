@@ -12,8 +12,20 @@ const SAMPLE_SECONDS = 100; // délka ukázky
 let calls = 0;
 
 // náhrada ElevenLabs: zhruba 14 znaků za sekundu
+const realFetch = globalThis.fetch;
+const DAY = 864e5;
 globalThis.fetch = async (url, init) => {
-  if (!String(url).startsWith('https://api.elevenlabs.io/')) throw new Error('Mock zná jen ElevenLabs.');
+  url = String(url);
+  // GET /naklady: databáze jde na skutečnou (lokální) supabase/dev-server.mjs, ElevenLabs a ČNB jsou vymyšlené
+  if (url.startsWith(env.SUPABASE_URL)) return realFetch(url, init);
+  if (url.includes('cnb.cz')) return new Response('10.11.2026 #218\nzemě|měna|množství|kód|kurz\nEMU|euro|1|EUR|24,315\nUSA|dolar|1|USD|22,870\n');
+  if (url.includes('/v1/user/subscription')) return Response.json({ tier: 'creator', status: 'active', currency: 'usd', character_limit: 100000, character_count: 41234, next_character_count_reset_unix: Math.floor((Date.now() + 18 * DAY) / 1000), next_invoice: { amount_due_cents: 2200, next_payment_attempt_unix: Math.floor((Date.now() + 18 * DAY) / 1000) } });
+  if (url.includes('/v1/usage/character-stats')) {
+    const t0 = Math.floor((Date.now() - 20 * DAY) / DAY) * DAY, time = [], all = [];
+    for (let i = 0; i <= 20; i++) { time.push(t0 + i * DAY); all.push(i < 2 ? 0 : Math.round(800 + 3000 * Math.abs(Math.sin(i)))); }
+    return Response.json({ time, usage: { All: all } });
+  }
+  if (!url.startsWith('https://api.elevenlabs.io/')) throw new Error('Mock zná jen ElevenLabs.');
   calls++;
   const { text } = JSON.parse(init.body);
   const seconds = Math.min(SAMPLE_SECONDS, Math.max(2, text.length / 14));
@@ -34,6 +46,8 @@ const env = {
   VOICES: '{"jana":"mock-voice"}',
   MODEL_ID: 'eleven_v4',
   MAX_CHARS: '1500',
+  SUPABASE_URL: process.env.SUPABASE_URL || 'http://localhost:54321',
+  SUPABASE_KEY: 'dev',
 };
 
 createServer(async (req, res) => {

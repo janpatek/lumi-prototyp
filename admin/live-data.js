@@ -11,6 +11,9 @@ const LIVE = (() => {
   const URL_ = devOk ? dev : C.supabaseUrl;
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
   const SKEY = 'ospalek.admin.sb.v1', MKEY = 'ospalek.admin.mode';
+  // tts-worker (hlas ElevenLabs): GET /naklady vrací spotřebu kreditů; lokálně ?tts=http://localhost:8787
+  const ttsDev = new URLSearchParams(location.search).get('tts');
+  const TTS_ = ttsDev && /^http:\/\/localhost(:\d+)?$/.test(ttsDev) ? ttsDev : C.ttsUrl || 'https://ospalek-tts.jan-patek.workers.dev';
   const configured = !!(URL_ && KEY_);
   const get = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const set = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
@@ -301,6 +304,15 @@ const LIVE = (() => {
       return out;
     };
     D.familyDetail = () => null;
+    // náklady na kredity ElevenLabs (spočítá tts-worker, pustí jen člena týmu s kódem)
+    D.ttsCosts = async () => {
+      const s = await session();
+      if (!s) throw new Error('Nejsi přihlášený do databáze');
+      const r = await fetch(TTS_ + '/naklady', { headers: { Authorization: 'Bearer ' + s.access_token } });
+      const j = await r.json().catch(() => null);
+      if (!r.ok) throw new Error((j && j.error) || 'Worker vrátil ' + r.status);
+      return j;
+    };
     // správa týmu (jen vlastník): účty a hesla přes Edge Function, role a zrušení kódu přes databázi
     D.team = {
       create: (b) => fn('staff-admin', { action: 'create', ...b }),

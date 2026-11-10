@@ -212,7 +212,80 @@ function pageVoice() {
       ${jobs.map((j) => { const st = STORIES.find((x) => x.id === j.story); return `<tr><td class="num">${ago(j.at)}</td><td>${famLink(API.families.get(j.fam))}</td><td>${esc(st ? safeTitle(st) : j.story)}</td><td class="r num">${fmt(j.chars)}</td><td class="r num">${j.ms ? dec(j.ms / 1000) + ' s' : '–'}</td><td>${j.status === 'hotovo' ? '<span class="tag mint">hotovo</span>' : j.status === 'běží' ? '<span class="tag sky">běží</span>' : `<span class="tag peach" title="${esc(j.err)}">selhalo</span> <span class="muted">${esc(j.err)}</span>`}</td><td class="r">${j.status === 'selhalo' && API.can('content.edit') ? `<button class="btn white sm" data-a="ttsRetry" data-v="${j.id}">Zkusit znovu</button>` : ''}</td></tr>`; }).join('')}
       </tbody></table></div></section>`;
 }
-PAGES.hlas = pageVoice;
+// ---------- Hlas a náklady nad ostrými daty: kredity ElevenLabs ----------
+// Spotřebu po dnech, tarif a kurz ČNB dodá tts-worker (GET /naklady). Kredity jsou přesné, Kč jsou odhad:
+// cena kreditu = cena tarifu ÷ kredity v tarifu, přepočtená kurzem ČNB. Bez tarifu platí ručně zadaná cena.
+const COST = { state: 'idle', data: null, err: '' };
+function loadCosts(force) {
+  if (COST.state === 'loading' || (COST.state === 'ok' && !force)) return;
+  COST.state = 'loading';
+  D.ttsCosts().then((d) => { COST.state = 'ok'; COST.data = d; COST.err = ''; }, (e) => { COST.state = 'err'; COST.err = e.message; })
+    .then(() => { if (route() === 'hlas') render(); });
+}
+const tierName = (t) => ({ free: 'Free', starter: 'Starter', creator: 'Creator', pro: 'Pro', scale: 'Scale', business: 'Business' }[String(t || '').split('_')[0]] || t || '–');
+function pageVoiceLive() {
+  loadCosts();
+  const manual = Number(store.get(TTS_KEY)) || 4; // Kč za 1 000 kreditů, když tarif nejde přečíst
+  const priceRow = (auto) => `<section class="panel" style="margin-bottom:12px"><div class="filters" style="margin:0;align-items:center">
+      ${auto ? `<span>Cena kreditu podle tarifu: <b>${dec(auto * 1000, 2)} Kč</b> za 1 000 kreditů</span>` : `<label for="ttsPrice" style="margin:0">Cena za 1 000 kreditů</label><input id="ttsPrice" data-f="ttsPrice" type="number" min="0" step="0.1" value="${manual}" style="width:100px"> <span class="muted">Kč · tarif se nepodařilo přečíst, zadej cenu ručně</span>`}
+      <button class="btn white sm" data-a="costReload" style="margin-left:auto">Načíst znovu</button></div></section>`;
+  const top = `${head('Hlas a náklady', 'Kolik nás stojí hlas Jany v ElevenLabs: celkem od začátku a po dnech')}${demoBar()}`;
+  if (COST.state === 'loading' || COST.state === 'idle') return `${top}<section class="panel"><p class="muted">Načítám spotřebu kreditů z ElevenLabs…</p></section>`;
+  if (COST.state === 'err') return `${top}<section class="panel"><h2>Náklady se nepodařilo načíst</h2><p class="err">${esc(COST.err)}</p><button class="btn sm" data-a="costReload">Zkusit znovu</button></section>`;
+
+  const d = COST.data, p = d.plan, rate = d.rates || {};
+  const cur = p && p.currency === 'EUR' ? 'EUR' : 'USD';
+  const monthly = p && p.next_invoice && p.next_invoice.amount ? p.next_invoice.amount / (/annual|year/i.test(p.billing_period || '') ? 12 : 1) : 0;
+  const auto = monthly && p.credits_limit ? (monthly * (rate[cur] || 0)) / p.credits_limit : 0;
+  const perCredit = auto || manual / 1000;
+  const days = d.days || [], today = iso(TODAY), month = today.slice(0, 7);
+  const sumC = (f) => days.filter(f).reduce((a, x) => a + x.credits, 0);
+  const total = sumC(() => true), todayC = sumC((x) => x.day === today), monthC = sumC((x) => x.day.startsWith(month));
+  const since30 = iso(addDays(TODAY, -29)), last30 = sumC((x) => x.day >= since30);
+  const prev30 = sumC((x) => x.day >= iso(addDays(TODAY, -59)) && x.day < since30);
+  const first = days.find((x) => x.credits), activeDays = days.filter((x) => x.credits).length;
+  const fams = D.families.length;
+  const czk = (c) => kc(c * perCredit);
+  const czk2 = (c) => `${dec(c * perCredit, 2)} Kč`;
+  // graf: posledních 90 dní (nebo od prvního dne), sloupce = kredity, čára = Kč celkem
+  const byDay = new Map(days.map((x) => [x.day, x.credits]));
+  const n = Math.min(90, Math.max(7, first ? Math.round((TODAY - parseIso(first.day)) / 864e5) + 1 : 30));
+  const span = Array.from({ length: n }, (_, k) => addDays(TODAY, k - n + 1));
+  let run = days.filter((x) => x.day < iso(span[0])).reduce((a, x) => a + x.credits, 0);
+  const cum = span.map((dt) => (run += byDay.get(iso(dt)) || 0) * perCredit);
+  after.push(() => {
+    chart($('#chCredits'), { type: 'bar', labels: span.map(fshort), titles: span.map(fday), series: [{ name: 'Kredity', color: 'var(--s1)', values: span.map((dt) => byDay.get(iso(dt)) || 0) }] });
+    chart($('#chCum'), { type: 'line', labels: span.map(fshort), titles: span.map(fday), series: [{ name: 'Kč celkem', color: 'var(--s4)', values: cum.map(Math.round) }] });
+  });
+  const left = p && p.credits_limit ? Math.max(0, p.credits_limit - p.credits_used) : null;
+  const rows = days.filter((x) => x.credits).slice(-60).reverse();
+  return `${top}
+    ${d.errors && d.errors.length ? `<div class="notice"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div><b>Něco z ElevenLabs chybí:</b> ${d.errors.map(esc).join(' · ')}<br>Klíči ve workeru přidej v ElevenLabs (Developers → API Keys) oprávnění <b>User: Read</b> a <b>Usage / Workspace analytics: Read</b>. Na hlas to nemá vliv.</div></div>` : ''}
+    ${priceRow(auto)}
+    <div class="tiles t8">
+      ${tile('Celkem od začátku', czk(total), `${fmt(total)} kreditů${first ? ` · od ${fdate(parseIso(first.day))}` : ''}`)}
+      ${tile('Tento měsíc', czk(monthC), `${fmt(monthC)} kreditů`)}
+      ${tile('Dnes', czk2(todayC), `${fmt(todayC)} kreditů`)}
+      ${tile('Průměr na den (30 dní)', czk2(last30 / 30), `${fmt(last30 / 30)} kreditů · ${trend(last30, prev30)}`)}
+      ${tile('Odhad na měsíc', czk(last30), 'podle posledních 30 dní')}
+      ${tile('Tarif ElevenLabs', p ? esc(tierName(p.tier)) : '–', p ? `${monthly ? `${dec(monthly, 2)} ${cur} měsíčně · ` : ''}${p.status === 'active' ? 'aktivní' : esc(p.status || '')}` : 'nepodařilo se načíst')}
+      ${tile('Zbývá v tarifu', left == null ? '–' : `${fmt(left)} kreditů`, p && p.credits_limit ? `${pct(left, p.credits_limit)} z ${fmt(p.credits_limit)}${p.reset_at ? ` · obnova ${fdate(new Date(p.reset_at))}` : ''}` : '')}
+      ${tile('Na rodinu', fams ? czk2(total / fams) : '–', `${fmt(fams)} rodin · ${fmt(activeDays)} dní s generováním`)}
+    </div>
+    <div class="grid2">
+      <section class="panel"><div class="panel-head"><h2>Spotřebované kredity po dnech</h2><span class="muted">${n} dní</span></div><div class="chart" id="chCredits"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Náklady celkem (Kč)</h2><span class="muted">kumulativně</span></div><div class="chart" id="chCum"></div></section>
+    </div>
+    <section class="panel"><div class="panel-head"><h2>Po dnech</h2><span class="muted">dny s generováním, nejnovější nahoře</span></div>
+      <div class="table-wrap" style="max-height:380px;overflow-y:auto"><table><thead><tr><th>Den</th><th class="r">Kredity</th><th class="r">Náklad</th></tr></thead><tbody>
+      ${rows.length ? rows.map((x) => `<tr><td>${fday(parseIso(x.day))}</td><td class="r num">${fmt(x.credits)}</td><td class="r num">${czk2(x.credits)}</td></tr>`).join('') : '<tr><td colspan="3" class="muted">Zatím žádná spotřeba.</td></tr>'}
+      </tbody></table></div>
+      <p class="hint" style="margin-top:8px">Kredity jsou přesná čísla z ElevenLabs (model ${esc(d.model || '')}, za celý účet). Kč jsou odhad: cena tarifu ÷ kredity v tarifu, kurz ČNB ${rate.date ? esc(rate.date) : 'odhadem'} (${dec(rate[cur] || 0, 2)} Kč/${cur}), bez DPH. Načteno ${new Date(d.fetched_at).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}, data se obnovují po 10 minutách.</p>
+    </section>`;
+}
+PAGES.hlas = () => (D.live ? pageVoiceLive() : pageVoice());
+ACTIONS.costReload = () => { COST.state = 'idle'; loadCosts(true); render(); };
+
 
 let payT;
 Object.assign(ACTIONS, {

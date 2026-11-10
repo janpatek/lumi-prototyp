@@ -14,6 +14,9 @@ MODEL_ID = "eleven_v4"
 STABILITY = "0.75"
 # Nejdelší text v jednom požadavku. Aplikace posílá po větách, nejdelší věta v pohádkách má ~190 znaků.
 MAX_CHARS = "400"
+# Databáze administrace: GET /naklady podle ní pozná přihlášeného člena týmu. Publishable klíč je veřejný (je i v config.js).
+SUPABASE_URL = "https://imiujppjewddeldjifkl.supabase.co"
+SUPABASE_KEY = "sb_publishable_uX729wkKmJ4vtTQaWcWzig_dGjzNaJC"
 
 # Kolik nových vět (těch, co jdou do ElevenLabs) smí jedna IP adresa vygenerovat za minutu.
 # Jedna pohádka pro novou rodinu potřebuje řádově desítky vět. Věty z mezipaměti se nepočítají.
