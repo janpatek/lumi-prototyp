@@ -39,6 +39,6 @@ Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s An
 1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
 2. Přehrávání na pozadí: nativní audio plugin + foreground service `mediaPlayback` (a deklarace v Play Console).
 3. Offline poslech: stáhnout nahrávky do zařízení (`@capacitor/filesystem`).
-4. Ikona a splash screen z `brand/maskot-3d` (`@capacitor/assets`).
+4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.
 5. Smazání účtu v aplikaci i přes web (požadavek Google Play pro aplikace s účtem).
 6. Podepisovací klíč pro vydání (Play App Signing) a verze `versionCode`.
