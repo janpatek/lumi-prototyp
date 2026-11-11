@@ -61,15 +61,15 @@ export OSPALEK_UPLOAD_PASSWORD="$(security find-generic-password -a ospalek-uplo
 npm run android:bundle   # → android/app/build/outputs/bundle/release/app-release.aab
 ```
 
-Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gradle`. Verze 3 (1.2: odolnější čtení, režim Čtu já) je od 11. 11. 2026 v interním testování.
+Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gradle`. Verze 5 (1.4: 103 pohádek, stahování na vyžádání, přehrávání na pozadí s ovládáním na zamčené obrazovce, nový paywall) je připravená 11. 11. 2026 k nahrání do interního testování.
 
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
 ## Co ještě chybí (další kroky)
 
 1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
-2. Přehrávání se zhasnutým displejem: ověřeno 11. 11. 2026 v emulátoru (Android 16), 7 minut se zhasnutým displejem bez zpomalení, proces nezamrzl. Aplikace zůstává nahoře („top sleeping“), takže služba na popředí není potřeba. Hrát dál po přepnutí do jiné aplikace by ji potřebovalo (a deklaraci `mediaPlayback` v Play Console). Ověřit ještě na skutečném telefonu.
-3. Offline poslech: stáhnout nahrávky do zařízení (`@capacitor/filesystem`).
+2. Přehrávání na pozadí: hotové ve verzi 1.4 (PrehravacService, viz Přehrávání na pozadí). V Play Console je potřeba vyplnit deklaraci služby na popředí `mediaPlayback` s videem (GOOGLE-PLAY.md) a ověřit na skutečném telefonu.
+3. Offline poslech a stahování na vyžádání: hotové ve verzi 1.4 (`@capacitor/filesystem`, app/remote.js).
 4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.
 5. Smazání účtu: v aplikaci „Smazat účet a všechna data“, na webu návod https://ospalek.cz/smazani-uctu/ (adresa do Play Console → Bezpečnost údajů).
 6. Podepisovací klíč pro vydání (Play App Signing) a verze `versionCode`.
