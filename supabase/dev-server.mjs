@@ -8,6 +8,7 @@
 //
 // Aplikace: http://localhost:5174/app/?db=http://localhost:54321
 // Administrace: http://localhost:5174/admin/?db=http://localhost:54321  (přihlášení admin@example.cz / ospalek-test)
+// Kód pro odemčení Plus: OSPALEK-TEST (Odemknout → Mám kód)
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -32,6 +33,8 @@ await db.exec(fs.readFileSync(new URL('./schema.sql', import.meta.url), 'utf8'))
 const staffId = crypto.randomUUID();
 await db.query(`insert into auth.users (id, email, password) values ($1, $2, $3)`, [staffId, STAFF.email, STAFF.password]);
 await db.query(`insert into public.staff (user_id, name, role) values ($1, $2, 'owner')`, [staffId, STAFF.name]);
+// kód pro odemčení Plus jen pro lokální zkoušky (v aplikaci: Odemknout → Mám kód → OSPALEK-TEST)
+await db.query(`insert into public.access_codes (code_hash, label, days) values (encode(sha256(convert_to('OSPALEK-TEST', 'UTF8')), 'hex'), 'Jen lokálně', 30)`);
 
 // popis funkcí: názvy a typy argumentů, jestli vrací tabulku
 const fns = new Map((await db.query(`
