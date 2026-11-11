@@ -12,7 +12,7 @@ Když měníš něco, čeho se týkají, uprav je ve stejné změně.
 Obchodní podmínky se týkají:
 - ceny, tarifů, měny a zkušební doby (`index.html` sekce Cena, `app/app.js` paywall a promo),
 - počtu pohádek zdarma a toho, co odemyká předplatné,
-- způsobu platby a obchodů (App Store, Google Play, platební brána na webu),
+- způsobu platby a obchodů (jen App Store a Google Play, platební brána na webu není),
 - zrušení předplatného a vracení peněz,
 - věku dětí, funkcí (např. offline poslech) a zemí, kde službu nabízíme (CZ, SK).
 
