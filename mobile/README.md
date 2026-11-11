@@ -41,7 +41,15 @@ iOS: potřeba plné Xcode (ne jen Command Line Tools) s iOS platformou: `sudo xc
 Nastaveno: `UIBackgroundModes: audio` a `AVAudioSession` `.playback` (hraje se zamčenou obrazovkou i s přepínačem ticha), jazyk cs/sk.
 Checklist pro App Store a technický návrh pro iOS: poznámka `ios-app-store.md` ve sdílené složce poznámek sessions.
 
-Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s Android 15/16.
+Android: Android Studio, Android SDK 36, build-tools 35.0.0 (chce je AGP 8.13) a emulátor s Androidem 16.
+**JDK 21**: Java přibalená k Android Studiu 2026.2 je verze 25 a Gradle 8.14 na ní nejede. Před sestavením:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/sdk
+```
+
+Ověřeno 10. 11. 2026: debug APK se sestaví a běží v emulátoru Pixel 8, Android 16 (Google Play). Hláška „Error injecting safe area CSS“ při startu je neškodná, Capacitor zapisuje okraje displeje dřív, než se stránka načte.
+
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
 ## Co ještě chybí (další kroky)
@@ -49,6 +57,6 @@ Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s An
 1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
 2. Přehrávání na pozadí: nativní audio plugin + foreground service `mediaPlayback` (a deklarace v Play Console).
 3. Offline poslech: stáhnout nahrávky do zařízení (`@capacitor/filesystem`).
-4. Ikona a splash screen z `brand/maskot-3d` (`@capacitor/assets`).
+4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.
 5. Smazání účtu v aplikaci i přes web (požadavek Google Play pro aplikace s účtem).
 6. Podepisovací klíč pro vydání (Play App Signing) a verze `versionCode`.
