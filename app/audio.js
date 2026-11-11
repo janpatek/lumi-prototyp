@@ -1,7 +1,7 @@
 // Zvuk v pozadí pohádky a zvukové efekty (Web Audio API).
 // Každá pohádka má v audio/pozadi/ dvě smyčky: kulisu (ruchy podle děje) a jemnou hudbu
 // (vyrábí tools/pozadi/smycky.py). Pohádka bez smyček dostane hudbu syntetizovanou podle mood.
-// Zvuk v pozadí jde vypnout („Jen čtení“), volba i hlasitost se pamatují v localStorage.
+// Zvuk v pozadí jde vypnout („Bez hudby“), volba i hlasitost se pamatují v localStorage.
 // Pod hlasem se pozadí ztlumí (duck), v pauzách na odpověď a na konci se zase zesílí.
 
 const BED = '../audio/pozadi/';
@@ -208,7 +208,7 @@ class Ambience {
     setTimeout(() => sess.gain.disconnect(), (fade + 0.2) * 1000);
   }
 
-  // „Jen čtení“: vypne zvuk v pozadí a zapamatuje si to
+  // „Bez hudby“: vypne zvuk v pozadí a zapamatuje si to
   setBackgroundOn(on) {
     this.bedOn = pref.on = on;
     savePref();
