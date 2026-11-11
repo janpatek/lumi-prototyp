@@ -534,6 +534,7 @@ function savePerson() {
 // ---------- Předplatné ----------
 // cena předplatného: z obchodu (App Store / Google Play), jinak česká cena; slovenská je v textu u plánu
 const PRICE = { text: '129 Kč', store: false };
+const WEB_DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 BILLING.price().then((p) => { if (p) { PRICE.text = p; PRICE.store = true; render(); } });
 
 function paywall() {
@@ -552,9 +553,9 @@ function paywall() {
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžete kdykoli</small></div></div>
       </div>
-      <button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>
+      ${BILLING.native || WEB_DEMO ? `<button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
       <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
-      ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se nic neplatí: předplatné se kupuje v mobilní aplikaci. Tady se pohádky pro vyzkoušení jen odemknou.</p>'}
+      ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se předplatné koupit nedá. Kupuje se v mobilní aplikaci Ospalek pro iPhone a Android přes App Store nebo Google Play. Tady si zatím pustíte 3 pohádky zdarma.</p>'}
     </div></div>`;
 }
 
@@ -1053,7 +1054,7 @@ const actions = {
   paywall,
   subscribe: async (el) => {
     // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
-    if (!BILLING.native) { S.premium = true; save(); closeModal(); render(); return; }
+    if (!BILLING.native) { if (WEB_DEMO) { S.premium = true; save(); closeModal(); render(); } return; }
     el.disabled = true;
     try {
       if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); } else el.disabled = false;
@@ -1127,6 +1128,8 @@ navigator.serviceWorker?.addEventListener('message', (e) => { if (e.data && e.da
 
 render();
 // v aplikaci: stav předplatného z obchodu (RevenueCat) má přednost před uloženým
+// Na webu se předplatné koupit nedá. Odemknutí naoko zůstává jen pro vývoj na localhostu; dřív odemčené pohádky na webu se zamknou.
+if (!BILLING.native && !WEB_DEMO && S.premium) { S.premium = false; store.set(S); }
 BILLING.status().then((v) => { if (v !== null && v !== S.premium) { S.premium = v; save(); render(); } });
 pruneOffline();
 const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });
