@@ -188,6 +188,8 @@ const heroes = () => {
 const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
 const coverImg = (st, ks) => (ks.every((k) => k.gender === 'f') && st.cover.imgF) || st.cover.img;
 const unlocked = (st) => st.free || S.premium;
+// Plus odemčený kódem (recenzenti obchodů, dárky): do kdy platí, ověřuje server (app_redeem_code)
+const codeOn = () => !!(S.codeUntil && S.codeUntil > Date.now());
 const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
 // ---------- Obrazovky ----------
@@ -300,8 +302,8 @@ const screens = {
     <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     ${remindSettings()}
     <div class="section-t">Předplatné</div>
-    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
-      ${S.premium ? `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>` : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native || codeOn() ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.premium && codeOn() ? `Odemčeno kódem do ${new Date(S.codeUntil).toLocaleDateString('cs-CZ')}.` : BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
+      ${S.premium ? (codeOn() ? '' : `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>`) : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
     ${SYNC.on ? `<div class="section-t">Statistiky</div>
     <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
     <p class="note" style="margin-top:6px"><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
@@ -619,7 +621,23 @@ function paywall() {
       ${BILLING.native || WEB_DEMO ? `<button class="btn cta2" data-a="subscribe"><span>Vyzkoušet 3 dny zdarma,</span><span>pak ${PRICE.text} měsíčně</span></button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
       <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se předplatné koupit nedá. Kupuje se v mobilní aplikaci Ospalek pro iPhone a Android přes App Store nebo Google Play. Tady si zatím pustíte 3 pohádky zdarma.</p>'}
+      ${SYNC.on ? '<p class="fine" style="text-align:center"><a href="#" data-a="codeSheet">Mám kód</a></p>' : ''}
     </div></div>`;
+}
+
+// Kód, který odemkne Plus bez platby (recenzenti Google Play a App Store, dárky). Ověří ho server, v aplikaci žádný kód není.
+function codeSheet() {
+  $modal.innerHTML = `
+    <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+      <button class="icon-btn sheet-close" data-a="closeModal" aria-label="Zavřít">${I.close}</button>
+      <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
+      <h2 style="text-align:center">Máte kód?</h2>
+      <p class="lead" style="text-align:center">Kód od nás odemkne ${APP_NAME} Plus na několik dní, bez platby a bez předplatného.</p>
+      <input id="codeIn" maxlength="40" placeholder="Kód" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;text-align:center">
+      <p class="fine" style="text-align:center" id="codeMsg"></p>
+      <button class="btn" data-a="redeem">Uplatnit kód</button>
+    </div></div>`;
+  setTimeout(() => document.getElementById('codeIn')?.focus(), 50);
 }
 
 // ---------- Přehrávač ----------
@@ -1229,7 +1247,21 @@ const actions = {
       if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); checkTrial(true); } else el.disabled = false;
     } catch (e) { el.disabled = false; el.insertAdjacentHTML('afterend', `<p class="fine err" style="text-align:center">Nákup se nepovedl. ${esc(e && e.message || '')}</p>`); }
   },
-  restore: async () => { const v = await BILLING.restore().catch(() => null); if (v !== null) { S.premium = v; save(); } closeModal(); render(); },
+  restore: async () => { const v = await BILLING.restore().catch(() => null); if (v !== null) { S.premium = v || codeOn(); save(); } closeModal(); render(); },
+  codeSheet: (el, e) => { e.preventDefault(); codeSheet(); },
+  redeem: async (el) => {
+    const code = (document.getElementById('codeIn')?.value || '').trim();
+    const msg = document.getElementById('codeMsg');
+    if (!code) { msg.innerHTML = '<span class="err">Napište kód.</span>'; return; }
+    el.disabled = true; msg.textContent = 'Ověřuji…';
+    const r = await SYNC.call('app_redeem_code', { code }).catch(() => undefined);
+    el.disabled = false;
+    if (r && r.ok && r.until) {
+      S.codeUntil = r.until; S.premium = true; save(); closeModal(); render();
+      return;
+    }
+    msg.innerHTML = `<span class="err">${r === undefined ? 'Kód se teď nepodařilo ověřit. Zkontrolujte připojení k internetu a zkuste to znovu.' : r && r.error === 'tries' ? 'Moc pokusů. Zkuste to prosím za hodinu.' : 'Tenhle kód neznáme nebo už neplatí.'}</span>`;
+  },
   unsub: () => { if (BILLING.native) { BILLING.manage(); return; } S.premium = false; save(); render(); },
   settings: () => go('settings'),
   // souhlas se statistikami poslechu (sync.js); vypnutí v databázi anonymizuje dosavadní poslechy
@@ -1315,10 +1347,11 @@ function openFromNotice(id) {
 navigator.serviceWorker?.addEventListener('message', (e) => { if (e.data && e.data.open) openFromNotice(e.data.open); });
 
 render();
-// v aplikaci: stav předplatného z obchodu (RevenueCat) má přednost před uloženým
+// v aplikaci: stav předplatného z obchodu má přednost před uloženým
 // Na webu se předplatné koupit nedá. Odemknutí naoko zůstává jen pro vývoj na localhostu; dřív odemčené pohádky na webu se zamknou.
-if (!BILLING.native && !WEB_DEMO && S.premium) { S.premium = false; store.set(S); }
-BILLING.status().then((v) => { if (v !== null && v !== S.premium) { S.premium = v; save(); render(); } });
+if (!BILLING.native && !WEB_DEMO && S.premium && !codeOn()) { S.premium = false; store.set(S); }
+// odemčení kódem platí vedle předplatného z obchodu; po vypršení kódu rozhoduje jen obchod
+BILLING.status().then((v) => { if (v === null) return; const p = v || codeOn(); if (p !== S.premium) { S.premium = p; save(); render(); } });
 checkTrial(false);
 pruneOffline();
 const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });
