@@ -37,3 +37,7 @@ Každá pohádka má vlastní hudbu. Kulisu má vlastní jen část nových poh�
 - **Vlastní hudba**: všech 30. Šestnáct z nich (dvanact-mesicku, zlatovlaska, velika-repa, hrnecku-var, prvni-den-ve-skolce, spani-u-babicky, bourka-nebojsa, ponozkozrout, den-naruby, cesta-za-pokladem, zmrzlinovy-dest, kdo-to-dela, noc-v-lese, dinosaurus-na-zahrade, raketou-na-mesic, ponorka-pod-rybnikem) přibylo 2026-11-11, do té doby hrály hudbu jiné pohádky.
 
 Když přibude vlastní smyčka, ulož nahrávku, spusť skript a smaž odpovídající řádek v `sdilene.json`.
+
+## Pohádky do stovky (67 pohádek z 2026-11-11)
+
+Nemají vlastní smyčky. Kulisu i hudbu si půjčují od hotových pohádek s podobným prostředím a náladou (`sdilene.json`, druh `kulisa` i `hudba`). Vlastní hudba by stála asi 80 kreditů Magnific na pohádku; po vygenerování stačí smazat řádek v `sdilene.json` a spustit skript.

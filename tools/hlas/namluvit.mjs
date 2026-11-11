@@ -38,13 +38,22 @@ async function fetchOne(l) {
   const out = path.join(RAW, l.key + '.mp3');
   if (fs.existsSync(out)) { stats.local++; return; }
   for (let attempt = 1; ; attempt++) {
-    const r = await fetch(TTS + '/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5174' },
-      body: JSON.stringify({ text: l.t, voice: 'jana', mood: l.mood }),
-    });
+    let r, buf;
+    try {
+      r = await fetch(TTS + '/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5174' },
+        body: JSON.stringify({ text: l.t, voice: 'jana', mood: l.mood }),
+      });
+      if (r.ok) buf = Buffer.from(await r.arrayBuffer());
+    } catch (e) {
+      // výpadek sítě (ECONNRESET apod.): chvíli počkat a zkusit znovu, Worker si hotovou větu pamatuje
+      if (attempt >= 6) throw e;
+      await new Promise((res) => setTimeout(res, 3000 * attempt));
+      continue;
+    }
     if (r.ok) {
-      fs.writeFileSync(out, Buffer.from(await r.arrayBuffer()));
+      fs.writeFileSync(out, buf);
       stats[r.headers.get('x-ospalek-cache') || 'miss']++;
       return;
     }

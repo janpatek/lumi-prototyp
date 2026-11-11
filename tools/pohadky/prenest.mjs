@@ -1,5 +1,5 @@
 // Přenese schválené koncepty do aplikace: node tools/pohadky/prenest.mjs a b c …
-// Vezme pole pohádek z koncepty/pohadky/<písmeno>.js, vynechá pomocná pole (delka, pro, pozn)
+// Vezme pole pohádek z koncepty/pohadky/<písmeno>.js, vynechá pomocná pole (delka, pro, pozn, pouceni)
 // a vloží je na konec window.STORIES v app/stories.cs.js. Pohádky, jejichž id už v aplikaci je, přeskočí.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,7 +19,7 @@ for (const b of process.argv.slice(2)) {
   for (const it of items) {
     const id = (it.match(/^    id: '([^']+)'/m) || [])[1];
     if (!id || have.has(id)) { console.log('přeskočeno', id); continue; }
-    out += '\n' + it.replace(/^    (delka|pro|pozn): .*\n/gm, '').replace(/\s*$/, '').replace(/,?$/, ',');
+    out += '\n' + it.replace(/^    (delka|pro|pozn|pouceni): .*\n/gm, '').replace(/\s*$/, '').replace(/,?$/, ',');
     have.add(id);
     n++;
   }

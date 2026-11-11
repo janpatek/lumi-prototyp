@@ -360,6 +360,676 @@
     "file": "dinosaurus-na-zahrade-hudba.mp3",
     "body": 27.75
    }
+  },
+  "narozeninove-prani": {
+   "kulisa": {
+    "file": "jednorozec-narozeniny-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozec-narozeniny-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "jeziskova-posta": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dvanact-mesicku-hudba.mp3",
+    "body": 26.0
+   }
+  },
+  "certik-bez-strachu": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "den-naruby-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "zajicek-malir": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozec-duhanek-hudba.mp3",
+    "body": 19.75
+   }
+  },
+  "lampionovy-pruvod": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "mesicni-lodka-hudba.mp3",
+    "body": 24.0
+   }
+  },
+  "karneval-masek": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zmrzlinovy-dest-hudba.mp3",
+    "body": 20.25
+   }
+  },
+  "kartackovy-rytir": {
+   "kulisa": {
+    "file": "zubar-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "super-uklid-hudba.mp3",
+    "body": 26.0
+   }
+  },
+  "bublinka": {
+   "kulisa": {
+    "file": "zubar-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zubar-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "nocnikova-vyprava": {
+   "kulisa": {
+    "file": "zubar-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "ponozkozrout-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "odvazny-ochutnavac": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "hrnecku-var-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "statecna-naplast": {
+   "kulisa": {
+    "file": "zubar-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "prvni-den-ve-skolce-hudba.mp3",
+    "body": 24.5
+   }
+  },
+  "proc-spime": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "utekle-ovecky-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "ztraceny-v-obchode": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "prvni-den-ve-skolce-hudba.mp3",
+    "body": 24.5
+   }
+  },
+  "tablet-chtel-spat": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "den-naruby-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "miminko-u-nas": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "spani-u-babicky-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "vztekloun": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "bourka-nebojsa-hudba.mp3",
+    "body": 25.0
+   }
+  },
+  "kouzelne-promin": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "prvni-den-ve-skolce-hudba.mp3",
+    "body": 24.5
+   }
+  },
+  "lez-ktera-rostla": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "ponozkozrout-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "kdo-prohraje-vyhraje": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "tajna-superschopnost-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "jedna-lopatka": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "kdo-to-dela-hudba.mp3",
+    "body": 24.75
+   }
+  },
+  "kamarad-pres-plot": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "spani-u-babicky-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "pusa-vetrem": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozci-hvezdna-louka-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "kapka-kapicka": {
+   "kulisa": {
+    "file": "mesicni-lodka-kulisa.mp3",
+    "body": 27.75
+   },
+   "hudba": {
+    "file": "ponorka-pod-rybnikem-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "od-zrnicka-k-chlebu": {
+   "kulisa": {
+    "file": "velika-repa-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "velika-repa-hudba.mp3",
+    "body": 24.25
+   }
+  },
+  "vcelka-medunka": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozec-duhanek-hudba.mp3",
+    "body": 19.75
+   }
+  },
+  "housenka-zmena": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "noc-v-lese-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "strom-ctyri-kabaty": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dvanact-mesicku-hudba.mp3",
+    "body": 26.0
+   }
+  },
+  "seminko-nespechalo": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozci-hvezdna-louka-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "tovarna-v-brisku": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "super-uklid-hudba.mp3",
+    "body": 26.0
+   }
+  },
+  "vylet-slunecni-soustavou": {
+   "kulisa": {
+    "file": "raketou-na-mesic-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "raketou-na-mesic-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "ztracene-souhvezdi": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "kapitan-nocni-svetlo-hudba.mp3",
+    "body": 24.5
+   }
+  },
+  "nula-dulezita": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "den-naruby-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "utekla-pismenka": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zmrzlinovy-dest-hudba.mp3",
+    "body": 20.25
+   }
+  },
+  "semafor-blikalek": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "hadanky-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "mali-hasici": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "robot-na-namesti-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "o-smolickovi": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zlatovlaska-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "kohoutek-a-slepicka": {
+   "kulisa": {
+    "file": "velika-repa-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "velika-repa-hudba.mp3",
+    "body": 24.25
+   }
+  },
+  "princezna-ktera-se-nesmala": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "hrnecku-var-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "sipkova-ruzenka": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "sul-nad-zlato-hudba.mp3",
+    "body": 25.25
+   }
+  },
+  "popelka": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zlatovlaska-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "hvezdne-tolary": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozci-hvezdna-louka-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "zlata-rybka": {
+   "kulisa": {
+    "file": "mesicni-lodka-kulisa.mp3",
+    "body": 27.75
+   },
+   "hudba": {
+    "file": "sul-nad-zlato-hudba.mp3",
+    "body": 25.25
+   }
+  },
+  "tri-zlate-vlasy": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dlouhy-siroky-bystrozraky-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "chytra-horakyne": {
+   "kulisa": {
+    "file": "velika-repa-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zlatovlaska-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "oskliva-kachna": {
+   "kulisa": {
+    "file": "mesicni-lodka-kulisa.mp3",
+    "body": 27.75
+   },
+   "hudba": {
+    "file": "noc-v-lese-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "cisarovy-nove-saty": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "den-naruby-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "superhrdina-laskavec": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "tajna-superschopnost-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "strazci-snu": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "kapitan-nocni-svetlo-hudba.mp3",
+    "body": 24.5
+   }
+  },
+  "zelena-hlidka": {
+   "kulisa": {
+    "file": "mesicni-lodka-kulisa.mp3",
+    "body": 27.75
+   },
+   "hudba": {
+    "file": "zachrana-zviratka-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "mesto-bez-smichu": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zmrzlinovy-dest-hudba.mp3",
+    "body": 20.25
+   }
+  },
+  "rytir-bez-mece": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dlouhy-siroky-bystrozraky-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "maly-jako-mravenec": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dinosaurus-na-zahrade-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "vila-rosicka": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozec-duhanek-hudba.mp3",
+    "body": 19.75
+   }
+  },
+  "jezek-mazlik": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "noc-v-lese-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "snek-postak": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "kdo-to-dela-hudba.mp3",
+    "body": 24.75
+   }
+  },
+  "pejsek-z-utulku": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zachrana-zviratka-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "chameleon": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dinosaurus-na-zahrade-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "velryba-zpevacka": {
+   "kulisa": {
+    "file": "ponorka-pod-rybnikem-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "ponorka-pod-rybnikem-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "svetluska": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "mesicni-lodka-hudba.mp3",
+    "body": 24.0
+   }
+  },
+  "mesto-usina": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "utekle-ovecky-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "pyzamova-party": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "utekle-ovecky-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "polstarova-zeme": {
+   "kulisa": {
+    "file": "hvezdicka-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "jednorozci-hvezdna-louka-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "uz-tam-budem": {
+   "kulisa": {
+    "file": "hadanky-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "cesta-za-pokladem-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "barevna-honicka": {
+   "kulisa": {
+    "file": "hadanky-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "hadanky-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "pirati-z-vany": {
+   "kulisa": {
+    "file": "zubar-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "cesta-za-pokladem-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "babicka-na-skateboardu": {
+   "kulisa": {
+    "file": "tajna-superschopnost-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "robot-na-namesti-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "kouzelnik-ucen": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "ponozkozrout-hudba.mp3",
+    "body": 26.25
+   }
   }
  }
 }

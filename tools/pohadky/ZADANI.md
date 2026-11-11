@@ -20,6 +20,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     delka: 5,                      // cílová délka v minutách: 5, 10 nebo 15
     pro: 'f',                      // komu tématem sedí víc: 'f' holky, 'm' kluci, 'vse'
     pozn: 'Jednou dvěma větami, o čem pohádka je (pro schvalování).',
+    pouceni: 'Jedna věta: co si dítě odnese (pro schvalování).',
     free: false,
     cats: ['noc', 'zvirata'],      // první je hlavní kategorie
     ages: [2, 6],
@@ -31,7 +32,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
 ]);
 ```
 
-Kategorie: `noc` Na dobrou noc, `auto` Do auta, `dobro` Dobrodružství, `zivot` Ze života, a nové `sranda` Srandovní, `lidove` Klasické pohádky, `hrdinove` Superhrdinové, `zvirata` O zvířátkách.
+Kategorie: `noc` Na dobrou noc, `auto` Do auta, `dobro` Dobrodružství, `zivot` Ze života, `sranda` Srandovní, `lidove` Klasické pohádky, `hrdinove` Superhrdinové, `zvirata` O zvířátkách, a nové `svatky` Oslavy a svátky, `zvidave` Zvídavé (jak věci fungují).
 sfx jen: sparkle, magic, car, horn, birds, owl, paper, wind, ding. Používej střídmě (2–5 na pohádku).
 `cap` a `listCz` jsou globální funkce ze `stories.cs.js`, můžeš je používat, nedeklaruj je znovu.
 
@@ -65,7 +66,14 @@ Odstavec drž na 1–4 větách. Validátor hlídá, aby vyšlo 5 přesně, 10 �
 - Lidové pohádky jsou volné dílo (Erben, Němcová), ale převyprávěj je VLASTNÍMI slovy a zkráceně pro malé děti; nepřebírej věty z žádných moderních adaptací ani filmů.
 - Superhrdinové jsou úplně vlastní, vymyšlení (žádní Marvel/DC, Paw Patrol apod.). Superschopnosti dětské a laskavé.
 - Pro holky / pro kluky je jen tématem (`pro`); text vždy funguje pro libovolný rod hrdiny přes c.g.
-- Nová id nesmí kolidovat s existujícími (hvezdicka, vyprava, hadanky, drak, lednice, zubar).
+- Nová id nesmí kolidovat s existujícími (všechna id v `app/stories.cs.js`); témata nesmí opakovat hotové pohádky.
+
+## Poučení a chytrost
+
+- Každá pohádka má jasné poučení (`pouceni`), ale NEMORALIZUJE. Dítě na něj přijde samo přes děj: hrdina něco zkusí, splete se, najde lepší cestu. Žádné „A víte, děti, že…“ ani kázání na konci; nanejvýš jedna laskavá věta postavy nebo vypravěče, která to shrne.
+- Chytré a inteligentní: hrdina problém vyřeší přemýšlením, otázkou, pozorováním, spoluprací nebo laskavostí – ne náhodou ani kouzlem, které vše spraví samo.
+- Fakta musí sedět (věda, příroda, zdraví, bezpečnost). Řekni je jednoduše a přesně pro daný věk; když si nejsi jistý, raději méně faktů, ale správně. Tísňová čísla v CZ i SK: 150 hasiči, 155 záchranka, 158 policie, 112 jednotné.
+- Vtip a nápad: každá pohádka má aspoň jeden originální, zapamatovatelný nápad (postava, refrén, zvrat), ať se pohádky navzájem nepodobají.
 
 ## Kontrola
 
