@@ -14,6 +14,9 @@ const LIVE = (() => {
   // tts-worker (hlas ElevenLabs): GET /naklady vrací spotřebu kreditů; lokálně ?tts=http://localhost:8787
   const ttsDev = new URLSearchParams(location.search).get('tts');
   const TTS_ = ttsDev && /^http:\/\/localhost(:\d+)?$/.test(ttsDev) ? ttsDev : C.ttsUrl || 'https://ospalek-tts.jan-patek.workers.dev';
+  // push-worker (večerní upozornění): POST /test pošle zkoušku; lokálně ?push=http://localhost:8788
+  const pushDev = new URLSearchParams(location.search).get('push');
+  const PUSH_ = pushDev && /^http:\/\/localhost(:\d+)?$/.test(pushDev) ? pushDev : C.pushUrl || 'https://ospalek-push.jan-patek.workers.dev';
   const configured = !!(URL_ && KEY_);
   const get = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const set = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
@@ -321,6 +324,24 @@ const LIVE = (() => {
       role: (id, role) => rpc('admin_set_role', { uid: id, new_role: role }),
       resetMfa: (id) => rpc('admin_reset_mfa', { uid: id }),
       list: async () => staffOf(await rpc('admin_staff')),
+    };
+    // pohádka dne a večerní upozornění (admin/upozorneni.js); spravuje vlastník a role Obsah
+    D.push = {
+      load: () => rpc('admin_push', { days: 28 }),
+      save: (p) => rpc('admin_push_save', { p }),
+      setDay: (day, story) => rpc('admin_daily_set', { d: day, story: story || null }),
+      // odběr tohoto prohlížeče: uloží se k účtu člena týmu, zkouška pak chodí jen sem
+      subscribe: (p) => rpc('app_push_subscribe', { p }),
+      key: async () => (devOk ? (await fetch(URL_ + '/dev/push-key').then((r) => r.json())).publicKey : C.pushKey || ''),
+      test: async () => {
+        const s = await session();
+        if (!s) throw new Error('Nejsi přihlášený do databáze');
+        const r = await fetch(PUSH_ + '/test', { method: 'POST', headers: { Authorization: 'Bearer ' + s.access_token } }).catch(() => null);
+        if (!r) throw new Error('Worker s upozorněními neodpovídá (push-worker). Je nasazený?');
+        const j = await r.json().catch(() => null);
+        if (!r.ok) throw new Error((j && j.error) || 'Worker vrátil ' + r.status);
+        return j;
+      },
     };
     D.deleteFamily = (f) => rpc('admin_delete_family', { fseq: f.n });
     D.log = (action, target, detail) => rpc('admin_log', { action, target: String(target || ''), detail: String(detail || '') }).catch(() => {});

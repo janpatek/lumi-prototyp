@@ -12,12 +12,16 @@ Dokud je `config.js` v kořeni webu prázdný, nic se neodesílá a administrace
 | `plays` | pohádka, kategorie, začátek, délka poslechu, dohráno; `family_id` jen se souhlasem | aplikace přes `app_play` |
 | `family_day`, `daily_cat` | denní souhrny, plní je trigger při zápisu poslechu | databáze |
 | `staff`, `audit_log` | tým administrace a záznam jeho akcí | ručně / administrace |
+| `push_subs` | odběr večerního upozornění: adresa u push služby prohlížeče a klíče k zašifrování, platforma, kdy naposledy doručeno; jen rodiny, které připomínku zapnuly | aplikace přes `app_push_subscribe`, mazání `app_push_unsubscribe` a push-worker |
+| `push_settings`, `daily_story`, `push_log` | nastavení upozornění (hodina, texty, střídání), ručně vybrané pohádky dne, historie rozesílání | administrace (`admin_push_save`, `admin_daily_set`), push-worker |
 
 Účet rodiny (CRM) se ukládá vždy, kvůli podpoře. Statistiky poslechu a zdroj návštěvy se k rodině přiřadí jen se souhlasem
 (`families.analytics`, přepínač v aplikaci); bez souhlasu se poslech uloží anonymně (bez rodiny, čas na hodinu, souhrn `daily_anon`)
 a odvolání souhlasu dosavadní poslechy rodiny anonymizuje. Jídlo, zvíře, rodiče a místa v okolí zůstávají jen v prohlížeči. Přímý přístup do tabulek je zakázaný (RLS bez politik).
 Aplikace smí volat jen funkce `app_*`, které vždy pracují s vlastní rodinou (`auth.uid()`).
 Administrace volá `admin_*`, které nejdřív ověří, že volající je v tabulce `staff`.
+Večerní upozornění rozesílá `push-worker` (Cloudflare) s tajným klíčem Supabase, který smí volat jen `push_start`, `push_batch` a `push_report`.
+Zapojení: `push-worker/README.md`.
 
 ## Zapojení (jednou, asi 15 minut)
 

@@ -1,0 +1,27 @@
+# Ospalek – večerní upozornění „Je čas na pohádku“ (Cloudflare Worker). Návod: README.md v této složce.
+name = "ospalek-push"
+main = "src/worker.js"
+compatibility_date = "2025-06-01"
+
+# Každou celou hodinu (čas UTC). Kdy se opravdu posílá, rozhoduje databáze podle pražského času a hodiny z administrace,
+# takže letní a zimní čas se řešit nemusí.
+[triggers]
+crons = ["0 * * * *"]
+
+# Worker volá sám sebe: každá dávka odběrů je samostatné volání se svým limitem požadavků
+[[services]]
+binding = "SELF"
+service = "ospalek-push"
+
+[vars]
+# Web administrace, odkud jde poslat zkušební upozornění (POST /test)
+ALLOWED_ORIGINS = "https://ospalek.cz,https://www.ospalek.cz,https://janpatek.github.io,http://localhost:5174"
+SUPABASE_URL = "https://imiujppjewddeldjifkl.supabase.co"
+# Veřejný (publishable) klíč, stejný jako v config.js. Tajný klíč patří jen do `wrangler secret put SUPABASE_SECRET`.
+SUPABASE_KEY = "sb_publishable_uX729wkKmJ4vtTQaWcWzig_dGjzNaJC"
+# Veřejný klíč VAPID (stejný jako pushKey v config.js). Vyplní ho `node push-worker/klice.mjs`.
+VAPID_PUBLIC_KEY = ""
+VAPID_SUBJECT = "mailto:podpora@ospalek.cz"
+# Odběrů v jedné dávce. Tarif Workers Free dovolí 50 požadavků ven na jedno volání → 40 (a nejvýš ~45 dávek, tj. ~1 800 odběrů).
+# Na tarifu Workers Paid (1 000 požadavků) zvyš na 400.
+BATCH_SIZE = "40"
