@@ -105,12 +105,12 @@ const API = (() => {
 
   // ---------- Šablony odpovědí ----------
   const DEFAULT_TPL = [
-    { id: 't1', name: 'Pozdrav a poděkování', text: 'Ahoj {jmeno},\n\ndíky, že se ozýváš. ' },
-    { id: 't2', name: 'Vrácení platby', text: 'Ahoj {jmeno},\n\nplatbu ve výši {castka} jsme ti vrátili. Peníze uvidíš na účtu do 5 pracovních dnů. Omlouváme se za komplikace.\n\nTým Ospalek' },
-    { id: 't3', name: 'Zrušení předplatného', text: 'Ahoj {jmeno},\n\npředplatné se ruší v nastavení obchodu ({obchod}) v sekci Předplatná. Pohádky ti zůstanou do konce zaplaceného období.\n\nTým Ospalek' },
-    { id: 't4', name: 'Oprava výslovnosti jména', text: 'Ahoj {jmeno},\n\nupravili jsme, jak vypravěčka vyslovuje jméno {dite}, a pohádky přegenerovali. Dej prosím vědět, jestli teď všechno sedí.\n\nTým Ospalek' },
-    { id: 't5', name: 'GDPR: export dat', text: 'Ahoj {jmeno},\n\nv příloze posíláme export všech údajů, které o vaší rodině máme (profil, děti, historie poslechu). Pokud budeš chtít cokoli smazat, stačí odpovědět.\n\nTým Ospalek' },
-    { id: 't6', name: 'Potřebujeme víc informací', text: 'Ahoj {jmeno},\n\nabychom to mohli prověřit, pošli nám prosím typ telefonu, verzi aplikace (máš {verze}) a název pohádky, u které to nastává.\n\nTým Ospalek' },
+    { id: 't1', name: 'Pozdrav a poděkování', text: 'Dobrý den,\n\nděkujeme, že se ozýváte. ' },
+    { id: 't2', name: 'Vrácení platby', text: 'Dobrý den,\n\nplatbu ve výši {castka} jsme vám vrátili. Peníze uvidíte na účtu do 5 pracovních dnů. Omlouváme se za komplikace.\n\nTým Ospalek' },
+    { id: 't3', name: 'Zrušení předplatného', text: 'Dobrý den,\n\npředplatné se ruší v nastavení obchodu ({obchod}) v sekci Předplatná. Pohádky vám zůstanou do konce zaplaceného období.\n\nTým Ospalek' },
+    { id: 't4', name: 'Oprava výslovnosti jména', text: 'Dobrý den,\n\nupravili jsme, jak vypravěčka vyslovuje jméno {dite}, a pohádky přegenerovali. Dejte nám prosím vědět, jestli teď všechno sedí.\n\nTým Ospalek' },
+    { id: 't5', name: 'GDPR: export dat', text: 'Dobrý den,\n\nv příloze posíláme export všech údajů, které o vaší rodině máme (profil, děti, historie poslechu). Pokud budete chtít cokoli smazat, stačí odpovědět.\n\nTým Ospalek' },
+    { id: 't6', name: 'Potřebujeme víc informací', text: 'Dobrý den,\n\nabychom to mohli prověřit, pošlete nám prosím typ telefonu, verzi aplikace (máte {verze}) a název pohádky, u které to nastává.\n\nTým Ospalek' },
   ];
   const tpls = ls.get('ospalek.admin.templates.v1', DEFAULT_TPL);
   function fillTpl(text, t) {

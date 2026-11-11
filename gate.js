@@ -44,7 +44,7 @@
     let fails = 0;
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
-      if (!input.value) { err.textContent = 'Zadej heslo.'; input.focus(); return; }
+      if (!input.value) { err.textContent = 'Zadejte heslo.'; input.focus(); return; }
       btn.disabled = true; err.textContent = '';
       // každý další špatný pokus o chvilku zdrží
       await new Promise((r) => setTimeout(r, Math.min(fails, 5) * 600));
