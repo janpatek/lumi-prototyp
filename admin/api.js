@@ -29,6 +29,7 @@ const API = (() => {
     'billing.refund': 'Vracet platby, dávat dárky, vyplácet provize',
     'coupons.manage': 'Vytvářet kupony a kódy pro partnery',
     'content.edit': 'Upravovat pohádky',
+    'push.manage': 'Pohádka dne a večerní upozornění',
     'analytics.read': 'Statistiky a přehledy',
     'ops.read': 'Provoz a náklady na hlas',
     'team.manage': 'Spravovat tým a role',
@@ -38,7 +39,7 @@ const API = (() => {
   const ROLES = {
     owner: { label: 'Vlastník', perms: ALL },
     support: { label: 'Podpora', perms: ['families.read', 'families.pii', 'families.edit', 'tickets.read', 'tickets.reply', 'billing.read', 'analytics.read', 'coupons.manage'] },
-    content: { label: 'Obsah', perms: ['content.edit', 'analytics.read', 'ops.read', 'tickets.read', 'families.read'] },
+    content: { label: 'Obsah', perms: ['content.edit', 'push.manage', 'analytics.read', 'ops.read', 'tickets.read', 'families.read'] },
     analyst: { label: 'Analytik', perms: ['families.read', 'analytics.read', 'billing.read', 'ops.read'] },
     finance: { label: 'Účetní', perms: ['billing.read', 'billing.refund', 'coupons.manage', 'families.read', 'families.pii', 'analytics.read'] },
   };

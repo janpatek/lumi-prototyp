@@ -43,7 +43,7 @@
   <main class="terms">
     <div class="wrap wrap-narrow">
       <h1>Ochrana osobních údajů</h1>
-      <p class="meta">Verze 1.10 · účinné od 11. 11. 2026</p>
+      <p class="meta">Verze 2.1 · účinné od 11. 11. 2026</p>
 
       <section class="summary" aria-labelledby="kratce">
         <h2 id="kratce">Krátce a lidsky</h2>
@@ -56,6 +56,7 @@
           <li>K předplatnému se přihlásíte přes Apple nebo Google, pohádky zdarma jdou i bez přihlášení. Při přihlášení od nich dostaneme jen identifikátor účtu, e-mail (u Applu můžete skutečný e-mail skrýt) a případně jméno. Heslo nevidíme.</li>
           <li>Údaje neprodáváme a nepoužíváme je k reklamě. Nemáme reklamní ani analytické cookies.</li>
           <li>Pohádky stažené na cestu (nahrávky vět i se jménem dítěte) a přehled toho, co jste už slyšeli, leží jen ve vašem zařízení. Na server je neposíláme.</li>
+          <li>Když si zapnete večerní připomínku, uložíme na server adresu vašeho prohlížeče u jeho služby pro upozornění (Google, Apple, Mozilla nebo Microsoft). Jméno dítěte do upozornění doplní až váš telefon, na server ani té službě nejde.</li>
           <li>Všechno můžete kdykoli smazat jedním tlačítkem v aplikaci.</li>
         </ul>
       </section>
@@ -95,6 +96,7 @@
             <tr><td>Zprávy, které nám pošlete na podporu</td><td>Odpověď a vyřízení požadavku nebo reklamace</td><td>Plnění smlouvy; oprávněný zájem (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;f)</td></tr>
             <tr><td>Typ zařízení a verze aplikace</td><td>Pomoct, když něco nejde (podpora), a opravovat chyby</td><td>Plnění smlouvy; oprávněný zájem</td></tr>
             <tr><td>Statistiky poslechu přiřazené k rodině: kterou pohádku a kdy jste pustili, jak dlouho jste poslouchali a jestli jste ji dohráli; odkud jste na web přišli</td><td>Zjistit, které pohádky fungují a co zlepšit</td><td>Souhlas (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;a GDPR), který můžete kdykoli odvolat v nastavení aplikace. Bez souhlasu ukládáme jen anonymní údaj o poslechu (pohádka, délka, čas zaokrouhlený na hodinu), který nejde spojit s vaší rodinou.</td></tr>
+            <tr><td>Odběr večerní připomínky: adresa zařízení u služby upozornění jeho prohlížeče nebo telefonu, klíče k zašifrování zprávy, platforma a kdy bylo upozornění naposledy doručeno</td><td>Poslat jednou denně upozornění s pohádkou dne</td><td>Souhlas (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;a GDPR): dáváte ho zapnutím připomínky a povolením upozornění, odvoláte ho vypnutím v nastavení aplikace nebo zařízení</td></tr>
             <tr><td>Technické údaje: IP adresa, typ prohlížeče, čas požadavku</td><td>Provoz a zabezpečení webu, ochrana před zneužitím</td><td>Oprávněný zájem</td></tr>
           </tbody>
         </table>
@@ -109,6 +111,7 @@
       <p><b>V prohlížeči</b> (localStorage na vašem zařízení) je celá rodina tak, jak ji vyplníte: jména a tvary jmen, věk, oblíbené věci, blízcí, obec, místa v okolí a nastavení. Je tu i přehled <i>Co jsme už slyšeli</i>: která pohádka, kdy, pro které děti a jestli dohrála do konce (nejvýš 200 posledních poslechů). Ten na server neposíláme.</p>
       <p><b>Pohádky stažené na cestu</b> ukládá aplikace do úložiště zařízení (IndexedDB a Cache Storage prohlížeče, v mobilní aplikaci do jejích dat), aby šly pustit bez internetu. Jsou to nahrávky vět, takže v nich zní jméno dítěte, blízkých a obec. Ukládají se i věty pohádek, které jste dohráli do konce. Nahrávky se starými jmény po změně rodiny aplikace sama smaže. Všechny stažené pohádky smažete v <i>Rodina a nastavení → Poslech bez internetu → Smazat stažené</i>.</p>
       <p><b>Na našem serveru</b> v databázi Supabase v EU (Irsko) ukládáme jen část: křestní jména, pohlaví a věk dětí, obec, informaci, zda máte předplatné, a technické údaje o zařízení. Statistiky poslechu k rodině přiřazujeme jen s vaším souhlasem (viz článek 2); když souhlas odvoláte, dosavadní poslechy od rodiny odpojíme a zůstanou jen v anonymních součtech. Aplikace k tomu vytvoří anonymní účet bez e-mailu; e-mail ukládáme jen tehdy, když se přihlásíte. Údaje vidí jen náš tým po přihlášení a jen v rozsahu, který potřebuje pro svou práci.</p>
+      <p><b>Večerní připomínka:</b> když ji zapnete, uložíme k anonymnímu účtu i odběr upozornění (viz článek 2), nejvýš pro 3 zařízení. Upozornění obsahuje nadpis, text a pohádku dne, stejné pro všechny rodiny, a je zašifrované jen pro vaše zařízení. Název pohádky se jménem dítěte si aplikace pro upozornění ukládá jen v zařízení (Cache Storage) a doplní ho až tam. Z rozesílání si ukládáme jen souhrny (kolik upozornění odešlo a kolik se doručilo), ne to, kdo je dostal.</p>
       <p>Když v aplikaci zvolíte <i>Rodina a nastavení → Smazat všechna data a začít znovu</i>, smažeme údaje v prohlížeči i na serveru včetně anonymního účtu a historie poslechu. Pokud jste se přihlásili přes Apple, zrušíme zároveň u Applu oprávnění aplikace k vašemu účtu. Smažou se i pohádky stažené na cestu.</p>
 
       <h2 id="prijemci">5. Komu údaje předáváme</h2>
@@ -118,7 +121,8 @@
           <thead><tr><th>Příjemce</th><th>Co dostane</th><th>Proč</th></tr></thead>
           <tbody>
             <tr><td>ElevenLabs (syntetický hlas)</td><td>Text pohádky nebo věty, včetně jména dítěte, blízkých a obce</td><td>Přečtení pohádky hlasem. Hotové nahrávky ukládáme, aby se nemusely generovat znovu.</td></tr>
-            <tr><td>Cloudflare</td><td>Text, který se posílá k přečtení, a technické údaje</td><td>Bezpečné předání textu hlasové službě a ukládání hotových nahrávek</td></tr>
+            <tr><td>Cloudflare</td><td>Text, který se posílá k přečtení, a technické údaje; při večerní připomínce adresa zařízení u služby upozornění a zašifrovaná zpráva</td><td>Bezpečné předání textu hlasové službě, ukládání hotových nahrávek a odeslání večerních upozornění</td></tr>
+            <tr><td>Služby upozornění výrobců prohlížečů a telefonů: Google (Firebase Cloud Messaging), Apple (Apple Push Notification service), Mozilla (Mozilla Push Service), Microsoft (Windows Push Notification Services), podle toho, jaký prohlížeč nebo telefon používáte</td><td>Zašifrovanou zprávu upozornění a adresu zařízení. Obsah zprávy nepřečtou.</td><td>Doručení večerní připomínky, jen když si ji zapnete</td></tr>
             <tr><td>GitHub (GitHub Pages)</td><td>Technické údaje, například IP adresu</td><td>Hosting webu a aplikace</td></tr>
             <tr><td>OpenStreetMap (Nominatim, Overpass)</td><td>Název obce, kterou zadáte při hledání míst v okolí</td><td>Nalezení okolních obcí a zajímavých míst</td></tr>
             <tr><td>Supabase (databáze, server v EU – Irsko)</td><td>Křestní jména, pohlaví a věk dětí, obec, údaje o poslechu a zařízení, případně e-mail. Při stažení aktuálního seznamu pohádek jen technické údaje, například IP adresu.</td><td>Uložení údajů na serveru a přihlášení. Aktuální seznam pohádek pro aplikaci.</td></tr>
@@ -132,7 +136,7 @@
       <p>Údaje můžeme předat i úřadům, když nám to ukládá zákon.</p>
 
       <h2 id="mimo-eu">6. Předání mimo EU</h2>
-      <p>Někteří zpracovatelé (například ElevenLabs, GitHub, Cloudflare, Google, RevenueCat a Supabase, i když data drží na serveru v EU) sídlí nebo zpracovávají data v USA. Předání probíhá na základě rozhodnutí Evropské komise o odpovídající ochraně (EU–US Data Privacy Framework), pokud je u příjemce k dispozici, jinak na základě standardních smluvních doložek schválených Evropskou komisí.</p>
+      <p>Někteří zpracovatelé (například ElevenLabs, GitHub, Cloudflare, Google, Apple, Mozilla, Microsoft, RevenueCat a Supabase, i když data drží na serveru v EU) sídlí nebo zpracovávají data v USA. Předání probíhá na základě rozhodnutí Evropské komise o odpovídající ochraně (EU–US Data Privacy Framework), pokud je u příjemce k dispozici, jinak na základě standardních smluvních doložek schválených Evropskou komisí.</p>
 
       <h2 id="doba">7. Jak dlouho údaje držíme</h2>
       <ul>
@@ -140,6 +144,7 @@
         <li>Pohádky stažené na cestu a přehled poslechnutých pohádek v zařízení: dokud je nesmažete. Nahrávky se jmény, která už v rodině nejsou, aplikace smaže sama.</li>
         <li>Údaje o rodině a poslechu na serveru: dokud je nesmažete v aplikaci nebo nás nepožádáte o smazání. Pak je smažeme hned, nejpozději do 30 dnů.</li>
         <li>Údaje o účtu: po dobu trvání účtu. Po jeho zrušení je smažeme do 30 dnů.</li>
+        <li>Odběr večerní připomínky: dokud připomínku nevypnete nebo nesmažete data v aplikaci. Když služba upozornění ohlásí, že odběr zanikl (například po odinstalaci prohlížeče), nebo se upozornění nepodaří doručit 5× za sebou, odběr smažeme sami.</li>
         <li>Nahrávky vět: pohádku skládáme z nahrávek jednotlivých vět. Ukládáme je jen podle textu věty, bez vazby na účet, rodinu nebo zařízení, a stejnou větu přehrajeme každé rodině, u které se v pohádce objeví (například dětem se stejným křestním jménem). Proto je nedokážeme přiřadit konkrétní rodině a nemažeme je spolu s účtem. Nahrávky vět se jménem nebo místem se automaticky mažou 12 měsíců od namluvení. Když je někdo potřebuje později, namluví se znovu. Nahrávky bez jmen, společné pro všechny rodiny, si ponecháváme.</li>
         <li>Účetní doklady: 10 let, jak ukládá zákon.</li>
         <li>Komunikace s podporou: 3 roky od vyřízení, kvůli případným reklamacím a sporům.</li>
@@ -147,7 +152,7 @@
       </ul>
 
       <h2 id="cookies">8. Cookies a úložiště prohlížeče</h2>
-      <p>Nepoužíváme reklamní ani analytické cookies a nesledujeme vás napříč weby. Aplikace používá jen úložiště prohlížeče: localStorage, aby si pamatovala vaši rodinu, nastavení, přehled poslechnutých pohádek, přihlášení k vašemu účtu a naposledy stažený seznam pohádek, a IndexedDB s Cache Storage pro aplikaci a pohádky stažené na cestu, aby fungovaly i bez internetu. To je nutné pro fungování služby, a proto k tomu nežádáme souhlas. Kvůli statistikám poslechu ukládáme do zařízení údaj (odkud jste na web přišli) jen s vaším souhlasem; bez něj kvůli statistikám do zařízení nic neukládáme. Souhlas zapnete nebo vypnete v aplikaci v části <i>Rodina a nastavení → Statistiky</i>.</p>
+      <p>Nepoužíváme reklamní ani analytické cookies a nesledujeme vás napříč weby. Aplikace používá jen úložiště prohlížeče: localStorage, aby si pamatovala vaši rodinu, nastavení, přehled poslechnutých pohádek, přihlášení k vašemu účtu a naposledy stažený seznam pohádek, a IndexedDB s Cache Storage pro aplikaci a pohádky stažené na cestu, aby fungovaly i bez internetu, a plán pohádek dne. To je nutné pro fungování služby, a proto k tomu nežádáme souhlas. Když si zapnete večerní připomínku, uloží aplikace do Cache Storage i názvy pohádek se jménem dítěte, aby je mohla doplnit do upozornění; vypnutím připomínky nebo smazáním dat zmizí. Kvůli statistikám poslechu ukládáme do zařízení údaj (odkud jste na web přišli) jen s vaším souhlasem; bez něj kvůli statistikám do zařízení nic neukládáme. Souhlas zapnete nebo vypnete v aplikaci v části <i>Rodina a nastavení → Statistiky</i>.</p>
 
       <h2 id="prava">9. Vaše práva</h2>
       <p>Máte právo:</p>
@@ -158,7 +163,7 @@
         <li>omezit zpracování,</li>
         <li>dostat údaje ve strojově čitelné podobě a předat je jinému správci,</li>
         <li>vznést námitku proti zpracování založenému na oprávněném zájmu,</li>
-        <li>kdykoli odvolat souhlas se statistikami poslechu (v nastavení aplikace); odvolání se netýká zpracování před ním.</li>
+        <li>kdykoli odvolat souhlas se statistikami poslechu nebo s večerní připomínkou (v nastavení aplikace); odvolání se netýká zpracování před ním.</li>
       </ul>
       <p>Většinu údajů můžete upravit nebo smazat rovnou v aplikaci. Jinak nám napište na <a href="mailto:podpora@ospalek.cz">podpora@ospalek.cz</a>. Odpovíme do jednoho měsíce.</p>
       <p>Když nesouhlasíte s tím, jak s údaji zacházíme, můžete podat stížnost u Úřadu pro ochranu osobních údajů (<a href="https://uoou.gov.cz" rel="noopener">uoou.gov.cz</a>), nebo u dozorového úřadu ve státě, kde bydlíte (na Slovensku <a href="https://dataprotection.gov.sk" rel="noopener">dataprotection.gov.sk</a>).</p>
@@ -174,7 +179,8 @@
         <table class="tbl">
           <thead><tr><th>Verze</th><th>Datum</th><th>Co se změnilo</th></tr></thead>
           <tbody>
-            <tr><td>1.10</td><td>11. 11. 2026</td><td>Aplikace si při spuštění stahuje aktuální seznam pohádek z naší databáze Supabase (EU). Neposílá přitom žádné údaje o rodině, jen technické údaje, jako je IP adresa. Poslední seznam si pamatuje v zařízení.</td></tr>
+            <tr><td>2.1</td><td>11. 11. 2026</td><td>Aplikace si při spuštění stahuje aktuální seznam pohádek z naší databáze Supabase (EU). Neposílá přitom žádné údaje o rodině, jen technické údaje, jako je IP adresa. Poslední seznam si pamatuje v zařízení.</td></tr>
+            <tr><td>2.0</td><td>11. 11. 2026</td><td>Večerní připomínka s pohádkou dne: jen se souhlasem ukládáme odběr upozornění (adresu zařízení u služby upozornění Google, Apple, Mozilla nebo Microsoft) a posíláme přes Cloudflare zašifrované upozornění. Jméno dítěte doplní až telefon.</td></tr>
             <tr><td>1.9</td><td>11. 11. 2026</td><td>Zásady uživatele oslovují vykáním, stejně jako web a aplikace. Obsah se nemění.</td></tr>
             <tr><td>1.8</td><td>11. 11. 2026</td><td>K předplatnému je nutné přihlášení přes Apple nebo Google, pohádky zdarma jdou i bez něj.</td></tr>
             <tr><td>1.7</td><td>11. 11. 2026</td><td>Sloučení s mobilní verzí aplikace: předplatné se platí jen přes App Store a Google Play, platební brána na webu (Stripe) se ze seznamu příjemců vypouští. Apple, Google a RevenueCat (správa předplatných v aplikaci) jako příjemci údajů o nákupu. Přihlášení přes Apple a Google: jaké údaje od nich dostáváme. Při smazání účtu zrušíme oprávnění u Applu.</td></tr>

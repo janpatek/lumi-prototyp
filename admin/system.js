@@ -1,6 +1,6 @@
 // ---------- Tým a role, Audit log, hledání (⌘K) a klávesové zkratky ----------
 
-const ACTION_LABEL = { auth: 'Přihlášení', ticket: 'Helpdesk', family: 'Rodiny', payment: 'Platby', story: 'Pohádky', team: 'Tým', promo: 'Kódy', tts: 'Hlas' };
+const ACTION_LABEL = { auth: 'Přihlášení', ticket: 'Helpdesk', family: 'Rodiny', payment: 'Platby', story: 'Pohádky', team: 'Tým', promo: 'Kódy', tts: 'Hlas', push: 'Upozornění' };
 
 function pageTeam() {
   // ostrá data: tým spravuje vlastník (účty a hesla přes Edge Function staff-admin, role a kód přes databázi)

@@ -90,6 +90,7 @@ const I = {
   search: '<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>',
   gift: '<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M12 9c-2-4-6-4-6-1.5S10 9 12 9zm0 0c2-4 6-4 6-1.5S14 9 12 9z"/></svg>',
   back: '<svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+  bell: '<svg class="ico" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
 };
 
 const ROUTES = [
@@ -106,6 +107,7 @@ const ROUTES = [
   { id: 'kupony', label: 'Kupony a partneři', ico: I.gift, perm: 'billing.read' },
   { grp: 'Obsah' },
   { id: 'pohadky', label: 'Pohádky', ico: I.book, perm: 'content.edit' },
+  { id: 'upozorneni', label: 'Pohádka dne', ico: I.bell, perm: 'push.manage' },
   { id: 'hlas', label: 'Hlas a náklady', ico: I.wave, perm: 'ops.read' },
   { grp: 'Systém' },
   { id: 'tym', label: 'Tým a role', ico: I.shield },

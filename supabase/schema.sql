@@ -487,14 +487,223 @@ begin
   return v;
 end $$;
 
+-- ---------- Pohádka dne a večerní upozornění ----------
+-- Pohádka dne je pro všechny stejná: buď ji na den vybere tým v administraci (daily_story), nebo se vezme další
+-- v pořadí push_settings.rotation (střídání podle data). Aplikace si plán na dva týdny stáhne přes app_daily.
+-- Upozornění rozesílá push-worker (Cloudflare, cron každou hodinu): push_start pozná, že je v Praze nastavená hodina
+-- a dnes se ještě neposílalo, push_batch vydá odběry po dávkách a push_report zapíše výsledek.
+-- Odběr (push_subs) = adresa prohlížeče u push služby (Google, Apple, Mozilla, Microsoft) a klíče k zašifrování zprávy.
+-- Jména dětí server nepotřebuje: název pohádky se jménem doplní až telefon (app/sw.js).
+create table if not exists public.push_settings (
+  id smallint primary key default 1 check (id = 1),
+  enabled boolean not null default true,
+  hour smallint not null default 19 check (hour between 6 and 22),
+  title text not null default 'Je čas na pohádku 🌙' check (char_length(title) between 1 and 60),
+  body text not null default 'Čeká na vás pohádka „{pohadka}“.' check (char_length(body) between 1 and 160),
+  rotation text[] not null default array['hvezdicka', 'vyprava', 'hadanky', 'drak', 'lednice', 'zubar'],
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id) on delete set null
+);
+insert into public.push_settings (id) values (1) on conflict (id) do nothing;
+
+create table if not exists public.daily_story (
+  day date primary key,
+  story_id text not null check (char_length(story_id) between 1 and 40),
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id) on delete set null
+);
+
+create table if not exists public.push_subs (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,  -- smazání rodiny smaže i odběr
+  endpoint text not null unique check (char_length(endpoint) <= 1000),
+  p256dh text not null check (char_length(p256dh) between 80 and 100),
+  auth text not null check (char_length(auth) between 16 and 30),
+  platform text not null default 'web' check (platform in ('web', 'ios', 'android')),
+  created_at timestamptz not null default now(),
+  seen_at timestamptz not null default now(),                         -- aplikace odběr potvrzuje nejvýš jednou denně
+  last_ok timestamptz,
+  fails smallint not null default 0                                   -- po 5 neúspěších za sebou se odběr smaže
+);
+create index if not exists push_subs_user on public.push_subs(user_id);
+
+create table if not exists public.push_log (
+  id bigint generated always as identity primary key,
+  day date not null,
+  kind text not null check (kind in ('daily', 'test')),
+  story_id text,
+  title text,
+  body text,
+  started_at timestamptz not null default now(),
+  finished_at timestamptz,
+  targets int not null default 0,
+  ok int not null default 0,
+  failed int not null default 0,
+  removed int not null default 0,
+  actor uuid references auth.users(id) on delete set null
+);
+-- denní rozeslání nejvýš jednou za den, i kdyby cron běžel dvakrát
+create unique index if not exists push_log_daily on public.push_log(day) where kind = 'daily';
+
+alter table public.push_settings enable row level security;
+alter table public.daily_story enable row level security;
+alter table public.push_subs enable row level security;
+alter table public.push_log enable row level security;
+
+-- Pohádka dne pro datum: naplánovaná, jinak střídání (stejný vzorec jako v app/daily.js, start 5. 1. 2026)
+create or replace function public.daily_pick(d date) returns text language sql stable security definer set search_path = public as $$
+  select coalesce(
+    (select story_id from daily_story where day = d),
+    (select s.rotation[1 + (((d - date '2026-01-05') % cardinality(s.rotation)) + cardinality(s.rotation)) % cardinality(s.rotation)]
+       from push_settings s where s.id = 1 and cardinality(s.rotation) > 0));
+$$;
+
+-- Aplikace: plán pohádek dne na n dní od dneška a hodina upozornění
+create or replace function public.app_daily(n int default 14) returns jsonb language sql stable security definer set search_path = public as $$
+  select jsonb_build_object('hour', s.hour, 'enabled', s.enabled, 'days',
+    (select jsonb_agg(jsonb_build_object('day', d::date, 'story', daily_pick(d::date)) order by d)
+       from generate_series((now() at time zone 'Europe/Prague')::date,
+                            (now() at time zone 'Europe/Prague')::date + least(greatest(n, 1), 31) - 1, interval '1 day') d))
+  from push_settings s where s.id = 1;
+$$;
+
+-- Aplikace: přihlásit odběr upozornění. Jen známé push služby (lokálně i localhost), nejvýš 3 zařízení na účet.
+create or replace function public.app_push_subscribe(p jsonb) returns void language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); ep text := p->>'endpoint';
+begin
+  if uid is null then raise exception 'not signed in' using errcode = '42501'; end if;
+  if ep is null or ep !~ '^(https://(fcm\.googleapis\.com|android\.googleapis\.com|updates\.push\.services\.mozilla\.com|[a-z0-9.-]+\.push\.apple\.com|[a-z0-9.-]+\.notify\.windows\.com)/|http://localhost(:[0-9]+)?/)' then
+    raise exception 'Neznámá push služba.' using errcode = '22023';
+  end if;
+  insert into push_subs (user_id, endpoint, p256dh, auth, platform)
+    values (uid, ep, p->>'p256dh', p->>'auth', coalesce(nullif(p->>'platform', ''), 'web'))
+    on conflict (endpoint) do update set user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth, seen_at = now(), fails = 0;
+  delete from push_subs where user_id = uid and id not in (select id from push_subs where user_id = uid order by seen_at desc limit 3);
+end $$;
+
+-- Aplikace: odhlásit odběr (jeden, nebo bez adresy všechny odběry účtu)
+create or replace function public.app_push_unsubscribe(endpoint text default null) returns void language plpgsql security definer set search_path = public as $$
+begin
+  delete from push_subs s where s.user_id = auth.uid() and (app_push_unsubscribe.endpoint is null or s.endpoint = app_push_unsubscribe.endpoint);
+end $$;
+
+-- Administrace: upozornění spravuje vlastník a role Obsah
+create or replace function public.require_push() returns void language plpgsql stable security definer set search_path = public as $$
+begin
+  perform require_staff();
+  if (select s.role from staff s where s.user_id = auth.uid()) not in ('owner', 'content') then raise exception 'forbidden: push' using errcode = '42501'; end if;
+end $$;
+
+create or replace function public.admin_push(days int default 28) returns jsonb language plpgsql stable security definer set search_path = public as $$
+declare today date := (now() at time zone 'Europe/Prague')::date;
+begin
+  perform require_push();
+  return jsonb_build_object(
+    'today', today,
+    'settings', (select to_jsonb(s) - 'id' from push_settings s where s.id = 1),
+    'plan', (select coalesce(jsonb_agg(jsonb_build_object('day', d::date, 'story', daily_pick(d::date), 'manual', ds.story_id is not null,
+                 'by', st.name, 'at', ds.updated_at) order by d), '[]')
+               from generate_series(today, today + least(greatest(days, 1), 92) - 1, interval '1 day') d
+               left join daily_story ds on ds.day = d::date left join staff st on st.user_id = ds.updated_by),
+    'subs', (select jsonb_build_object('total', count(*), 'web', count(*) filter (where platform = 'web'),
+                 'ios', count(*) filter (where platform = 'ios'), 'android', count(*) filter (where platform = 'android'),
+                 'reached7', count(*) filter (where last_ok > now() - interval '7 days'), 'mine', count(*) filter (where user_id = auth.uid()),
+                 'new7', count(*) filter (where created_at > now() - interval '7 days'))
+               from push_subs),
+    'log', (select coalesce(jsonb_agg(to_jsonb(x) order by x.started_at desc), '[]') from (
+              select l.id, l.day, l.kind, l.story_id, l.title, l.body, l.started_at, l.finished_at, l.targets, l.ok, l.failed, l.removed, st.name actor
+              from push_log l left join staff st on st.user_id = l.actor order by l.started_at desc limit 60) x));
+end $$;
+
+create or replace function public.admin_push_save(p jsonb) returns void language plpgsql security definer set search_path = public as $$
+declare r text[];
+begin
+  perform require_push();
+  if p ? 'rotation' then
+    select array_agg(x) into r from jsonb_array_elements_text(p->'rotation') x where char_length(x) between 1 and 40;
+  end if;
+  update push_settings set
+    enabled = coalesce((p->>'enabled')::boolean, enabled),
+    hour = coalesce((p->>'hour')::smallint, hour),
+    title = coalesce(nullif(trim(p->>'title'), ''), title),
+    body = coalesce(nullif(trim(p->>'body'), ''), body),
+    rotation = coalesce(r, rotation),
+    updated_at = now(), updated_by = auth.uid()
+  where id = 1;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'push.settings', 'Upozornění',
+    left(concat_ws(' · ', case when p ? 'enabled' then case when (p->>'enabled')::boolean then 'zapnuto' else 'vypnuto' end end,
+      case when p ? 'hour' then 'v ' || (p->>'hour') || ':00' end, case when p ? 'title' then 'nadpis „' || (p->>'title') || '“' end,
+      case when p ? 'body' then 'text „' || (p->>'body') || '“' end, case when r is not null then 'střídání: ' || array_to_string(r, ', ') end), 500));
+end $$;
+
+-- Naplánovat pohádku dne (story = null vrátí den do střídání)
+create or replace function public.admin_daily_set(d date, story text) returns void language plpgsql security definer set search_path = public as $$
+begin
+  perform require_push();
+  if d < (now() at time zone 'Europe/Prague')::date then raise exception 'Minulost už změnit nejde.' using errcode = '22023'; end if;
+  if story is null or story = '' then
+    delete from daily_story where day = d;
+  else
+    insert into daily_story (day, story_id, updated_by) values (d, left(story, 40), auth.uid())
+      on conflict (day) do update set story_id = excluded.story_id, updated_at = now(), updated_by = excluded.updated_by;
+  end if;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'push.plan', to_char(d, 'DD. MM. YYYY'), coalesce('Pohádka dne: ' || nullif(story, ''), 'Vráceno do střídání'));
+end $$;
+
+-- Zkušební upozornění: jen na odběry přihlášeného člena týmu. Volá ho push-worker (POST /test) s tokenem člena týmu.
+create or replace function public.admin_push_test() returns jsonb language plpgsql security definer set search_path = public as $$
+declare s push_settings; today date := (now() at time zone 'Europe/Prague')::date; lid bigint; subs jsonb;
+begin
+  perform require_push();
+  select * into s from push_settings where id = 1;
+  select coalesce(jsonb_agg(jsonb_build_object('id', id, 'endpoint', endpoint, 'p256dh', p256dh, 'auth', auth)), '[]') into subs from push_subs where user_id = auth.uid();
+  insert into push_log (day, kind, story_id, title, body, targets, actor) values (today, 'test', daily_pick(today), s.title, s.body, jsonb_array_length(subs), auth.uid()) returning id into lid;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'push.test', 'Upozornění', 'Zkouška na ' || jsonb_array_length(subs) || ' zařízení');
+  return jsonb_build_object('run', lid, 'story', daily_pick(today), 'title', s.title, 'body', s.body, 'subs', subs);
+end $$;
+
+-- ---------- Rozesílání (jen push-worker s tajným klíčem Supabase, role service_role) ----------
+-- Začít dnešní rozeslání: vrátí null, když je vypnuto, není ta hodina (s hodinovou rezervou) nebo už dnes proběhlo.
+create or replace function public.push_start(t timestamptz default now()) returns jsonb language plpgsql security definer set search_path = public as $$
+declare s push_settings; today date := (t at time zone 'Europe/Prague')::date; h int := extract(hour from t at time zone 'Europe/Prague'); lid bigint; n int;
+begin
+  select * into s from push_settings where id = 1;
+  if not s.enabled or h < s.hour or h > s.hour + 1 then return null; end if;
+  select count(*) into n from push_subs;
+  insert into push_log (day, kind, story_id, title, body, targets) values (today, 'daily', daily_pick(today), s.title, s.body, n)
+    on conflict (day) where kind = 'daily' do nothing returning id into lid;
+  if lid is null then return null; end if;
+  return jsonb_build_object('run', lid, 'day', today, 'story', daily_pick(today), 'title', s.title, 'body', s.body, 'targets', n);
+end $$;
+
+create or replace function public.push_batch(page int, size int) returns table (id bigint, endpoint text, p256dh text, auth text) language sql stable security definer set search_path = public as $$
+  select s.id, s.endpoint, s.p256dh, s.auth from push_subs s order by s.id offset greatest(page, 0) * least(greatest(size, 1), 500) limit least(greatest(size, 1), 500);
+$$;
+
+-- Výsledek dávky: doručené odběry se označí, zaniklé (404/410) a 5× po sobě nedoručené se smažou
+create or replace function public.push_report(run bigint, ok_ids bigint[], fail_ids bigint[], gone_ids bigint[]) returns void language plpgsql security definer set search_path = public as $$
+declare dead int;
+begin
+  update push_subs set last_ok = now(), fails = 0 where id = any(ok_ids);
+  update push_subs set fails = fails + 1 where id = any(fail_ids);
+  delete from push_subs where id = any(gone_ids) or (id = any(fail_ids) and fails >= 5);
+  get diagnostics dead = row_count;
+  update push_log set ok = ok + coalesce(cardinality(ok_ids), 0), failed = failed + coalesce(cardinality(fail_ids), 0) + coalesce(cardinality(gone_ids), 0),
+    removed = removed + dead, finished_at = now() where id = run;
+end $$;
+
 -- ---------- Práva ----------
 -- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení přečte jen katalog pohádek.
 revoke all on all tables in schema public from anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
-grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family() to authenticated;
+grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family(),
+  public.app_daily(int), public.app_push_subscribe(jsonb), public.app_push_unsubscribe(text) to authenticated;
 grant execute on function public.admin_me(), public.admin_role(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_staff(),
   public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint),
   public.admin_set_role(uuid, text), public.admin_reset_mfa(uuid),
-  public.admin_story_catalog(), public.admin_publish_stories(jsonb, jsonb, bigint, text) to authenticated;
+  public.admin_story_catalog(), public.admin_publish_stories(jsonb, jsonb, bigint, text),
+  public.admin_push(int), public.admin_push_save(jsonb), public.admin_daily_set(date, text), public.admin_push_test() to authenticated;
+-- rozesílání upozornění: jen push-worker s tajným klíčem (sb_secret_…)
+grant execute on function public.push_start(timestamptz), public.push_batch(int, int), public.push_report(bigint, bigint[], bigint[], bigint[]) to service_role;
 grant execute on function public.app_catalog(bigint) to anon, authenticated;

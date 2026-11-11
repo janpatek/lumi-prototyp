@@ -20,7 +20,7 @@ const seedN = Number((process.argv.find((a, i) => process.argv[i - 1] === '--see
 
 const db = new PGlite();
 await db.exec(`
-  create role anon; create role authenticated;
+  create role anon; create role authenticated; create role service_role;
   create schema auth;
   create table auth.users (id uuid primary key, email text, password text, last_sign_in_at timestamptz, is_anonymous boolean default false);
   create table auth.mfa_factors (id uuid primary key, user_id uuid not null references auth.users(id) on delete cascade, factor_type text, status text, friendly_name text, secret text);
@@ -37,7 +37,7 @@ await db.query(`insert into public.staff (user_id, name, role) values ($1, $2, '
 const fns = new Map((await db.query(`
   select p.proname name, p.proretset set, p.prorettype::regtype::text ret,
     coalesce(p.proargnames, '{}') argnames, (select array_agg(t::regtype::text order by o) from unnest(p.proargtypes) with ordinality u(t, o)) argtypes
-  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'app\\_%' or p.proname like 'admin\\_%')`)).rows.map((r) => [r.name, r]));
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like 'app\\_%' or p.proname like 'admin\\_%' or p.proname like 'push\\_%')`)).rows.map((r) => [r.name, r]));
 
 const tokens = new Map(); // access token -> { uid, exp, aal }
 const refreshes = new Map(); // refresh token -> { uid, aal }
@@ -73,6 +73,23 @@ async function asUser(uid, sql, params, aal = 'aal1') {
   });
 }
 
+// tajný klíč (sb_secret_…) = role service_role, bez přihlášeného uživatele; lokálně klíč „dev-secret“ (push-worker)
+async function asService(sql, params) {
+  return serial(async () => {
+    await db.query(`select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claims', '{}', false)`);
+    await db.exec('set role service_role');
+    try { return await db.query(sql, params); } finally { await db.exec('reset role'); }
+  });
+}
+// Klíče VAPID jen pro lokální zkoušku upozornění (při každém startu nové): aplikace si veřejný vezme z GET /dev/push-key,
+// push-worker spuštěný lokálně (push-worker/dev.mjs) i soukromý. Ostré klíče vyrábí push-worker/klice.mjs.
+const vapid = (() => {
+  const k = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const jwk = k.privateKey.export({ format: 'jwk' });
+  const pub = Buffer.concat([Buffer.from([4]), Buffer.from(jwk.x, 'base64url'), Buffer.from(jwk.y, 'base64url')]).toString('base64url');
+  return { publicKey: pub, privateKey: jwk.d };
+})();
+
 const send = (res, code, body) => {
   res.writeHead(code, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'apikey, authorization, content-type, prefer', 'Access-Control-Allow-Methods': 'POST, GET, PUT, DELETE, OPTIONS' });
   res.end(body === undefined ? '' : JSON.stringify(body));
@@ -83,6 +100,7 @@ http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204);
   const url = new URL(req.url, 'http://x');
   try {
+    if (req.method === 'GET' && url.pathname === '/dev/push-key') return send(res, 200, vapid);
     if (req.method === 'POST' && url.pathname === '/auth/v1/signup') {
       const uid = crypto.randomUUID();
       await serial(() => db.query(`insert into auth.users (id, is_anonymous) values ($1, true)`, [uid]));
@@ -193,23 +211,25 @@ http.createServer(async (req, res) => {
     }
     const m = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)$/);
     if (req.method === 'POST' && m) {
+      const t = tokenOf(req);
+      const service = !t && req.headers.apikey === 'dev-secret' && !req.headers.authorization;
       // bez přihlášení (jen anonymní klíč) jde volat jen to, co má právo role anon (katalog pohádek)
-      const t = tokenOf(req) || (req.headers.authorization ? null : { uid: null, aal: null });
-      if (!t) return send(res, 401, { message: 'JWT expired' });
+      const anon = !t && !service && !req.headers.authorization;
+      if (!t && !service && !anon) return send(res, 401, { message: 'JWT expired' });
       const f = fns.get(m[1]);
       if (!f) return send(res, 404, { message: 'function not found' });
       const body = await read(req);
       const names = f.argnames.filter((n) => n in body);
       const sql = `select * from public.${f.name}(${names.map((n, i) => `${n} => $${i + 1}::${f.argtypes[f.argnames.indexOf(n)]}`).join(', ')})`;
-      const params = names.map((n) => (typeof body[n] === 'object' ? JSON.stringify(body[n]) : body[n]));
-      const r = await asUser(t.uid, sql, params, t.aal || undefined);
+      const params = names.map((n) => (Array.isArray(body[n]) && /\[\]$/.test(f.argtypes[f.argnames.indexOf(n)]) ? body[n] : typeof body[n] === 'object' ? JSON.stringify(body[n]) : body[n]));
+      const r = service ? await asService(sql, params) : await asUser(t ? t.uid : null, sql, params, t ? t.aal : undefined);
       if (f.ret === 'void') return send(res, 204);
       if (!f.set && r.fields.length === 1) return send(res, 200, r.rows[0] ? Object.values(r.rows[0])[0] : null);
       return send(res, 200, r.rows);
     }
     send(res, 404, { message: 'not found' });
   } catch (e) {
-    const code = /forbidden/.test(e.message) ? 403 : /not signed in/.test(e.message) ? 401 : 400;
+    const code = /forbidden|permission denied/.test(e.message) ? 403 : /not signed in/.test(e.message) ? 401 : 400;
     send(res, code, { message: e.message });
   }
 }).listen(PORT, () => console.log(`Ospalek – testovací Supabase na http://localhost:${PORT}  (administrace: ${STAFF.email} / ${STAFF.password})`));

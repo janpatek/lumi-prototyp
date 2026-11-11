@@ -8,4 +8,8 @@ window.OSPALEK_CONFIG = {
   // RevenueCat: veřejné SDK klíče pro předplatné v mobilní aplikaci (app/billing.js). Prázdné = platby vypnuté.
   revenuecatAndroidKey: '',
   revenuecatIosKey: '',
+  // Večerní upozornění (push-worker/README.md): veřejný klíč VAPID vyplní `node push-worker/klice.mjs`.
+  // Prázdný = aplikace se na upozornění neptá.
+  pushKey: '',
+  pushUrl: 'https://ospalek-push.jan-patek.workers.dev',
 };
