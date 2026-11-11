@@ -460,7 +460,15 @@ const fromStory = (s) => ({
   titleSrc: s.title.toString(), textSrc: s.text.toString(),
 });
 const ORIG = window.STORIES.map(fromStory);
-let STORIES = store.get(SK) || ORIG.map((s) => structuredClone(s));
+// Uložené úpravy z prohlížeče + pohádky, které mezitím přibyly do app/stories.cs.js (bez těch, které tu někdo smazal)
+const SKD = 'ospalek.admin.deleted.v1';
+let DELETED = store.get(SKD) || [];
+let STORIES = (() => {
+  const saved = store.get(SK);
+  if (!saved) return ORIG.map((s) => structuredClone(s));
+  const have = new Set(saved.map((s) => s.id));
+  return saved.concat(ORIG.filter((s) => !have.has(s.id) && !DELETED.includes(s.id)).map((s) => structuredClone(s)));
+})();
 let SRC = null; // text originálního stories.cs.js kvůli hlavičce a pomocným funkcím při exportu
 fetch('../app/stories.cs.js', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => { SRC = t; }).catch(() => {});
 const saveStories = () => store.set(SK, STORIES);
@@ -801,11 +809,11 @@ const ACTIONS = {
   del: (v) => {
     const s = STORIES.find((x) => x.id === v);
     confirmBox('Smazat pohádku?', `„${esc(safeTitle(s))}“ zmizí ze seznamu. V aplikaci zůstane, dokud nenahraješ nový app/stories.cs.js, a dá se vrátit tlačítkem Zahodit změny.`, 'Smazat', () => {
-      STORIES = STORIES.filter((x) => x.id !== v); saveStories(); render(); toast('Pohádka je smazaná');
+      STORIES = STORIES.filter((x) => x.id !== v); DELETED = [...new Set([...DELETED, v])]; store.set(SKD, DELETED); saveStories(); render(); toast('Pohádka je smazaná');
     });
   },
   reset: () => confirmBox('Zahodit změny?', 'Seznam se vrátí do stavu z app/stories.cs.js. Všechny úpravy v tomhle prohlížeči se ztratí.', 'Zahodit', () => {
-    STORIES = ORIG.map((s) => structuredClone(s)); store.del(SK); render(); toast('Změny jsou zahozené');
+    STORIES = ORIG.map((s) => structuredClone(s)); store.del(SK); DELETED = []; store.del(SKD); render(); toast('Změny jsou zahozené');
   }),
   download: () => { download('stories.cs.js', exportFile()); toast('Soubor stories.cs.js se stahuje'); },
   copyExport: () => copy(exportFile(), 'Obsah stories.cs.js je ve schránce'),
