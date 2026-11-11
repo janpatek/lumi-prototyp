@@ -550,12 +550,22 @@ alter table public.daily_story enable row level security;
 alter table public.push_subs enable row level security;
 alter table public.push_log enable row level security;
 
--- Pohádka dne pro datum: naplánovaná, jinak střídání (stejný vzorec jako v app/daily.js, start 5. 1. 2026)
+-- Pohádka, kterou tým smazal v administraci (je mezi smazanými v poslední verzi katalogu pohádek)
+create or replace function public.story_gone(story text) returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select c.deleted ? story from story_catalog c order by c.version desc limit 1), false);
+$$;
+
+-- Pohádka dne pro datum: naplánovaná, jinak střídání (stejný vzorec jako v app/daily.js, start 5. 1. 2026).
+-- Smazané pohádky se přeskakují: naplánovaná smazaná pohádka ustoupí střídání a ze střídání vypadne.
 create or replace function public.daily_pick(d date) returns text language sql stable security definer set search_path = public as $$
+  with r as (
+    select array(select x from unnest(s.rotation) with ordinality u(x, o) where not story_gone(x) order by o) a
+    from push_settings s where s.id = 1
+  )
   select coalesce(
-    (select story_id from daily_story where day = d),
-    (select s.rotation[1 + (((d - date '2026-01-05') % cardinality(s.rotation)) + cardinality(s.rotation)) % cardinality(s.rotation)]
-       from push_settings s where s.id = 1 and cardinality(s.rotation) > 0));
+    (select story_id from daily_story where day = d and not story_gone(story_id)),
+    (select r.a[1 + (((d - date '2026-01-05') % cardinality(r.a)) + cardinality(r.a)) % cardinality(r.a)]
+       from r where cardinality(r.a) > 0));
 $$;
 
 -- Aplikace: plán pohádek dne na n dní od dneška a hodina upozornění
