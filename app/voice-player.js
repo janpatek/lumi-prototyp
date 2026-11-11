@@ -72,6 +72,9 @@
 
   window.voiceLines = {
     ready,
+    // pro stahování na cestu (offline.js): má věta společnou nahrávku a kde leží
+    has,
+    url: (line) => BASE + line.key + '.mp3',
     // kolik vět pohádky ještě nemá nahrávku
     missing: (plan) => lines(plan).filter((l) => !has(l)).length,
     prefetch(para, fallback) { para && para.lines.forEach((l) => clip(l, fallback).catch(() => {})); },
