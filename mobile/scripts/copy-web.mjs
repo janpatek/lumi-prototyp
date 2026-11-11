@@ -21,12 +21,11 @@ for (const p of COPY) {
   cpSync(src, join(out, p), { recursive: true, filter: (s) => !s.endsWith('.DS_Store') });
 }
 
-// app/index.html: pryč se zámkem
+// app/index.html: pryč se zámkem (od spuštění webu tam už není, kontrola jen pro jistotu)
 const indexPath = join(out, 'app', 'index.html');
 let html = readFileSync(indexPath, 'utf8');
-const before = html;
 html = html.replace(/\s*<!--[^>]*Zámek[^>]*-->/, '').replace(/\s*<script src="\.\.\/gate\.js[^"]*"><\/script>/, '');
-if (html === before || html.includes('gate.js')) throw new Error('Nepodařilo se odstranit gate.js z app/index.html');
+if (html.includes('gate.js')) throw new Error('Nepodařilo se odstranit gate.js z app/index.html');
 writeFileSync(indexPath, html);
 
 // právní dokumenty z webu
