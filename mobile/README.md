@@ -84,7 +84,7 @@ přes `@capacitor/filesystem` do složky `hlas/` v datech aplikace (app/remote.j
 z pozadí si stáhne aktuální `app/stories.cs.js` z webu a přidá pohádky, které v balíčku ještě nejsou
 (app/catalog.js), takže nové pohádky nepotřebují novou verzi v obchodě – stačí je nasadit na web.
 
-## Přehrávání na pozadí (Android)
+## Přehrávání na pozadí
 
 Pohádka hraje dál i se zhasnutým displejem. Hlas a hudba hrají ve WebView (Web Audio), aplikaci drží naživu
 služba v popředí `PrehravacService` (typ mediaPlayback) s mediální relací: na zamčené obrazovce a v oznámeních
@@ -92,3 +92,8 @@ je obálka, název a tlačítka předchozí / přehrát-pozastavit / další; fu
 JS strana je `app/media.js`, doplněk `PrehravacPlugin` (registrovaný v MainActivity). Předchozí / další
 přepíná pohádky v pořadí poličky, ze které se pohádka otevřela, a přeskočí zamčené.
 Ladění: `adb shell cmd media_session dispatch next`, stav `adb shell dumpsys media_session`.
+
+iPhone: aplikace má v Info.plist režim pozadí `audio` a stránka si řekne o `navigator.audioSession.type = 'playback'`
+(hraje i s tichým režimem). Právě hraje na zamčené obrazovce vyplní WebKit sám z `navigator.mediaSession`
+(app/media.js) – nativní doplněk tam není potřeba; vlastní MPNowPlayingInfoCenter by WebKit stejně přepsal.
+V simulátoru se ukáže název, obálku a tlačítka je potřeba ověřit na skutečném iPhonu.
