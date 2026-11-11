@@ -44,6 +44,16 @@ const BILLING = (() => {
         throw e;
       }
     },
+    // Cena měsíčního předplatného tak, jak ji ukazuje obchod (např. „129,00 Kč“ nebo „4,99 €“). null = nevíme.
+    async price() {
+      if (!on) return null;
+      try {
+        await init();
+        const o = await P.getOfferings();
+        const pkg = o.current && (o.current.monthly || o.current.availablePackages[0]);
+        return (pkg && pkg.product && pkg.product.priceString) || null;
+      } catch (e) { return null; }
+    },
     async restore() {
       if (!on) return null;
       await init();
