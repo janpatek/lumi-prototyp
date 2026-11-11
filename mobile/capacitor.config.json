@@ -1,0 +1,15 @@
+{
+  "appId": "cz.ospalek.app",
+  "appName": "Ospalek",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#f1effa"
+  }
+}
