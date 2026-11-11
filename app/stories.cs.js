@@ -2075,7 +2075,7 @@ window.STORIES = [
     cats: ['svatky', 'zivot'],
     ages: [2, 7],
     mood: 'adventure',
-    cover: { emoji: '🎂', g1: '#ffb74d', g2: '#f8bbd0' },
+    cover: { img: '../covers/narozeninove-prani.jpg', imgF: '../covers/narozeninove-prani-f.jpg', emoji: '🎂', g1: '#ffb74d', g2: '#f8bbd0' },
     title: () => `Narozeninové přání`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1, q = c.p2 || c.p1;
@@ -2140,7 +2140,7 @@ window.STORIES = [
     cats: ['svatky', 'dobro'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '✉️', g1: '#1a237e', g2: '#90caf9' },
+    cover: { img: '../covers/jeziskova-posta.jpg', emoji: '✉️', g1: '#1a237e', g2: '#90caf9' },
     title: () => `Ježíškova ztracená pošta`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2229,7 +2229,7 @@ window.STORIES = [
     cats: ['svatky', 'sranda'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '😈', g1: '#b71c1c', g2: '#ffcc80' },
+    cover: { img: '../covers/certik-bez-strachu.jpg', emoji: '😈', g1: '#b71c1c', g2: '#ffcc80' },
     title: () => `Čertík, který neuměl strašit`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2296,7 +2296,7 @@ window.STORIES = [
     cats: ['svatky', 'zvirata'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { emoji: '🐰', g1: '#aed581', g2: '#fff59d' },
+    cover: { img: '../covers/zajicek-malir.jpg', emoji: '🐰', g1: '#aed581', g2: '#fff59d' },
     title: () => `Zajíček malíř`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2366,7 +2366,7 @@ window.STORIES = [
     cats: ['svatky', 'noc'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🏮', g1: '#283593', g2: '#ffb74d' },
+    cover: { img: '../covers/lampionovy-pruvod.jpg', imgF: '../covers/lampionovy-pruvod-f.jpg', emoji: '🏮', g1: '#283593', g2: '#ffb74d' },
     title: () => `Lampionový průvod`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2410,7 +2410,7 @@ window.STORIES = [
     cats: ['svatky', 'sranda'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🎭', g1: '#7b1fa2', g2: '#81c784' },
+    cover: { img: '../covers/karneval-masek.jpg', imgF: '../covers/karneval-masek-f.jpg', emoji: '🎭', g1: '#7b1fa2', g2: '#81c784' },
     title: () => `Kdo je pod maskou?`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2476,7 +2476,7 @@ window.STORIES = [
     cats: ['zivot', 'sranda'],
     ages: [2, 6],
     mood: 'adventure',
-    cover: { emoji: '🪥', g1: '#0277bd', g2: '#80deea' },
+    cover: { img: '../covers/kartackovy-rytir.jpg', emoji: '🪥', g1: '#0277bd', g2: '#80deea' },
     title: () => `Kartáčkový rytíř`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2513,7 +2513,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🫧', g1: '#f8bbd0', g2: '#b2ebf2' },
+    cover: { img: '../covers/bublinka.jpg', emoji: '🫧', g1: '#f8bbd0', g2: '#b2ebf2' },
     title: () => `Mýdlová bublina Bublinka`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2553,7 +2553,7 @@ window.STORIES = [
     cats: ['zivot', 'sranda'],
     ages: [2, 4],
     mood: 'adventure',
-    cover: { emoji: '🐸', g1: '#558b2f', g2: '#c5e1a5' },
+    cover: { img: '../covers/nocnikova-vyprava.jpg', emoji: '🐸', g1: '#558b2f', g2: '#c5e1a5' },
     title: () => `Velká nočníková výprava`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2594,7 +2594,7 @@ window.STORIES = [
     cats: ['zivot', 'sranda'],
     ages: [2, 7],
     mood: 'adventure',
-    cover: { emoji: '🥦', g1: '#2e7d32', g2: '#ffcc80' },
+    cover: { img: '../covers/odvazny-ochutnavac.jpg', imgF: '../covers/odvazny-ochutnavac-f.jpg', emoji: '🥦', g1: '#2e7d32', g2: '#ffcc80' },
     title: (c) => c.g('Odvážný ochutnávač', 'Odvážná ochutnávačka', 'Odvážní ochutnávači', 'Odvážné ochutnávačky'),
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2657,7 +2657,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🩹', g1: '#ef6c00', g2: '#ffe0b2' },
+    cover: { img: '../covers/statecna-naplast.jpg', emoji: '🩹', g1: '#ef6c00', g2: '#ffe0b2' },
     title: () => `Statečná náplast`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2698,7 +2698,7 @@ window.STORIES = [
     cats: ['zvidave', 'noc'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🦉', g1: '#283593', g2: '#9fa8da' },
+    cover: { img: '../covers/proc-spime.jpg', imgF: '../covers/proc-spime-f.jpg', emoji: '🦉', g1: '#283593', g2: '#9fa8da' },
     title: () => `Proč musí všichni spát?`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2759,7 +2759,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [3, 7],
     mood: 'adventure',
-    cover: { emoji: '🛒', g1: '#00695c', g2: '#ffd54f' },
+    cover: { img: '../covers/ztraceny-v-obchode.jpg', imgF: '../covers/ztraceny-v-obchode-f.jpg', emoji: '🛒', g1: '#00695c', g2: '#ffd54f' },
     title: () => `Když se ztratím`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2801,7 +2801,7 @@ window.STORIES = [
     cats: ['zivot', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '📱', g1: '#37474f', g2: '#90caf9' },
+    cover: { img: '../covers/tablet-chtel-spat.jpg', emoji: '📱', g1: '#37474f', g2: '#90caf9' },
     title: () => `Tablet, který chtěl spát`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2865,7 +2865,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { emoji: '👶', g1: '#f8bbd0', g2: '#fff3e0' },
+    cover: { img: '../covers/miminko-u-nas.jpg', imgF: '../covers/miminko-u-nas-f.jpg', emoji: '👶', g1: '#f8bbd0', g2: '#fff3e0' },
     title: () => `Miminko u nás doma`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -2934,7 +2934,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🌶️', g1: '#e53935', g2: '#ffcc80' },
+    cover: { img: '../covers/vztekloun.jpg', emoji: '🌶️', g1: '#e53935', g2: '#ffcc80' },
     title: () => `Vztekloun v kapse`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -2997,7 +2997,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [3, 7],
     mood: 'adventure',
-    cover: { emoji: '⛵', g1: '#1e88e5', g2: '#b3e5fc' },
+    cover: { img: '../covers/kouzelne-promin.jpg', imgF: '../covers/kouzelne-promin-f.jpg', emoji: '⛵', g1: '#1e88e5', g2: '#b3e5fc' },
     title: () => `Kouzelné slovo promiň`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -3035,7 +3035,7 @@ window.STORIES = [
     cats: ['zivot', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '⚪', g1: '#90a4ae', g2: '#e1f5fe' },
+    cover: { img: '../covers/lez-ktera-rostla.jpg', emoji: '⚪', g1: '#90a4ae', g2: '#e1f5fe' },
     title: () => `Lež, která rostla`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3097,7 +3097,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🏃', g1: '#43a047', g2: '#fff59d' },
+    cover: { img: '../covers/kdo-prohraje-vyhraje.jpg', imgF: '../covers/kdo-prohraje-vyhraje-f.jpg', emoji: '🏃', g1: '#43a047', g2: '#fff59d' },
     title: () => `Kdo prohraje, vyhraje`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3159,7 +3159,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [2, 5],
     mood: 'lullaby',
-    cover: { emoji: '🪣', g1: '#ffb300', g2: '#fff8e1' },
+    cover: { img: '../covers/jedna-lopatka.jpg', imgF: '../covers/jedna-lopatka-f.jpg', emoji: '🪣', g1: '#ffb300', g2: '#fff8e1' },
     title: (c) => c.n(`Jedna lopatka pro dva`, `Jedna lopatka pro všechny`),
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3201,7 +3201,7 @@ window.STORIES = [
     cats: ['zivot'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🏡', g1: '#81c784', g2: '#fff9c4' },
+    cover: { img: '../covers/kamarad-pres-plot.jpg', imgF: '../covers/kamarad-pres-plot-f.jpg', emoji: '🏡', g1: '#81c784', g2: '#fff9c4' },
     title: () => `Kamarád přes plot`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3265,7 +3265,7 @@ window.STORIES = [
     cats: ['zivot', 'noc'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '💋', g1: '#7e57c2', g2: '#f8bbd0' },
+    cover: { img: '../covers/pusa-vetrem.jpg', emoji: '💋', g1: '#7e57c2', g2: '#f8bbd0' },
     title: () => `Pusa poslaná větrem`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3307,7 +3307,7 @@ window.STORIES = [
     cats: ['zvidave', 'dobro'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '💧', g1: '#81d4fa', g2: '#1565c0' },
+    cover: { img: '../covers/kapka-kapicka.jpg', imgF: '../covers/kapka-kapicka-f.jpg', emoji: '💧', g1: '#81d4fa', g2: '#1565c0' },
     title: () => `Kapka Kapička na cestách`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3390,7 +3390,7 @@ window.STORIES = [
     cats: ['zvidave'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🍞', g1: '#ffe082', g2: '#a1887f' },
+    cover: { img: '../covers/od-zrnicka-k-chlebu.jpg', emoji: '🍞', g1: '#ffe082', g2: '#a1887f' },
     title: () => `Od zrníčka k chlebíčku`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3458,7 +3458,7 @@ window.STORIES = [
     cats: ['zvidave', 'zvirata'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🐝', g1: '#fff176', g2: '#ffb74d' },
+    cover: { img: '../covers/vcelka-medunka.jpg', imgF: '../covers/vcelka-medunka-f.jpg', emoji: '🐝', g1: '#fff176', g2: '#ffb74d' },
     title: () => `Včelka Medunka`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3522,7 +3522,7 @@ window.STORIES = [
     cats: ['zvidave', 'zvirata'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🐛', g1: '#c5e1a5', g2: '#ff8a65' },
+    cover: { img: '../covers/housenka-zmena.jpg', imgF: '../covers/housenka-zmena-f.jpg', emoji: '🐛', g1: '#c5e1a5', g2: '#ff8a65' },
     title: () => `Housenka, která se bála změny`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3565,7 +3565,7 @@ window.STORIES = [
     cats: ['zvidave', 'noc'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { emoji: '🌳', g1: '#a5d6a7', g2: '#ffcc80' },
+    cover: { img: '../covers/strom-ctyri-kabaty.jpg', emoji: '🌳', g1: '#a5d6a7', g2: '#ffcc80' },
     title: () => `Strom, který měl čtyři kabáty`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3627,7 +3627,7 @@ window.STORIES = [
     cats: ['zvidave', 'noc'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🌱', g1: '#dcedc8', g2: '#8d6e63' },
+    cover: { img: '../covers/seminko-nespechalo.jpg', imgF: '../covers/seminko-nespechalo-f.jpg', emoji: '🌱', g1: '#dcedc8', g2: '#8d6e63' },
     title: () => `Semínko, které nespěchalo`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3667,7 +3667,7 @@ window.STORIES = [
     cats: ['zvidave', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🏭', g1: '#ffccbc', g2: '#ff7043' },
+    cover: { img: '../covers/tovarna-v-brisku.jpg', imgF: '../covers/tovarna-v-brisku-f.jpg', emoji: '🏭', g1: '#ffccbc', g2: '#ff7043' },
     title: () => `Továrna v bříšku`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
@@ -3731,7 +3731,7 @@ window.STORIES = [
     cats: ['zvidave', 'dobro'],
     ages: [5, 9],
     mood: 'adventure',
-    cover: { emoji: '🪐', g1: '#0b1d51', g2: '#f9a825' },
+    cover: { img: '../covers/vylet-slunecni-soustavou.jpg', imgF: '../covers/vylet-slunecni-soustavou-f.jpg', emoji: '🪐', g1: '#0b1d51', g2: '#f9a825' },
     title: () => `Výlet po Sluneční soustavě`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3810,7 +3810,7 @@ window.STORIES = [
     cats: ['zvidave', 'noc'],
     ages: [4, 9],
     mood: 'lullaby',
-    cover: { emoji: '🦉', g1: '#0d1442', g2: '#3949ab' },
+    cover: { img: '../covers/ztracene-souhvezdi.jpg', imgF: '../covers/ztracene-souhvezdi-f.jpg', emoji: '🦉', g1: '#0d1442', g2: '#3949ab' },
     title: () => `Ztracené souhvězdí`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3895,7 +3895,7 @@ window.STORIES = [
     cats: ['zvidave', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🔟', g1: '#00897b', g2: '#ffd54f' },
+    cover: { img: '../covers/nula-dulezita.jpg', emoji: '🔟', g1: '#00897b', g2: '#ffd54f' },
     title: () => `Nula, která chtěla být důležitá`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -3957,7 +3957,7 @@ window.STORIES = [
     cats: ['zvidave', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🔤', g1: '#8e24aa', g2: '#ffb74d' },
+    cover: { img: '../covers/utekla-pismenka.jpg', imgF: '../covers/utekla-pismenka-f.jpg', emoji: '🔤', g1: '#8e24aa', g2: '#ffb74d' },
     title: () => `Písmenka utekla z knížky`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -4026,7 +4026,7 @@ window.STORIES = [
     cats: ['auto', 'zivot'],
     ages: [2, 6],
     mood: 'road',
-    cover: { emoji: '🚦', g1: '#2e7d32', g2: '#e53935' },
+    cover: { img: '../covers/semafor-blikalek.jpg', imgF: '../covers/semafor-blikalek-f.jpg', emoji: '🚦', g1: '#2e7d32', g2: '#e53935' },
     title: () => `Semafor Blikálek`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -4062,7 +4062,7 @@ window.STORIES = [
     cats: ['hrdinove', 'zivot'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🚒', g1: '#c62828', g2: '#ffb300' },
+    cover: { img: '../covers/mali-hasici.jpg', imgF: '../covers/mali-hasici-f.jpg', emoji: '🚒', g1: '#c62828', g2: '#ffb300' },
     title: (c) => c.g('Malý hasič a číslo 112', 'Malá hasička a číslo 112', 'Malí hasiči a číslo 112', 'Malé hasičky a číslo 112'),
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -4126,7 +4126,7 @@ window.STORIES = [
     cats: ['lidove', 'zvirata'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🦌', g1: '#4e342e', g2: '#ffd54f' },
+    cover: { img: '../covers/o-smolickovi.jpg', emoji: '🦌', g1: '#4e342e', g2: '#ffd54f' },
     title: () => `O Smolíčkovi`,
     text: (c) => {
       const { g, n } = c;
@@ -4163,7 +4163,7 @@ window.STORIES = [
     cats: ['lidove', 'zvirata'],
     ages: [2, 6],
     mood: 'adventure',
-    cover: { emoji: '🐓', g1: '#bf360c', g2: '#ffe082' },
+    cover: { img: '../covers/kohoutek-a-slepicka.jpg', emoji: '🐓', g1: '#bf360c', g2: '#ffe082' },
     title: () => `O kohoutkovi a slepičce`,
     text: (c) => {
       const { g, n } = c;
@@ -4202,7 +4202,7 @@ window.STORIES = [
     cats: ['lidove', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🪿', g1: '#f9a825', g2: '#fff59d' },
+    cover: { img: '../covers/princezna-ktera-se-nesmala.jpg', emoji: '🪿', g1: '#f9a825', g2: '#fff59d' },
     title: () => `Hloupý Honza a princezna, která se nesmála`,
     text: (c) => {
       const { g, n } = c;
@@ -4280,7 +4280,7 @@ window.STORIES = [
     cats: ['lidove', 'noc'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🌹', g1: '#4a148c', g2: '#f48fb1' },
+    cover: { img: '../covers/sipkova-ruzenka.jpg', emoji: '🌹', g1: '#4a148c', g2: '#f48fb1' },
     title: () => `Šípková Růženka`,
     text: (c) => {
       const { g, n } = c;
@@ -4343,7 +4343,7 @@ window.STORIES = [
     cats: ['lidove'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '👠', g1: '#283593', g2: '#b0bec5' },
+    cover: { img: '../covers/popelka.jpg', emoji: '👠', g1: '#283593', g2: '#b0bec5' },
     title: () => `Popelka`,
     text: (c) => {
       const { g, n } = c;
@@ -4429,7 +4429,7 @@ window.STORIES = [
     cats: ['lidove', 'noc'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🌠', g1: '#0d1b4c', g2: '#ffd54f' },
+    cover: { img: '../covers/hvezdne-tolary.jpg', imgF: '../covers/hvezdne-tolary-f.jpg', emoji: '🌠', g1: '#0d1b4c', g2: '#ffd54f' },
     title: () => `Hvězdné tolary`,
     text: (c) => {
       const { g, n } = c;
@@ -4470,7 +4470,7 @@ window.STORIES = [
     cats: ['lidove'],
     ages: [4, 9],
     mood: 'lullaby',
-    cover: { emoji: '🐟', g1: '#0d47a1', g2: '#ffca28' },
+    cover: { img: '../covers/zlata-rybka.jpg', emoji: '🐟', g1: '#0d47a1', g2: '#ffca28' },
     title: () => `O rybáři a zlaté rybce`,
     text: (c) => {
       const { g, n } = c;
@@ -4530,7 +4530,7 @@ window.STORIES = [
     cats: ['lidove', 'dobro'],
     ages: [5, 9],
     mood: 'adventure',
-    cover: { emoji: '☀️', g1: '#e65100', g2: '#ffe082' },
+    cover: { img: '../covers/tri-zlate-vlasy.jpg', emoji: '☀️', g1: '#e65100', g2: '#ffe082' },
     title: () => `Tři zlaté vlasy děda Vševěda`,
     text: (c) => {
       const { g, n } = c;
@@ -4609,7 +4609,7 @@ window.STORIES = [
     cats: ['lidove'],
     ages: [5, 9],
     mood: 'adventure',
-    cover: { emoji: '🐐', g1: '#33691e', g2: '#c5e1a5' },
+    cover: { img: '../covers/chytra-horakyne.jpg', emoji: '🐐', g1: '#33691e', g2: '#c5e1a5' },
     title: () => `Chytrá horákyně`,
     text: (c) => {
       const { g, n } = c;
@@ -4669,7 +4669,7 @@ window.STORIES = [
     cats: ['lidove', 'zvirata'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🦢', g1: '#4fc3f7', g2: '#e1f5fe' },
+    cover: { img: '../covers/oskliva-kachna.jpg', emoji: '🦢', g1: '#4fc3f7', g2: '#e1f5fe' },
     title: () => `Ošklivé káčátko`,
     text: (c) => {
       const { g, n } = c;
@@ -4732,7 +4732,7 @@ window.STORIES = [
     cats: ['lidove', 'sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '👑', g1: '#6a1b9a', g2: '#f8bbd0' },
+    cover: { img: '../covers/cisarovy-nove-saty.jpg', imgF: '../covers/cisarovy-nove-saty-f.jpg', emoji: '👑', g1: '#6a1b9a', g2: '#f8bbd0' },
     title: () => `Císařovy nové šaty`,
     text: (c) => {
       const { g, n } = c;
@@ -4790,7 +4790,7 @@ window.STORIES = [
     cats: ['hrdinove', 'zivot'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🦸', g1: '#c62828', g2: '#ffcc80' },
+    cover: { img: '../covers/superhrdina-laskavec.jpg', imgF: '../covers/superhrdina-laskavec-f.jpg', emoji: '🦸', g1: '#c62828', g2: '#ffcc80' },
     title: (c) => c.g('Superhrdina Laskavec', 'Superhrdinka Laskavka', 'Superhrdinové Laskavci', 'Superhrdinky Laskavky'),
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -4851,7 +4851,7 @@ window.STORIES = [
     cats: ['hrdinove', 'noc'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🏮', g1: '#1a237e', g2: '#9fa8da' },
+    cover: { img: '../covers/strazci-snu.jpg', imgF: '../covers/strazci-snu-f.jpg', emoji: '🏮', g1: '#1a237e', g2: '#9fa8da' },
     title: () => `Strážci snů`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -4912,7 +4912,7 @@ window.STORIES = [
     cats: ['hrdinove', 'zvidave'],
     ages: [5, 9],
     mood: 'adventure',
-    cover: { emoji: '♻️', g1: '#2e7d32', g2: '#81d4fa' },
+    cover: { img: '../covers/zelena-hlidka.jpg', emoji: '♻️', g1: '#2e7d32', g2: '#81d4fa' },
     title: () => `Zelená hlídka zachraňuje řeku`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -4997,7 +4997,7 @@ window.STORIES = [
     cats: ['sranda', 'hrdinove'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '😄', g1: '#ef6c00', g2: '#ffe082' },
+    cover: { img: '../covers/mesto-bez-smichu.jpg', imgF: '../covers/mesto-bez-smichu-f.jpg', emoji: '😄', g1: '#ef6c00', g2: '#ffe082' },
     title: () => `Město, které ztratilo smích`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -5056,7 +5056,7 @@ window.STORIES = [
     cats: ['dobro'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🍎', g1: '#5d4037', g2: '#e57373' },
+    cover: { img: '../covers/rytir-bez-mece.jpg', imgF: '../covers/rytir-bez-mece-f.jpg', emoji: '🍎', g1: '#5d4037', g2: '#e57373' },
     title: (c) => c.g('Rytíř, který nechtěl bojovat', 'Rytířka, která nechtěla bojovat', 'Rytíři, kteří nechtěli bojovat', 'Rytířky, které nechtěly bojovat'),
     text: (c) => {
       const g = c.g, n = c.n;
@@ -5140,7 +5140,7 @@ window.STORIES = [
     cats: ['dobro', 'zvidave'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🐜', g1: '#558b2f', g2: '#dce775' },
+    cover: { img: '../covers/maly-jako-mravenec.jpg', imgF: '../covers/maly-jako-mravenec-f.jpg', emoji: '🐜', g1: '#558b2f', g2: '#dce775' },
     title: (c) => c.g('Malý jako mravenec', 'Malá jako mravenec', 'Malí jako mravenci', 'Malé jako mravenci'),
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -5234,7 +5234,7 @@ window.STORIES = [
     cats: ['noc', 'dobro'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { emoji: '💧', g1: '#4a148c', g2: '#b2ebf2' },
+    cover: { img: '../covers/vila-rosicka.jpg', emoji: '💧', g1: '#4a148c', g2: '#b2ebf2' },
     title: () => `Víla Rosička`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -5297,7 +5297,7 @@ window.STORIES = [
     cats: ['zvirata', 'noc'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🦔', g1: '#5d4037', g2: '#ffcc80' },
+    cover: { img: '../covers/jezek-mazlik.jpg', emoji: '🦔', g1: '#5d4037', g2: '#ffcc80' },
     title: () => `Ježek, který se chtěl mazlit`,
     text: (c) => [
       { t: `Na kraji zahrady, pod hromádkou suchého listí, bydlel malý ježek Pichlík. Měl čumáček černý jako korálek, krátké nožky a na zádech asi šest tisíc bodlinek.` },
@@ -5332,7 +5332,7 @@ window.STORIES = [
     cats: ['zvirata', 'sranda'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🐌', g1: '#33691e', g2: '#dce775' },
+    cover: { img: '../covers/snek-postak.jpg', emoji: '🐌', g1: '#33691e', g2: '#dce775' },
     title: () => `Šnek pošťák`,
     text: (c) => [
       { t: `Hluboko v lese, ve starém dutém pařezu, sídlila Lesní pošta. Nad dveřmi visela cedulka z kůry a vedle dveří stála schránka z vydlabané šišky.` },
@@ -5387,7 +5387,7 @@ window.STORIES = [
     cats: ['zvirata', 'zivot'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🐶', g1: '#8d6e63', g2: '#ffe0b2' },
+    cover: { img: '../covers/pejsek-z-utulku.jpg', imgF: '../covers/pejsek-z-utulku-f.jpg', emoji: '🐶', g1: '#8d6e63', g2: '#ffe0b2' },
     title: () => `Pejsek z útulku`,
     text: (c) => [
       { t: `Ten den se ${c.H} ${c.g('vzbudil', 'vzbudila', 'vzbudili')} dřív než budík.`, sfx: 'birds' },
@@ -5446,7 +5446,7 @@ window.STORIES = [
     cats: ['zvirata'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🦎', g1: '#00897b', g2: '#ffb74d' },
+    cover: { img: '../covers/chameleon.jpg', emoji: '🦎', g1: '#00897b', g2: '#ffb74d' },
     title: () => `Chameleon, který chtěl být vidět`,
     text: (c) => [
       { t: `V zoologické zahradě je pavilon, kde je teplo jako v létě, i když venku sněží. Voní to tam vlhkou hlínou a listím. A v jednom skleněném teráriu tam bydlel chameleon Kamil.` },
@@ -5502,7 +5502,7 @@ window.STORIES = [
     cats: ['zvirata', 'dobro'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🐋', g1: '#0d47a1', g2: '#80deea' },
+    cover: { img: '../covers/velryba-zpevacka.jpg', imgF: '../covers/velryba-zpevacka-f.jpg', emoji: '🐋', g1: '#0d47a1', g2: '#80deea' },
     title: () => `Velryba, která zpívala jinak`,
     text: (c) => [
       { t: `V pokojíčku na poličce ležela velká mušle. Uvnitř růžová, zvenku hrbolatá a tak velká, že by se do ní vešla celá dlaň.` },
@@ -5582,7 +5582,7 @@ window.STORIES = [
     cats: ['noc', 'zvirata'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '✨', g1: '#1b2a49', g2: '#c6ff00' },
+    cover: { img: '../covers/svetluska.jpg', emoji: '✨', g1: '#1b2a49', g2: '#c6ff00' },
     title: () => `Světluška, která svítila málo`,
     text: (c) => [
       { t: `Byl teplý letní večer. Okno v pokojíčku bylo otevřené a dovnitř voněla posekaná tráva. Někde v trávě cvrčel cvrček, cvrk, cvrk, jako by natahoval malé hodinky.` },
@@ -5619,7 +5619,7 @@ window.STORIES = [
     cats: ['noc'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🏘️', g1: '#283593', g2: '#ffab91' },
+    cover: { img: '../covers/mesto-usina.jpg', emoji: '🏘️', g1: '#283593', g2: '#ffab91' },
     title: () => `Jak u nás všechno usíná`,
     text: (c) => [
       { t: `Slunce už je nízko. Klouže po střechách, po komínech a po anténách. Pak se schová za kopec a nebe zrůžoví jako tvářičky po koupání.` },
@@ -5655,7 +5655,7 @@ window.STORIES = [
     cats: ['noc', 'sranda'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { emoji: '🧸', g1: '#5c6bc0', g2: '#f8bbd0' },
+    cover: { img: '../covers/pyzamova-party.jpg', emoji: '🧸', g1: '#5c6bc0', g2: '#f8bbd0' },
     title: () => `Pyžamová párty plyšáků`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -5719,7 +5719,7 @@ window.STORIES = [
     cats: ['noc', 'dobro'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🪶', g1: '#3949ab', g2: '#e1f5fe' },
+    cover: { img: '../covers/polstarova-zeme.jpg', emoji: '🪶', g1: '#3949ab', g2: '#e1f5fe' },
     title: () => `Polštářová země`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -5806,7 +5806,7 @@ window.STORIES = [
     cats: ['auto', 'dobro'],
     ages: [3, 8],
     mood: 'road',
-    cover: { emoji: '🦎', g1: '#2e7d32', g2: '#ffe082' },
+    cover: { img: '../covers/uz-tam-budem.jpg', emoji: '🦎', g1: '#2e7d32', g2: '#ffe082' },
     title: () => `Už tam budem?`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -5885,7 +5885,7 @@ window.STORIES = [
     cats: ['auto'],
     ages: [3, 7],
     mood: 'road',
-    cover: { emoji: '🌈', g1: '#0288d1', g2: '#ffca28' },
+    cover: { img: '../covers/barevna-honicka.jpg', emoji: '🌈', g1: '#0288d1', g2: '#ffca28' },
     title: () => `Barevná honička`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -5938,7 +5938,7 @@ window.STORIES = [
     cats: ['sranda', 'zivot'],
     ages: [2, 7],
     mood: 'adventure',
-    cover: { emoji: '🏴‍☠️', g1: '#01579b', g2: '#80deea' },
+    cover: { img: '../covers/pirati-z-vany.jpg', emoji: '🏴‍☠️', g1: '#01579b', g2: '#80deea' },
     title: () => `Piráti z vany`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -6001,7 +6001,7 @@ window.STORIES = [
     cats: ['sranda'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🛹', g1: '#ad1457', g2: '#ffd54f' },
+    cover: { img: '../covers/babicka-na-skateboardu.jpg', imgF: '../covers/babicka-na-skateboardu-f.jpg', emoji: '🛹', g1: '#ad1457', g2: '#ffd54f' },
     title: () => `Babička na skateboardu`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
@@ -6062,7 +6062,7 @@ window.STORIES = [
     cats: ['sranda', 'zivot'],
     ages: [4, 9],
     mood: 'adventure',
-    cover: { emoji: '🎩', g1: '#4a148c', g2: '#ffab91' },
+    cover: { img: '../covers/kouzelnik-ucen.jpg', emoji: '🎩', g1: '#4a148c', g2: '#ffab91' },
     title: () => `Kouzelník, kterému nic nešlo`,
     text: (c) => {
       const g = c.g, n = c.n;
