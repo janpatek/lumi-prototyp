@@ -623,12 +623,18 @@ function speak(text, onend) {
 // --- hlas ElevenLabs přes tts-worker: každý odstavec zvlášť, hotové nahrávky si pamatujeme ---
 // mood = nálada pohádky: Worker podle ní přidá stejnou značku přednesu jako u hotových nahrávek vět
 const cloudClips = new Map();
+// požadavek na Worker se po 25 s zruší – zaseknutý by jinak zůstal v mezipaměti a pohádka by stála
+function fetchLimited(url, opts, ms = 25000) {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), ms);
+  return fetch(url, { ...opts, signal: ac.signal }).finally(() => clearTimeout(t));
+}
 function cloudClip(text, mood) {
   const id = (mood || '') + '|' + text;
   if (!cloudClips.has(id)) {
     // věta už stažená v zařízení (offline.js), jinak z Workeru a hned ji uložit na příště i na cestu
     const p = OFFLINE.get(id)
-      .then((buf) => buf || fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
+      .then((buf) => buf || fetchLimited(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
         .catch(() => { throw Object.assign(new Error('Bez připojení k internetu se hlas nenačte.'), { status: 0 }); })
         .then(async (r) => {
           if (!r.ok) throw Object.assign(new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.'), { status: r.status });
@@ -779,8 +785,11 @@ function openPlayer(st) {
         <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="chip dl" data-a="download" id="dlBtn">${dlLabel(false)}</button><div class="pbtns">${favBtn(st.id, 'icon-btn pfav')}<button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
-        <p class="narrator">${I.mic} Čte ${NARRATOR}</p>
-        <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}</div>
+        <div class="seg readmode" role="group" aria-label="Kdo čte">
+          <button data-a="readVoice" aria-pressed="true" class="on">${I.mic} Čte ${NARRATOR}</button>
+          <button data-a="readSelf" aria-pressed="false">${I.book} Čtu já</button>
+        </div>
+        <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}<div class="self-end"><img src="${st.cats.includes('noc') ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${st.cats.includes('noc') ? 'Dobrou noc' : 'Konec'}</h2></div></div>
         <div class="waiting" id="waiting"></div>
         <div class="controls">
           <button class="skip" data-a="prevSeg" aria-label="Předchozí">${I.prev}</button>
@@ -789,7 +798,7 @@ function openPlayer(st) {
         </div>
         <div class="seg bgmode" role="group" aria-label="Zvuk v pozadí">
           <button data-a="bgOn" aria-pressed="${ambience.bedOn}" class="${ambience.bedOn ? 'on' : ''}">${I.music} Se zvukem</button>
-          <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.book} Jen čtení</button>
+          <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.mic} Bez hudby</button>
         </div>
         <div class="mix${ambience.bedOn ? '' : ' off'}" id="bgMix">Hlasitost pozadí <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol}" aria-label="Hlasitost zvuku v pozadí"></div>
         <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL || BILLING.native ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
@@ -797,6 +806,8 @@ function openPlayer(st) {
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
   ambience.preloadBackground(st);
+  document.getElementById('ptext').addEventListener('scroll', selfReadEnd, { passive: true });
+  if (readSelfPref()) setReadSelf(true);
   storyOffline(st).then((ok) => { const b = document.getElementById('dlBtn'); if (b && ok && P && P.st === st) { b.innerHTML = dlLabel(true); b.classList.add('on'); } });
   highlight();
 }
@@ -844,14 +855,30 @@ function playSeg() {
   const delay = setTimeout(() => {
     ambience.duck(true);
     P.stop = lines
-      ? voiceLines.speak(P.plan[P.i], after, { fallback, onerror: (e) => {
-        P.cloudFailed = true;
-        document.getElementById('voicewarn').textContent = voiceFail(e);
-        P.stop = speak(seg.t, after);
-      } })
+      ? voiceLines.speak(P.plan[P.i], () => { P.retries = 0; after(); }, { fallback, onerror: (e) => voiceStalled(e, token) })
       : (cloud ? cloudSpeak : speak)(seg.t, after);
   }, seg.sfx ? 700 : 150);
   P.stop = () => clearTimeout(delay);
+}
+
+// Hlas odstavce se nenačetl: dvakrát to zkusit znovu, pak pohádku pozastavit se srozumitelnou zprávou.
+// Dřív se tiše přepnulo na hlas prohlížeče – v aplikaci pro Android žádný český není, takže čtení
+// uprostřed ztichlo a hudba hrála dál.
+function voiceStalled(e, token) {
+  if (!P || !P.playing || P.token !== token) return;
+  const w = document.getElementById('waiting');
+  P.retries = (P.retries || 0) + 1;
+  if (P.retries <= 2) {
+    w.textContent = 'Hlas se načítá, chvilku strpení…';
+    const t = setTimeout(() => { if (P && P.playing && P.token === token) playSeg(); }, P.retries * 2500);
+    P.stop = () => clearTimeout(t);
+    return;
+  }
+  P.retries = 0;
+  playPause(); // pozastavit i hudbu
+  document.getElementById('waiting').textContent = navigator.onLine
+    ? 'Čtení se zadrhlo. Klepněte na Přehrát a pokračujeme od tohoto odstavce.'
+    : 'Jste bez internetu. Až budete zase online, klepněte na Přehrát.';
 }
 
 // --- nahraný hlas (ElevenLabs) ---
@@ -955,7 +982,33 @@ function theEnd() {
   document.getElementById('playBtn').innerHTML = I.replay;
 }
 
-// „Se zvukem“ / „Jen čtení“: volbu si pamatuje audio.js (localStorage)
+// „Čtu já“: rodič čte sám, přehrávač ukáže jen celý text pohádky. Volba se pamatuje v zařízení.
+const READ_KEY = 'ospalek.readSelf';
+const readSelfPref = () => { try { return localStorage.getItem(READ_KEY) === '1'; } catch (e) { return false; } };
+function setReadSelf(on) {
+  if (!P) return;
+  try { localStorage.setItem(READ_KEY, on ? '1' : '0'); } catch (e) {}
+  if (on && P.playing) playPause(); // zastavit hlas i hudbu
+  P.self = on;
+  const pl = document.getElementById('player');
+  pl.classList.toggle('self', on);
+  pl.querySelectorAll('.readmode button').forEach((b) => {
+    const sel = (b.dataset.a === 'readSelf') === on;
+    b.classList.toggle('on', sel);
+    b.setAttribute('aria-pressed', sel);
+  });
+  document.getElementById('ptext').classList.remove('hide');
+  if (on) document.getElementById('ptext').scrollTo({ top: 0 });
+  else highlight();
+}
+// dočteno až na konec textu = pohádka se počítá jako dohraná (Co jsme už slyšeli)
+function selfReadEnd(e) {
+  if (!P || !P.self || P.logged) return;
+  const box = e.target;
+  if (box.scrollTop + box.clientHeight >= box.scrollHeight - 40) { P.i = P.segs.length; logListen(true); }
+}
+
+// „Se zvukem“ / „Bez hudby“: volbu si pamatuje audio.js (localStorage)
 function setBackground(on) {
   ambience.setBackgroundOn(on);
   document.querySelectorAll('.bgmode button').forEach((b) => {
@@ -1123,6 +1176,8 @@ const actions = {
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
   toggleText: () => document.getElementById('ptext').classList.toggle('hide'),
+  readVoice: () => setReadSelf(false),
+  readSelf: () => setReadSelf(true),
   bgOn: () => setBackground(true),
   bgOff: () => setBackground(false),
   closePlayer,

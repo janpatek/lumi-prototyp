@@ -53,17 +53,22 @@
     return out;
   }
 
+  // Načítání věty nesmí viset donekonečna: bez časového limitu by pohádka uprostřed tiše stála
+  // (hudba hraje dál, hlas ne), když se síť zadrhne nebo Worker neodpoví.
+  const LOAD_LIMIT = 20000;
+  const timeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('Hlas se načítá moc dlouho.')), ms))]);
+
   // AudioBuffer jedné věty; bez nahrávky ji obstará fallback(text) → URL (tts-worker)
   function clip(line, fallback) {
     if (!buffers.has(line.key)) {
       const own = has(line);
       const url = own ? Promise.resolve(BASE + line.key + '.mp3') : fallback ? fallback(line.t) : Promise.reject(new Error('Věta zatím není namluvená.'));
-      const p = url
+      const p = timeout(url
         .then((u) => fetch(u))
         // v aplikaci pro iOS vrací Capacitor vlastní soubory .mp3 se stavem 0 (bez HTTP hlavičky), data ale dorazí
         .then((r) => { if (!r.ok && !(own && r.status === 0)) throw new Error('Nahrávku se nepodařilo načíst.'); return r.arrayBuffer(); })
         .then((b) => ctx().decodeAudioData(b))
-        .then((b) => (own ? b : tidy(b)));
+        .then((b) => (own ? b : tidy(b))), LOAD_LIMIT);
       p.catch(() => buffers.delete(line.key)); // chybu příště zkusit znovu
       buffers.set(line.key, p);
     }
@@ -83,7 +88,9 @@
       let stopped = false;
       const srcs = [];
       let timer = null;
-      Promise.all(para.lines.map((l) => clip(l, fallback))).then((bufs) => {
+      // jeden tichý pokus navíc (nepovedené věty se z mezipaměti smazaly, načtou se znovu)
+      const load = () => Promise.all(para.lines.map((l) => clip(l, fallback)));
+      load().catch(() => new Promise((r) => setTimeout(r, 1500)).then(() => (stopped ? [] : load()))).then((bufs) => {
         if (stopped) return;
         const c = ctx();
         let t = c.currentTime + 0.05;

@@ -50,6 +50,19 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/
 
 Ověřeno 10. 11. 2026: debug APK se sestaví a běží v emulátoru Pixel 8, Android 16 (Google Play). Hláška „Error injecting safe area CSS“ při startu je neškodná, Capacitor zapisuje okraje displeje dřív, než se stránka načte.
 
+### Vydání do Google Play (podepsaný AAB)
+
+Upload key leží mimo repo v `~/.ospalek-keys/ospalek-upload.jks` (alias `upload`), heslo je v Klíčence macOS pod „Ospalek Android upload key“. Klíč zálohujte, při ztrátě jde u Googlu vyměnit (Play App Signing), ale trvá to. Release se podepíše jen s nastavenými proměnnými:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/sdk
+export OSPALEK_UPLOAD_STORE=~/.ospalek-keys/ospalek-upload.jks
+export OSPALEK_UPLOAD_PASSWORD="$(security find-generic-password -a ospalek-upload -s 'Ospalek Android upload key' -w)"
+npm run android:bundle   # → android/app/build/outputs/bundle/release/app-release.aab
+```
+
+Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gradle`. Verze 3 (1.2: odolnější čtení, režim Čtu já) je od 11. 11. 2026 v interním testování.
+
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
 ## Co ještě chybí (další kroky)

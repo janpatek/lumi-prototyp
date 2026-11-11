@@ -9,6 +9,7 @@
     "sync": "npm run web && cap sync",
     "android": "npm run sync && cap open android",
     "android:build": "npm run sync && cd android && ./gradlew assembleDebug",
+    "android:bundle": "npm run sync && cd android && ./gradlew bundleRelease",
     "android:run": "npm run sync && cap run android",
     "ios": "npm run sync && cap open ios",
     "ios:build": "npm run sync && cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build build",
