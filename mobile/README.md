@@ -61,7 +61,7 @@ export OSPALEK_UPLOAD_PASSWORD="$(security find-generic-password -a ospalek-uplo
 npm run android:bundle   # → android/app/build/outputs/bundle/release/app-release.aab
 ```
 
-Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gradle`. Verze 1 (1.0) je od 11. 11. 2026 v interním testování.
+Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gradle`. Verze 2 (1.1, s nákupem přes RevenueCat) je od 11. 11. 2026 v interním testování.
 
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
