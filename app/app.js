@@ -12,7 +12,7 @@ const TTS_URL = (() => {
   return q && /^http:\/\/localhost(:\d+)?$/.test(q) ? q : TTS_URL_DEFAULT;
 })();
 // Limity formulářů: brání tomu, aby rodina (nebo skript) zbytečně pálila kredity za hlas. Worker má vlastní pojistky.
-const LIMIT = { children: 4, parents: 4, heroes: 3, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
+const LIMIT = { children: 2, parents: 4, heroes: 2, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
 // jméno: jen písmena, mezera, spojovník a apostrof
 const cleanName = (s, max = LIMIT.name) => String(s || '').replace(/[^\p{L}\s'’-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
 const cleanText = (s, max) => String(s || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -1116,6 +1116,8 @@ document.addEventListener('click', (e) => {
 });
 // připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
 ['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
+// tým v administraci zveřejnil novou verzi pohádek (catalog.js) → knihovna a historie se překreslí
+window.addEventListener('ospalek:stories', () => { if (ui.screen === 'lib' || ui.screen === 'history') render(); });
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;

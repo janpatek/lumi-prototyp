@@ -433,6 +433,60 @@ end $$;
 drop trigger if exists staff_invite_apply on auth.users;
 create trigger staff_invite_apply after insert or update of email on auth.users for each row execute function public.staff_invite_apply();
 
+-- ---------- Pohádky (katalog z administrace) ----------
+-- Administrace po každé úpravě uloží celý seznam pohádek jako novou verzi. Aplikace si při spuštění stáhne poslední
+-- verzi, takže přejmenování, smazání nebo nová pohádka platí hned na webu i v mobilní aplikaci bez nové verze v obchodě.
+-- stories: pole pohádek ve tvaru z administrace (id, free, cats, ages, mood, cover, titleSrc, textSrc).
+-- deleted: id pohádek, které tým smazal. Pohádky, které jsou v aplikaci zabalené a v katalogu ani mezi smazanými
+-- nejsou (přibyly v nové verzi aplikace), aplikace přidá na konec.
+-- Starší verze zůstávají kvůli dohledání a návratu. Žádné osobní údaje, proto katalog smí číst i nepřihlášená aplikace.
+create table if not exists public.story_catalog (
+  version bigint generated always as identity primary key,
+  stories jsonb not null check (jsonb_typeof(stories) = 'array'),
+  deleted jsonb not null default '[]' check (jsonb_typeof(deleted) = 'array'),
+  published_at timestamptz not null default now(),
+  published_by uuid references auth.users(id) on delete set null
+);
+alter table public.story_catalog enable row level security;
+
+-- Aplikace: poslední verze katalogu. Když už ji má (since = poslední verze), vrátí jen číslo a čas verze.
+-- Podle času aplikace pozná i databázi založenou znovu od nuly (čísla verzí pak začínají znovu).
+create or replace function public.app_catalog(since bigint default 0) returns jsonb language sql stable security definer set search_path = public as $$
+  select case when c.version > coalesce(since, 0)
+    then jsonb_build_object('version', c.version, 'at', c.published_at, 'stories', c.stories, 'deleted', c.deleted)
+    else jsonb_build_object('version', c.version, 'at', c.published_at) end
+  from story_catalog c order by c.version desc limit 1;
+$$;
+
+-- Administrace: poslední verze i s tím, kdo a kdy ji zveřejnil.
+create or replace function public.admin_story_catalog() returns jsonb language plpgsql stable security definer set search_path = public as $$
+begin
+  perform require_staff();
+  return (select jsonb_build_object('version', c.version, 'stories', c.stories, 'deleted', c.deleted, 'published_at', c.published_at, 'published_by', s.name)
+    from story_catalog c left join staff s on s.user_id = c.published_by order by c.version desc limit 1);
+end $$;
+
+-- Zveřejnění nové verze. Smí jen vlastník a role Obsah. base = verze, ze které administrace vycházela:
+-- když mezitím zveřejnil někdo jiný, změna se odmítne, ať si navzájem nepřepíšou práci.
+create or replace function public.admin_publish_stories(stories jsonb, deleted jsonb, base bigint, note text default null) returns bigint language plpgsql security definer set search_path = public as $$
+declare cur bigint; v bigint;
+begin
+  perform require_staff();
+  if (select role from staff where user_id = auth.uid()) not in ('owner', 'content') then raise exception 'forbidden: content role required' using errcode = '42501'; end if;
+  if jsonb_typeof(stories) <> 'array' or jsonb_array_length(stories) = 0 then raise exception 'Seznam pohádek je prázdný.'; end if;
+  if jsonb_typeof(deleted) <> 'array' then raise exception 'Seznam smazaných pohádek má špatný tvar.'; end if;
+  if exists (select 1 from jsonb_array_elements(stories) e where jsonb_typeof(e) <> 'object' or coalesce(e->>'id', '') = ''
+      or coalesce(jsonb_typeof(e->'titleSrc'), '') <> 'string' or coalesce(jsonb_typeof(e->'textSrc'), '') <> 'string') then
+    raise exception 'Některá pohádka nemá id, název nebo text.';
+  end if;
+  lock table story_catalog in exclusive mode;
+  select max(version) into cur from story_catalog;
+  if coalesce(cur, 0) <> coalesce(base, 0) then raise exception 'conflict: Pohádky mezitím upravil někdo jiný. Načti stránku znovu a změnu zopakuj.'; end if;
+  insert into story_catalog (stories, deleted, published_by) values (stories, deleted, auth.uid()) returning version into v;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'content.publish', 'Pohádky v' || v, coalesce(note, jsonb_array_length(stories) || ' pohádek'));
+  return v;
+end $$;
+
 -- ---------- Pohádka dne a večerní upozornění ----------
 -- Pohádka dne je pro všechny stejná: buď ji na den vybere tým v administraci (daily_story), nebo se vezme další
 -- v pořadí push_settings.rotation (střídání podle data). Aplikace si plán na dva týdny stáhne přes app_daily.
@@ -639,7 +693,7 @@ begin
 end $$;
 
 -- ---------- Práva ----------
--- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení nic nezmůže.
+-- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení přečte jen katalog pohádek.
 revoke all on all tables in schema public from anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
 grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family(),
@@ -648,6 +702,8 @@ grant execute on function public.admin_me(), public.admin_role(), public.admin_f
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_staff(),
   public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint),
   public.admin_set_role(uuid, text), public.admin_reset_mfa(uuid),
+  public.admin_story_catalog(), public.admin_publish_stories(jsonb, jsonb, bigint, text),
   public.admin_push(int), public.admin_push_save(jsonb), public.admin_daily_set(date, text), public.admin_push_test() to authenticated;
 -- rozesílání upozornění: jen push-worker s tajným klíčem (sb_secret_…)
 grant execute on function public.push_start(timestamptz), public.push_batch(int, int), public.push_report(bigint, bigint[], bigint[], bigint[]) to service_role;
+grant execute on function public.app_catalog(bigint) to anon, authenticated;

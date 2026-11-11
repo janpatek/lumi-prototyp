@@ -12,6 +12,7 @@ Dokud je `config.js` v kořeni webu prázdný, nic se neodesílá a administrace
 | `plays` | pohádka, kategorie, začátek, délka poslechu, dohráno; `family_id` jen se souhlasem | aplikace přes `app_play` |
 | `family_day`, `daily_cat` | denní souhrny, plní je trigger při zápisu poslechu | databáze |
 | `staff`, `audit_log` | tým administrace a záznam jeho akcí | ručně / administrace |
+| `story_catalog` | katalog pohádek (šablony názvu a textu, kategorie, věk, obálka, smazané) ve verzích | administrace přes `admin_publish_stories` (role Vlastník a Obsah) |
 | `push_subs` | odběr večerního upozornění: adresa u push služby prohlížeče a klíče k zašifrování, platforma, kdy naposledy doručeno; jen rodiny, které připomínku zapnuly | aplikace přes `app_push_subscribe`, mazání `app_push_unsubscribe` a push-worker |
 | `push_settings`, `daily_story`, `push_log` | nastavení upozornění (hodina, texty, střídání), ručně vybrané pohádky dne, historie rozesílání | administrace (`admin_push_save`, `admin_daily_set`), push-worker |
 
@@ -22,6 +23,16 @@ Aplikace smí volat jen funkce `app_*`, které vždy pracují s vlastní rodinou
 Administrace volá `admin_*`, které nejdřív ověří, že volající je v tabulce `staff`.
 Večerní upozornění rozesílá `push-worker` (Cloudflare) s tajným klíčem Supabase, který smí volat jen `push_start`, `push_batch` a `push_report`.
 Zapojení: `push-worker/README.md`.
+
+### Pohádky z administrace
+
+Každá uložená změna pohádky v administraci (název, text, kategorie, smazání, nová pohádka) se hned uloží jako nová verze
+do `story_catalog`. Aplikace (`app/catalog.js`) si při spuštění a při návratu do aplikace stáhne poslední verzi přes `app_catalog`.
+To jde i bez přihlášení, katalog neobsahuje osobní údaje. Poslední verzi si pamatuje v zařízení, takže funguje i bez internetu.
+Pohádky ze `app/stories.cs.js` jsou záloha: platí, dokud se nic nezveřejní. Pohádky, které přibudou v repozitáři a v katalogu ani
+mezi smazanými nejsou, aplikace přidá na konec. Když se v repozitáři upraví text pohádky, která už je v katalogu, platí verze
+z katalogu, dokud ji administrace nevrátí tlačítkem *Vrátit na app/stories.cs.js*. Obálky a hudba nových pohádek musí být v repozitáři.
+Do existující databáze přidá tabulku a funkce `migrations/20261111_pohadky_v_databazi.sql`.
 
 ## Zapojení (jednou, asi 15 minut)
 

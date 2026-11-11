@@ -2,7 +2,7 @@
 //  – ostrá data (je vyplněný ../config.js): přihlášení člena týmu do Supabase a načtení souhrnů,
 //  – jinak ukázková data z demo-data.js.
 // Zbytek skriptů potřebuje hotová data (window.DEMO), proto se načítá až potom: stahuje se paralelně, spouští v pořadí.
-const ADMIN_SCRIPTS = ['api.js?v=5', 'vtable.js?v=2', 'admin.js?v=10', 'helpdesk.js?v=2', 'rodiny.js?v=3', 'analytika.js?v=5', 'kupony.js?v=2', 'system.js?v=5', 'upozorneni.js?v=1'];
+const ADMIN_SCRIPTS = ['api.js?v=5', 'vtable.js?v=2', 'admin.js?v=11', 'helpdesk.js?v=2', 'rodiny.js?v=3', 'analytika.js?v=5', 'kupony.js?v=2', 'system.js?v=5', 'upozorneni.js?v=1'];
 
 function loadScripts(list) {
   return Promise.all(list.map((src) => new Promise((res, rej) => {

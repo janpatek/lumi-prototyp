@@ -1,7 +1,8 @@
 // Ospalek – administrace. Prototyp bez backendu:
 //  – rodiny, helpdesk, platby, statistiky a návštěvy jsou ukázková data z demo-data.js přes api.js (jasně označená),
-//  – pohádky jsou skutečné: načtou se ze ../stories.cs.js, úpravy se drží v localStorage
-//    tohoto prohlížeče a dají se vyexportovat jako nový stories.cs.js.
+//  – pohádky jsou skutečné: načtou se ze ../stories.cs.js. V ostrém režimu se každá úprava hned zveřejní v aplikaci
+//    (Supabase, tabulka story_catalog, aplikace ji načte v catalog.js). V ukázkovém režimu se drží v localStorage
+//    tohoto prohlížeče. Vždy se dají vyexportovat jako nový stories.cs.js.
 // Žádné klíče ani osobní údaje – složka leží na veřejných GitHub Pages.
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -464,8 +465,9 @@ const fromStory = (s) => ({
 const ORIG = window.STORIES.map(fromStory);
 // Uložené úpravy z prohlížeče + pohádky, které mezitím přibyly do app/stories.cs.js (bez těch, které tu někdo smazal)
 const SKD = 'ospalek.admin.deleted.v1';
-let DELETED = store.get(SKD) || [];
+let DELETED = D.live ? [] : store.get(SKD) || [];
 let STORIES = (() => {
+  if (D.live) return ORIG.map((s) => structuredClone(s)); // ostrý režim: skutečný stav přijde z databáze (PUB.load)
   const saved = store.get(SK);
   if (!saved) return ORIG.map((s) => structuredClone(s));
   const have = new Set(saved.map((s) => s.id));
@@ -473,7 +475,48 @@ let STORIES = (() => {
 })();
 let SRC = null; // text originálního stories.cs.js kvůli hlavičce a pomocným funkcím při exportu
 fetch('../app/stories.cs.js', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : null)).then((t) => { SRC = t; }).catch(() => {});
-const saveStories = () => store.set(SK, STORIES);
+// Zveřejnění v aplikaci (jen ostrý režim). version = poslední verze katalogu v databázi, 0 = zatím nic nezveřejněno.
+const PUB = {
+  on: !!D.live, can: !!D.live && ['owner', 'content'].includes(D.me?.role),
+  version: 0, at: null, by: null, err: '', busy: false, loaded: !D.live,
+  async load() {
+    try {
+      const c = await LIVE.rpc('admin_story_catalog');
+      if (c && Array.isArray(c.stories)) {
+        DELETED = c.deleted || [];
+        const have = new Set(c.stories.map((x) => x.id));
+        STORIES = c.stories.map((x) => ({
+          id: x.id, free: !!x.free, cats: [...(x.cats || [])], ages: [...(x.ages || [2, 9])], mood: x.mood || 'lullaby',
+          cover: { img: '', imgF: '', emoji: '', g1: '#1d2b64', g2: '#6a4c93', ...(x.cover || {}) }, titleSrc: x.titleSrc, textSrc: x.textSrc,
+        }))
+          .concat(ORIG.filter((x) => !have.has(x.id) && !DELETED.includes(x.id)).map((x) => structuredClone(x)));
+        Object.assign(PUB, { version: c.version, at: c.published_at ? new Date(c.published_at) : null, by: c.published_by || '' });
+      }
+      PUB.err = '';
+    } catch (e) { PUB.err = 'Zveřejněné pohádky se nepodařilo načíst: ' + e.message; }
+    PUB.loaded = true;
+    if (route() === 'pohadky') render();
+  },
+  async publish(note) {
+    if (!PUB.can) { toast('Zveřejňovat pohádky smí jen role Vlastník nebo Obsah'); return; }
+    if (PUB.busy) { PUB.again = note || PUB.again || 'Další úpravy'; return; } // další uložení počká na předchozí
+    PUB.busy = true; if (route() === 'pohadky') render();
+    try {
+      const v = await LIVE.rpc('admin_publish_stories', { stories: STORIES, deleted: DELETED, base: PUB.version, note: note || null });
+      Object.assign(PUB, { version: v, at: new Date(), by: D.me?.name || '', err: '' });
+      toast('Zveřejněno v aplikaci');
+    } catch (e) {
+      PUB.err = /conflict/.test(e.message) ? e.message.replace(/^conflict:\s*/, '') : 'Zveřejnit se nepodařilo: ' + e.message;
+      toast('Zveřejnit se nepodařilo');
+    }
+    PUB.busy = false;
+    if (PUB.again && !PUB.err) { const n = PUB.again; PUB.again = null; return PUB.publish(n); }
+    PUB.again = null;
+    if (route() === 'pohadky') render();
+  },
+};
+if (PUB.on) PUB.load();
+const saveStories = (note) => (PUB.on ? PUB.publish(note) : store.set(SK, STORIES));
 
 const q = (v) => `'${String(v).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 function serStory(s) {
@@ -568,12 +611,15 @@ function pageStories() {
     ${head('Pohádky', `${STORIES.length} pohádek · ${STORIES.filter((s) => s.free).length} zdarma`, `<button class="btn" data-a="new">${I.plus}Nová pohádka</button>`)}
     <section class="panel" style="margin-bottom:16px">
       <div class="panel-head" style="margin:0">
-        <div><h2>${ch.total ? `${ch.total} ${ch.total === 1 ? 'změna' : ch.total < 5 ? 'změny' : 'změn'} proti app/stories.cs.js` : 'Beze změn proti app/stories.cs.js'}</h2>
-        <p class="muted" style="font-size:13px;margin-top:4px">${ch.total ? `${ch.added} nových · ${ch.edited} upravených · ${ch.deleted} smazaných. ` : ''}Úpravy se drží jen v tomhle prohlížeči. Do aplikace se dostanou, až stažený soubor nahradí app/stories.cs.js v repozitáři.</p></div>
+        <div>${PUB.on ? `<h2>${!PUB.loaded ? 'Načítám zveřejněné pohádky…' : PUB.busy ? 'Zveřejňuji…' : PUB.version ? `Zveřejněno v aplikaci · verze ${PUB.version}` : 'V aplikaci jsou pohádky z app/stories.cs.js'}</h2>
+        <p class="muted" style="font-size:13px;margin-top:4px">${PUB.at ? `Naposledy ${fdate(PUB.at)} ${PUB.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}${PUB.by ? ` · ${esc(PUB.by)}` : ''}. ` : ''}${PUB.can ? 'Každá uložená změna se hned zveřejní na webu i v mobilní aplikaci. Aplikace si ji stáhne při spuštění nebo při návratu do aplikace.' : 'Upravovat a zveřejňovat pohádky smí role Vlastník a Obsah.'} ${ch.total ? `Proti app/stories.cs.js: ${ch.added} nových · ${ch.edited} upravených · ${ch.deleted} smazaných.` : ''} Nová pohádka potřebuje obálku v repozitáři, jinak se ukáže jen emoji.</p>
+        ${PUB.err ? `<p class="err" style="margin-top:6px">${esc(PUB.err)} <button class="linkbtn" data-a="pubReload">Načíst znovu</button></p>` : ''}</div>`
+        : `<h2>${ch.total ? `${ch.total} ${ch.total === 1 ? 'změna' : ch.total < 5 ? 'změny' : 'změn'} proti app/stories.cs.js` : 'Beze změn proti app/stories.cs.js'}</h2>
+        <p class="muted" style="font-size:13px;margin-top:4px">${ch.total ? `${ch.added} nových · ${ch.edited} upravených · ${ch.deleted} smazaných. ` : ''}Ukázkový režim: úpravy se drží jen v tomhle prohlížeči. V ostrém režimu se hned zveřejní v aplikaci.</p></div>`}
         <div class="head-actions">
           <button class="btn white sm" data-a="copyExport">${I.copy}Zkopírovat</button>
           <button class="btn sm" data-a="download">${I.down}Stáhnout stories.cs.js</button>
-          ${ch.total ? '<button class="btn danger sm" data-a="reset">Zahodit změny</button>' : ''}
+          ${ch.total && (!PUB.on || PUB.can) ? `<button class="btn danger sm" data-a="reset">${PUB.on ? 'Vrátit na app/stories.cs.js' : 'Zahodit změny'}</button>` : ''}
         </div>
       </div>
     </section>
@@ -691,7 +737,7 @@ function saveStory() {
   s.titleSrc = s.titleSrc.trim(); s.textSrc = s.textSrc.trim();
   if (ED.orig) STORIES[STORIES.findIndex((x) => x.id === ED.orig)] = s; else STORIES.push(s);
   const edited = !!ED.orig;
-  saveStories(); closeModal(); render(); toast(edited ? 'Pohádka je upravená' : 'Pohádka je přidaná');
+  saveStories(`${edited ? 'Upravená' : 'Nová'}: ${ED.s.id}`); closeModal(); render(); toast(edited ? 'Pohádka je upravená' : 'Pohádka je přidaná');
 }
 
 // ---------- Nové náhledy (obálky) ----------
@@ -810,13 +856,18 @@ const ACTIONS = {
   covers: (v) => openCovers(v),
   del: (v) => {
     const s = STORIES.find((x) => x.id === v);
-    confirmBox('Smazat pohádku?', `„${esc(safeTitle(s))}“ zmizí ze seznamu. V aplikaci zůstane, dokud nenahraješ nový app/stories.cs.js, a dá se vrátit tlačítkem Zahodit změny.`, 'Smazat', () => {
-      STORIES = STORIES.filter((x) => x.id !== v); DELETED = [...new Set([...DELETED, v])]; store.set(SKD, DELETED); saveStories(); render(); toast('Pohádka je smazaná');
+    confirmBox('Smazat pohádku?', PUB.on ? `„${esc(safeTitle(s))}“ hned zmizí z aplikace na webu i v telefonech. Vrátit se dá tlačítkem Vrátit na app/stories.cs.js.` : `„${esc(safeTitle(s))}“ zmizí ze seznamu. Vrátit se dá tlačítkem Zahodit změny.`, 'Smazat', () => {
+      STORIES = STORIES.filter((x) => x.id !== v); DELETED = [...new Set([...DELETED, v])]; if (!PUB.on) store.set(SKD, DELETED); saveStories(`Smazaná: ${v}`); render(); toast('Pohádka je smazaná');
     });
   },
-  reset: () => confirmBox('Zahodit změny?', 'Seznam se vrátí do stavu z app/stories.cs.js. Všechny úpravy v tomhle prohlížeči se ztratí.', 'Zahodit', () => {
-    STORIES = ORIG.map((s) => structuredClone(s)); store.del(SK); DELETED = []; store.del(SKD); render(); toast('Změny jsou zahozené');
-  }),
+  reset: () => (PUB.on
+    ? confirmBox('Vrátit pohádky na app/stories.cs.js?', 'V aplikaci budou zase pohádky přesně tak, jak jsou v repozitáři. Všechny úpravy a smazání z administrace se zruší a hned zveřejní.', 'Vrátit', () => {
+      STORIES = ORIG.map((s) => structuredClone(s)); DELETED = []; saveStories('Vráceno na app/stories.cs.js'); render();
+    })
+    : confirmBox('Zahodit změny?', 'Seznam se vrátí do stavu z app/stories.cs.js. Všechny úpravy v tomhle prohlížeči se ztratí.', 'Zahodit', () => {
+      STORIES = ORIG.map((s) => structuredClone(s)); store.del(SK); DELETED = []; store.del(SKD); render(); toast('Změny jsou zahozené');
+    })),
+  pubReload: () => { PUB.loaded = false; render(); PUB.load(); },
   download: () => { download('stories.cs.js', exportFile()); toast('Soubor stories.cs.js se stahuje'); },
   copyExport: () => copy(exportFile(), 'Obsah stories.cs.js je ve schránce'),
   ecat: (v, t) => { const c = ED.s.cats; ED.s.cats = c.includes(v) ? c.filter((x) => x !== v) : [...c, v]; t.classList.toggle('on'); $('#eErr').textContent = ''; },
