@@ -232,6 +232,13 @@ begin
   if coalesce(auth.jwt()->>'aal', '') <> 'aal2' then raise exception 'forbidden: mfa required' using errcode = '42501'; end if;
 end $$;
 
+-- Role přihlášeného člena týmu (s kódem). Volá ji tts-worker u GET /naklady, aby náklady viděl jen tým.
+create or replace function public.admin_role() returns text language plpgsql stable security definer set search_path = public as $$
+begin
+  perform require_staff();
+  return (select s.role from staff s where s.user_id = auth.uid());
+end $$;
+
 create or replace function public.admin_me() returns table (name text, role text) language sql stable security definer set search_path = public as $$
   select s.name, s.role from staff s where s.user_id = auth.uid();
 $$;
@@ -431,7 +438,7 @@ create trigger staff_invite_apply after insert or update of email on auth.users 
 revoke all on all tables in schema public from anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
 grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family() to authenticated;
-grant execute on function public.admin_me(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
+grant execute on function public.admin_me(), public.admin_role(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_staff(),
   public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint),
   public.admin_set_role(uuid, text), public.admin_reset_mfa(uuid) to authenticated;

@@ -8,7 +8,8 @@
 // nahrat: surové MP3 z Workeru jdou do tools/hlas/nahravky/el/<klíč>.mp3 (při přerušení se pokračuje, nic se
 // neplatí dvakrát – Worker má navíc vlastní mezipaměť), pak se ořízne ticho na krajích (0,05 / 0,08 s),
 // srovná hlasitost na −19 LUFS a uloží do audio/hlas/jana/. index.json obsahuje jen věty z tohoto běhu,
-// staré nahrávky, které v něm nejsou, se smažou.
+// staré nahrávky, které v něm nejsou, se smažou. S PRIDAT=1 se nové věty jen přidají k už nahraným (nic se nemaže) –
+// pro nové pohádky: node tools/hlas/plan.mjs spolecne (bez ZNOVU) a pak PRIDAT=1 … nahrat.
 // Worker: proměnná TTS_URL, výchozí ostrý ospalek-tts. Klíč ElevenLabs zůstává jen ve Workeru.
 import fs from 'fs';
 import path from 'path';
@@ -48,6 +49,8 @@ async function fetchOne(l) {
       return;
     }
     const err = await r.text();
+    // 429 = limit nových vět ve Workeru (120 za minutu na IP) – počkat a zkusit znovu
+    if (r.status === 429 && attempt < 10) { await new Promise((res) => setTimeout(res, 30000)); continue; }
     if (attempt >= 3 || r.status === 403 || r.status === 413) throw new Error(`${r.status} ${err} – „${l.t}“`);
     await new Promise((res) => setTimeout(res, 2000 * attempt));
   }
@@ -71,19 +74,20 @@ function ff(args) {
   return r.stderr;
 }
 const m = readManifest();
-const clips = {};
+const ADD = !!process.env.PRIDAT;
+const clips = ADD ? { ...(m.clips || {}) } : {};
 for (const l of all) {
   const src = path.join(RAW, l.key + '.mp3');
   const r = ff(['-i', src, '-af', `${TRIM},loudnorm=I=-19:TP=-2:LRA=9:print_format=json`, '-f', 'null', '-']);
   const j = JSON.parse(r.match(/\{[^{}]*"input_i"[^{}]*\}/)[0]);
   const ln = `loudnorm=I=-19:TP=-2:LRA=9:measured_I=${j.input_i}:measured_TP=${j.input_tp}:measured_LRA=${j.input_lra}:measured_thresh=${j.input_thresh}:offset=${j.target_offset}:linear=true`;
   const out = path.join(CLIPS, l.key + '.mp3');
-  ff(['-y', '-i', src, '-af', `${TRIM},${ln}`, '-ar', '44100', '-ac', '1', '-b:a', '128k', out]);
+  ff(['-y', '-i', src, '-af', `${TRIM},${ln}`, '-ar', '44100', '-ac', '1', '-b:a', '64k', out]);
   const probe = spawnSync(FF, ['-hide_banner', '-i', out, '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
   const t = [...probe.matchAll(/time=(\d+):(\d+):([\d.]+)/g)].pop();
   clips[l.key] = { d: t ? Math.round((+t[1] * 3600 + +t[2] * 60 + +t[3]) * 1000) / 1000 : 0 };
 }
-for (const f of fs.readdirSync(CLIPS)) if (f.endsWith('.mp3') && !clips[f.slice(0, -4)]) fs.unlinkSync(path.join(CLIPS, f));
+if (!ADD) for (const f of fs.readdirSync(CLIPS)) if (f.endsWith('.mp3') && !clips[f.slice(0, -4)]) fs.unlinkSync(path.join(CLIPS, f));
 writeManifest({ ...m, source: 'tts-worker (ElevenLabs API, po větách)', model: 'eleven_v4', clips });
 console.log(`Hotovo: ${Object.keys(clips).length} vět v audio/hlas/jana/.`);
 

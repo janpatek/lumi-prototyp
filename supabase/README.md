@@ -23,6 +23,11 @@ Administrace volá `admin_*`, které nejdřív ověří, že volající je v tab
 
 1. Na [supabase.com](https://supabase.com) založ projekt. **Region: EU (náš projekt běží v West EU – Irsko, eu-west-1; Frankfurt by šel také).** Tarif Free na začátek stačí.
 2. **SQL Editor** → vlož celý `supabase/schema.sql` → Run. Dá se spustit i znovu po úpravách.
+   Když se ze schématu něco odebírá, leží úklid v `supabase/migrations/` a spouští se jednou ručně, také v SQL Editoru.
+   `20261110_zruseni_propojenych_telefonu.sql` ruší párování telefonů kódem (tabulky `family_devices`, `family_invites`,
+   `family_join_tries`, `listens`, sloupce `families.profile` a `profile_rev` a funkce `app_pull`, `app_push_profile`, `app_listen`,
+   `app_clear_listens`, `app_invite`, `app_join`, `app_unlink`, `app_family_id`). Předplatné patří jednomu účtu a přehled
+   „Co jsme už slyšeli“ zůstává jen v zařízení. Potřeba jen v databázi, kde běželo schéma z 10. 11. 2026 s propojenými telefony.
 3. **Authentication → Sign In / Providers → Anonymous sign-ins: zapnout.** Rodiny díky tomu nemusí zadávat e-mail.
    Doporučení: v Authentication → Rate Limits nech limit anonymních přihlášení nízký (výchozích 30 za hodinu z jedné IP), později přidat captchu (Turnstile).
 4. Pozvi se do týmu (SQL Editor), pak v **Authentication → Users → Add user** založ účet se stejným e-mailem a heslem (Auto Confirm).

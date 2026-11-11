@@ -1,0 +1,211 @@
+<title>Nové pohádky Ospalka</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: jeden sloupec karet pohádek pod lepkavou lištou s výběrem rodiny a filtry; text čte jako kniha */
+:root {
+  --bg: #F7F5FC; --card: #FFFFFF; --line: #E3DFF2; --ink: #2E3150; --muted: #5E6180;
+  --accent: #5B4FB0; --accent-soft: #ECE9FA; --mark: #FCE7C8; --mark-ink: #6B4410;
+  --ok: #2F7D57; --ok-soft: #DDF2E7; --fix: #9A5B00; --fix-soft: #FBEBCF; --no: #A33A3A; --no-soft: #F8E0E0;
+  --display: "Nunito", ui-rounded, system-ui, sans-serif;
+  --body: "Nunito", ui-rounded, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1C1E33; --card: #262942; --line: #3A3D5C; --ink: #ECEAF7; --muted: #A9AACB;
+  --accent: #B4AAF2; --accent-soft: #34365A; --mark: #4A3B22; --mark-ink: #F6D9A8;
+  --ok: #8FD9B2; --ok-soft: #22402F; --fix: #F2C77A; --fix-soft: #43361C; --no: #F0A1A1; --no-soft: #4A2626; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1C1E33; --card: #262942; --line: #3A3D5C; --ink: #ECEAF7; --muted: #A9AACB;
+  --accent: #B4AAF2; --accent-soft: #34365A; --mark: #4A3B22; --mark-ink: #F6D9A8;
+  --ok: #8FD9B2; --ok-soft: #22402F; --fix: #F2C77A; --fix-soft: #43361C; --no: #F0A1A1; --no-soft: #4A2626; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 14px; }
+header { padding-top: 28px; display: grid; gap: 6px; }
+h1 { font: 800 clamp(26px, 5vw, 34px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 0; max-width: 62ch; }
+.tally { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 11px; font-weight: 700; font-size: 13px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.fix { background: var(--fix-soft); color: var(--fix); } .pill.no { background: var(--no-soft); color: var(--no); }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.row > span { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.chip { font: 700 14px var(--body); border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.chip:focus-visible, button:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+details.story { background: var(--card); border: 1px solid var(--line); border-radius: 22px; }
+details.story > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 56px 1fr; gap: 14px; padding: 14px; align-items: start; }
+summary::-webkit-details-marker { display: none; }
+.cov { width: 56px; height: 72px; border-radius: 14px; display: grid; place-items: center; font-size: 28px; }
+.head { min-width: 0; display: grid; gap: 4px; }
+.head h2 { font: 800 19px/1.25 var(--display); margin: 0; text-wrap: balance; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meta b { color: var(--ink); }
+.pozn { margin: 0; font-size: 14px; color: var(--muted); }
+.body { padding: 0 18px 18px; display: grid; gap: 14px; }
+.text { display: grid; gap: 10px; font-size: 17px; line-height: 1.65; max-width: 65ch; }
+.text p { margin: 0; }
+.p-mark { font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: .04em; margin-left: 6px; }
+.hl .pers { background: var(--mark); color: var(--mark-ink); border-radius: 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; padding: 0 2px; }
+.review { display: grid; gap: 8px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.review .row button { font: 800 14px var(--body); border-radius: 12px; padding: 8px 14px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.review button[data-s="ok"][aria-pressed="true"] { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+.review button[data-s="upravit"][aria-pressed="true"] { background: var(--fix-soft); color: var(--fix); border-color: var(--fix); }
+.review button[data-s="vyradit"][aria-pressed="true"] { background: var(--no-soft); color: var(--no); border-color: var(--no); }
+textarea { width: 100%; box-sizing: border-box; min-height: 64px; font: 15px/1.5 var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; resize: vertical; }
+.note { font-size: 13px; color: var(--muted); }
+.empty { color: var(--muted); text-align: center; padding: 30px 0; }
+@media (prefers-reduced-motion: no-preference) { details.story[open] .body { animation: in .2s ease-out; } @keyframes in { from { opacity: .4; transform: translateY(-4px); } } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Nové pohádky Ospalka</h1>
+    <p class="lead">Koncepty ke schválení, zatím bez hlasu a obálek. Text se skládá pro vybranou testovací rodinu. Zvýrazněné věty se namlouvají pro každou rodinu zvlášť, ostatní jednou pro všechny.</p>
+    <div class="tally" id="tally"></div>
+  </header>
+  <div class="bar">
+    <div class="row" id="fam"><span>Rodina</span></div>
+    <div class="row" id="cats"><span>Kategorie</span></div>
+    <div class="row" id="lens"><span>Délka</span></div>
+    <div class="row"><span>Zobrazit</span><button class="chip" id="hl" aria-pressed="true">Osobní věty</button><button class="chip" id="todo" aria-pressed="false">Jen nehodnocené</button></div>
+  </div>
+  <main id="list" class="wrap"></main>
+  <p class="note" id="dbnote"></p>
+</div>
+
+<script>
+/*DATA*/
+</script>
+<script>
+(function () {
+  const STORIES = window.STORIES_DRAFT;
+  const CATS = { noc: 'Na dobrou noc', auto: 'Do auta', dobro: 'Dobrodružství', zivot: 'Ze života', sranda: 'Srandovní', lidove: 'Klasické pohádky', hrdinove: 'Superhrdinové', zvirata: 'O zvířátkách' };
+  const PRO = { f: 'spíš pro holky', m: 'spíš pro kluky', vse: 'pro všechny' };
+  const split = window.VOICE_LINES.splitLines;
+  const listCz = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' a ' + a[a.length - 1]);
+  const kid = (f, gender, food, animal) => { const [nom, gen, dat, acc, voc, ins] = f.split(' '); return { forms: { nom, gen, dat, acc, voc, ins }, gender, food, animal }; };
+  const K = {
+    tonik: kid('Toník Toníka Toníkovi Toníka Toníku Toníkem', 'm', 'palačinky', 'liška'),
+    matej: kid('Matěj Matěje Matějovi Matěje Matěji Matějem', 'm', 'špagety', 'tygr'),
+    eliska: kid('Eliška Elišky Elišce Elišku Eliško Eliškou', 'f', 'jahody', 'koník'),
+    anicka: kid('Anička Aničky Aničce Aničku Aničko Aničkou', 'f', 'knedlíky', 'kočička'),
+  };
+  const parent = (role, name) => {
+    const R = role === 'mama' ? ['f', { nom: 'maminka', gen: 'maminky', dat: 'mamince', acc: 'maminku', voc: 'maminko', ins: 'maminkou' }] : ['m', { nom: 'tatínek', gen: 'tatínka', dat: 'tatínkovi', acc: 'tatínka', voc: 'tatínku', ins: 'tatínkem' }];
+    return { ...R[1], full: R[1].nom + (name ? ' ' + name : ''), name: name ? { nom: name } : null, g: (m, f) => (R[0] === 'f' ? f : m) };
+  };
+  function ctx(heroes, sib, ps, home) {
+    const one = heroes.length === 1, allF = heroes.every((k) => k.gender === 'f'), h = {};
+    ['nom', 'gen', 'dat', 'acc', 'voc', 'ins'].forEach((k) => { h[k] = listCz(heroes.map((x) => x.forms[k])); });
+    return { H: h.nom, h, g: (m, f, mpl = m, fpl) => (one ? (allF ? f : m) : allF ? fpl ?? mpl.replace(/li\b/g, 'ly') : mpl), n: (sg, pl) => (one ? sg : pl),
+      sib: sib ? sib.forms : null, sg: (m, f) => (sib && sib.gender === 'f' ? f : m), p1: ps[0], p2: ps[1] || null,
+      town: home.town, inTown: home.inTown, near: home.near, attr: home.attr,
+      food: listCz([...new Set(heroes.map((k) => k.food))]), animal: listCz([...new Set(heroes.map((k) => k.animal))]) };
+  }
+  const A = { town: 'Benešov', inTown: 'v Benešově', near: ['Týnec nad Sázavou', 'Vlašim', 'Bystřice'], attr: ['hrad Konopiště'] };
+  const B = { town: 'Ponětovice', inTown: 'v Ponětovicích', near: ['Šlapanice', 'Sokolnice', 'Telnice'], attr: ['zámek Slavkov'] };
+  // každá rodina má „dvojče“ se stejným rodem a počtem dětí, ale jinými údaji – podle něj se pozná osobní věta
+  const FAM = [
+    { id: 'kluk', label: 'Toník, 4 roky', c: ctx([K.tonik], K.eliska, [parent('mama', 'Petra'), parent('tata', 'Honza')], A), twin: ctx([K.matej], null, [parent('tata'), parent('mama', 'Jana')], B) },
+    { id: 'holka', label: 'Eliška, 3 roky', c: ctx([K.eliska], K.tonik, [parent('mama', 'Petra'), parent('tata', 'Honza')], A), twin: ctx([K.anicka], null, [parent('tata'), parent('mama', 'Jana')], B) },
+    { id: 'dve', label: 'Toník a Eliška', c: ctx([K.tonik, K.eliska], null, [parent('mama', 'Petra'), parent('tata', 'Honza')], A), twin: ctx([K.matej, K.anicka], null, [parent('tata'), parent('mama', 'Jana')], B) },
+  ];
+  const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
+  const SFX = { sparkle: 'třpyt', magic: 'kouzlo', car: 'auto', horn: 'troubení', birds: 'ptáci', owl: 'sova', paper: 'papír', wind: 'vítr', ding: 'cink' };
+  const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+  let st = { fam: 'holka', cat: 'all', len: 0, hl: true, todo: false };
+  try { Object.assign(st, JSON.parse(localStorage.getItem('ospalek-nahled') || '{}')); } catch (e) {}
+  const keep = () => { try { localStorage.setItem('ospalek-nahled', JSON.stringify(st)); } catch (e) {} };
+  const rev = {}; // id -> {stav, pozn}
+  let db = null;
+
+  const chip = (label, on, attrs) => `<button class="chip" aria-pressed="${on}" ${attrs}>${esc(label)}</button>`;
+  function renderBar() {
+    document.getElementById('fam').innerHTML = '<span>Rodina</span>' + FAM.map((f) => chip(f.label, st.fam === f.id, `data-fam="${f.id}"`)).join('');
+    const used = Object.keys(CATS).filter((k) => STORIES.some((s) => s.cats.includes(k)));
+    document.getElementById('cats').innerHTML = '<span>Kategorie</span>' + chip('Vše', st.cat === 'all', 'data-cat="all"') + used.map((k) => chip(CATS[k], st.cat === k, `data-cat="${k}"`)).join('');
+    document.getElementById('lens').innerHTML = '<span>Délka</span>' + [0, 5, 10, 15].map((n) => chip(n ? n + ' min' : 'Všechny', st.len === n, `data-len="${n}"`)).join('');
+    document.getElementById('hl').setAttribute('aria-pressed', st.hl);
+    document.getElementById('todo').setAttribute('aria-pressed', st.todo);
+  }
+  function renderTally() {
+    const n = { ok: 0, upravit: 0, vyradit: 0 };
+    STORIES.forEach((s) => { const r = rev[s.id]; if (r && n[r.stav] !== undefined) n[r.stav]++; });
+    const lens = [5, 10, 15].map((l) => `${STORIES.filter((s) => s.delka === l).length}× ${l} min`).join(' · ');
+    document.getElementById('tally').innerHTML = `<span class="pill">${STORIES.length} pohádek · ${lens}</span><span class="pill ok">Schváleno ${n.ok}</span><span class="pill fix">K úpravě ${n.upravit}</span><span class="pill no">Vyřadit ${n.vyradit}</span>`;
+  }
+  function storyHtml(s, f, open) {
+    let segs, title, err = '';
+    try { segs = s.text(f.c); title = s.title(f.c); } catch (e) { segs = []; title = s.id; err = e.message; }
+    let twinLines = new Set();
+    try { twinLines = new Set(s.text(f.twin).flatMap((x) => split(x.t))); } catch (e) {}
+    let all = 0, pers = 0;
+    const paras = segs.map((x) => {
+      const lines = split(x.t).map((l) => { all += l.length; const p = !twinLines.has(l); if (p) pers += l.length; return p ? `<span class="pers">${esc(l)}</span>` : esc(l); }).join(' ');
+      const marks = (x.sfx ? `<span class="p-mark">♪ ${SFX[x.sfx] || x.sfx}</span>` : '') + (x.pause ? `<span class="p-mark">⏸ ${x.pause} s</span>` : '');
+      return `<p>${lines}${marks}</p>`;
+    }).join('');
+    const r = rev[s.id] || {};
+    const pill = r.stav === 'ok' ? '<span class="pill ok">Schváleno</span>' : r.stav === 'upravit' ? '<span class="pill fix">K úpravě</span>' : r.stav === 'vyradit' ? '<span class="pill no">Vyřadit</span>' : '';
+    const words = segs.reduce((a, x) => a + x.t.split(/\s+/).length, 0);
+    const btn = (k, l) => `<button data-s="${k}" data-id="${s.id}" aria-pressed="${r.stav === k}">${l}</button>`;
+    return `<details class="story" data-id="${s.id}" ${open ? 'open' : ''}>
+      <summary><div class="cov" style="background:linear-gradient(160deg,${s.cover.g1},${s.cover.g2})" aria-hidden="true">${s.cover.emoji || ''}</div>
+        <div class="head"><h2>${esc(title)}</h2>
+          <div class="meta"><b>${minutes(segs)} min</b><span>· ${s.ages[0]}–${s.ages[1]} let</span><span>· ${s.cats.map((k) => CATS[k] || k).join(', ')}</span><span>· ${PRO[s.pro] || ''}</span>${pill}</div>
+          <p class="pozn">${esc(s.pozn || '')}</p></div></summary>
+      <div class="body">
+        <div class="meta">${words} slov · osobní věty ${all ? Math.round((100 * pers) / all) : 0} % textu · id ${esc(s.id)}</div>
+        ${err ? `<p class="pill no">Chyba v šabloně: ${esc(err)}</p>` : ''}
+        <div class="text ${st.hl ? 'hl' : ''}">${paras}</div>
+        <div class="review">
+          <div class="row">${btn('ok', 'Schválit')}${btn('upravit', 'Upravit')}${btn('vyradit', 'Vyřadit')}</div>
+          <label class="note" for="n-${s.id}">Poznámka pro úpravu</label>
+          <textarea id="n-${s.id}" data-id="${s.id}" placeholder="Co změnit, co se líbí…">${esc(r.pozn || '')}</textarea>
+        </div>
+      </div></details>`;
+  }
+  function renderList() {
+    const f = FAM.find((x) => x.id === st.fam) || FAM[1];
+    const open = new Set([...document.querySelectorAll('details.story[open]')].map((d) => d.dataset.id));
+    const list = STORIES.filter((s) => (st.cat === 'all' || s.cats.includes(st.cat)) && (!st.len || s.delka === st.len) && (!st.todo || !(rev[s.id] && rev[s.id].stav)));
+    document.getElementById('list').innerHTML = list.length ? list.map((s) => storyHtml(s, f, open.has(s.id))).join('') : '<p class="empty">Žádná pohádka neodpovídá filtru.</p>';
+  }
+  const render = () => { renderBar(); renderTally(); renderList(); };
+
+  async function save(id, patch) {
+    rev[id] = { ...(rev[id] || {}), ...patch };
+    renderTally(); renderList();
+    if (!db) return;
+    try { await db.collection('hodnoceni').doc(id).set({ stav: rev[id].stav || '', pozn: rev[id].pozn || '', kdy: new Date().toISOString() }); }
+    catch (e) { document.getElementById('dbnote').textContent = 'Hodnocení se nepodařilo uložit (' + (e.code || e.message) + '). Zůstává jen v tomto okně.'; }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.fam) { st.fam = b.dataset.fam; keep(); render(); }
+    else if (b.dataset.cat) { st.cat = b.dataset.cat; keep(); render(); }
+    else if (b.dataset.len) { st.len = +b.dataset.len; keep(); render(); }
+    else if (b.id === 'hl') { st.hl = !st.hl; keep(); render(); }
+    else if (b.id === 'todo') { st.todo = !st.todo; keep(); render(); }
+    else if (b.dataset.s) { const id = b.dataset.id; save(id, { stav: (rev[id] || {}).stav === b.dataset.s ? '' : b.dataset.s }); }
+  });
+  document.addEventListener('change', (e) => { if (e.target.matches('textarea[data-id]')) save(e.target.dataset.id, { pozn: e.target.value.trim() }); });
+
+  render();
+  (async () => {
+    const note = document.getElementById('dbnote');
+    try { db = window.claude && (await window.claude.use('db')); } catch (e) { db = null; }
+    if (!db) { note.textContent = 'Hodnocení se v tomto zobrazení neukládá. Otevřete stránku přihlášení na claude.ai.'; return; }
+    note.textContent = 'Hodnocení a poznámky se ukládají a Claude si je přečte.';
+    const t = setTimeout(() => { note.textContent = 'Uložená hodnocení se nenačetla. Nová se přesto uloží.'; }, 10000);
+    db.collection('hodnoceni').onSnapshot((snap) => {
+      clearTimeout(t);
+      snap.docs.forEach((d) => { const v = d.data() || {}; rev[d.id] = { stav: v.stav || '', pozn: v.pozn || '' }; });
+      if (!document.activeElement || !document.activeElement.matches('textarea')) { renderTally(); renderList(); } else renderTally();
+    }, () => { clearTimeout(t); note.textContent = 'Uložená hodnocení se nenačetla.'; });
+  })();
+})();
+</script>

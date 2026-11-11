@@ -11,6 +11,26 @@ const TTS_URL = (() => {
   const q = new URLSearchParams(location.search).get('tts');
   return q && /^http:\/\/localhost(:\d+)?$/.test(q) ? q : TTS_URL_DEFAULT;
 })();
+// Limity formulářů: brání tomu, aby rodina (nebo skript) zbytečně pálila kredity za hlas. Worker má vlastní pojistky.
+const LIMIT = { children: 4, parents: 4, heroes: 3, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
+// jméno: jen písmena, mezera, spojovník a apostrof
+const cleanName = (s, max = LIMIT.name) => String(s || '').replace(/[^\p{L}\s'’-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
+const cleanText = (s, max) => String(s || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
+// Změny údajů, které mění text pohádek (jméno, jídlo, zvíře, obec, nové dítě…), po dokončení úvodního nastavení:
+// nejvýš LIMIT.changes za kalendářní měsíc. Každá změna znamená nové věty k namluvení.
+function changesLeft() {
+  const m = new Date().toISOString().slice(0, 7);
+  if (!S.changes || S.changes.m !== m) S.changes = { m, n: 0 };
+  return Math.max(0, LIMIT.changes - S.changes.n);
+}
+function useChange() {
+  if (!S.onboarded) return true;
+  if (!changesLeft()) return false;
+  S.changes.n++;
+  return true;
+}
+const changesNote = () => (S.onboarded ? `<p class="note" id="changesMsg">Změny jmen, jídla, zvířat a míst: tento měsíc zbývá ${changesLeft()} z ${LIMIT.changes}.</p>` : '');
+const changesOut = 'Tento měsíc už další změny udělat nejde. Nové budou možné od začátku příštího měsíce.';
 const LS_KEY = 'lumi.v1'; // klíč z doby pracovního názvu, ať se neztratí uložené rodiny
 const store = {
   get() { try { return JSON.parse(localStorage.getItem(LS_KEY)); } catch (e) { return null; } },
@@ -20,8 +40,11 @@ const store = {
 const blank = () => ({ user: null, onboarded: false, premium: false, heroIds: [], family: { children: [], parents: [], home: { town: '', inTown: '', near: [], attr: [], nearOpts: [], attrOpts: [] } } });
 let S = store.get() || blank();
 if (!S.heroIds) S.heroIds = S.heroId ? [S.heroId] : []; // starší uložená data měla jen jednoho hrdinu
-let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false };
-const save = () => { store.set(S); SYNC.family(S); }; // SYNC: app/sync.js, odešle do databáze, je-li nastavená
+let ui = { screen: S.user ? (S.onboarded ? 'lib' : 'onb') : 'login', step: 0, cat: 'all', ageOnly: false, unheard: false };
+// SYNC: app/sync.js, odešle do databáze, je-li nastavená. Po změně rodiny se přepočítá, co je stažené na cestu,
+// a věty se starými jmény se ze zařízení smažou (pruneOffline).
+let pruneT = null;
+const save = () => { store.set(S); SYNC.family(S); offlineMemo.clear(); clearTimeout(pruneT); pruneT = setTimeout(pruneOffline, 2000); };
 const $app = document.getElementById('app');
 const $modal = document.getElementById('modal');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -37,6 +60,8 @@ const I = {
   home: ico('<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>'),
   star: ico('<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/>'),
   music: ico('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
+  down: ico('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  hist: ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   mic: ico('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
@@ -46,10 +71,11 @@ const I = {
 };
 const MASCOT = { mark: '../brand/maskot-3d/web/ospalek-mark.webp', head: '../brand/maskot-3d/web/ospalek-hlava.webp', sleep: '../brand/maskot-3d/web/ospalek-spi.webp', trip: '../brand/maskot-3d/web/ospalek-vyprava.webp' };
 // každá kategorie má svou pastelovou barvu (brand manuál)
-const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)' };
+const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)', sranda: 'var(--honey)', lidove: 'var(--peach)', hrdinove: 'var(--sky)', zvirata: 'var(--mint)' };
 const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
 // plyšové ikonky kategorií (brand/ikony)
-const catIcon = (id, cls = 'cat-ico') => (CAT_COLOR[id] ? `<img class="${cls}" src="../brand/ikony/kat-${id}.webp" alt="">` : '');
+const CAT_ICONS = new Set(['noc', 'auto', 'dobro', 'zivot', 'sranda', 'lidove', 'hrdinove', 'zvirata']);
+const catIcon = (id, cls = 'cat-ico') => (CAT_ICONS.has(id) ? `<img class="${cls}" src="../brand/ikony/kat-${id}.webp" alt="">` : '');
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
 // avatar: první písmeno jména v pastelovém kolečku
 const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
@@ -153,7 +179,7 @@ function ctx(heroes) {
   };
 }
 const heroes = () => {
-  const sel = S.family.children.filter((k) => S.heroIds.includes(k.id));
+  const sel = S.family.children.filter((k) => S.heroIds.includes(k.id)).slice(0, LIMIT.heroes);
   return sel.length ? sel : S.family.children.slice(0, 1);
 };
 const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
@@ -184,12 +210,13 @@ const screens = {
   lib: () => {
     const hs = heroes();
     const c = ctx(hs);
-    const list = STORIES.filter((s) => (ui.cat === 'all' || s.cats.includes(ui.cat)) && (!ui.ageOnly || hs.every((k) => k.age >= s.ages[0] && k.age <= s.ages[1])));
+    const list = STORIES.filter((s) => (ui.cat === 'all' || s.cats.includes(ui.cat)) && (!ui.ageOnly || hs.every((k) => k.age >= s.ages[0] && k.age <= s.ages[1])) && (!ui.unheard || !heardCount(s.id)));
     return `
       <div class="top">
         <h1>Pohádky pro ${esc(c.h.acc)}</h1>
-        <button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button>
+        <div class="top-btns"><button class="icon-btn" data-a="history" aria-label="Co jsme už slyšeli">${I.hist}</button><button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button></div>
       </div>
+      ${navigator.onLine ? '' : `<div class="netnote">${I.down}<span><b>Jsi bez internetu.</b> Pustit jdou pohádky se značkou Offline.</span></div>`}
       ${S.family.children.length > 1 ? `
         <div class="section-t">Hlavní hrdinové <span class="hint">– vyber jednoho nebo víc</span></div>
         <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
@@ -197,6 +224,7 @@ const screens = {
       <div class="hscroll">
         ${CATEGORIES.map((k) => `<button class="chip ${ui.cat === k.id ? 'on' : ''}" data-a="cat" data-id="${k.id}">${catIcon(k.id)}${k.label}</button>`).join('')}
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
+        <button class="chip ${ui.unheard ? 'on' : ''}" data-a="unheard">Ještě neslyšené</button>
       </div>
       ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak 129 Kč měsíčně</span></div></button>`}
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžeš nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změníš to kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
@@ -209,12 +237,37 @@ const screens = {
               ${s.cover.img ? `<img src="${coverImg(s, hs)}" alt="" loading="lazy">` : s.cover.emoji}
               ${s.free && !S.premium ? '<span class="badge free">Zdarma</span>' : ''}
               ${unlocked(s) ? '' : `<span class="badge lock">${I.lock}Zamčeno</span>`}
+              <span class="badge off" hidden>${I.down}Offline</span>
+              ${heardCount(s.id) ? `<span class="badge heard">✓ Slyšeno${heardCount(s.id) > 1 ? ` ${heardCount(s.id)}×` : ''}</span>` : ''}
             </div>
             <h3>${esc(s.title(c))}</h3>
             <div class="meta">${catIcon(s.cats[0], 'cat-ico sm')}${minutes(segs)} min · ${s.ages[0]}–${s.ages[1]} let</div>
           </button>`;
-        }).join('') || `<div class="empty"><img src="${MASCOT.trip}" alt="">V téhle kategorii zatím nic není.</div>`}
+        }).join('') || `<div class="empty"><img src="${MASCOT.trip}" alt="">${ui.unheard ? 'Všechny pohádky z výběru už jste slyšeli.' : 'V téhle kategorii zatím nic není.'}</div>`}
       </div>`;
+  },
+
+  history: () => {
+    const h = S.history || [];
+    const done = h.filter((x) => x.done);
+    const kinds = new Set(done.map((x) => x.id)).size;
+    const when = (t) => new Date(t).toLocaleString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `
+    <div class="top">
+      <h1>Co jsme už slyšeli</h1>
+      <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
+    </div>
+    ${h.length ? `
+      <p class="note">Dohráno ${done.length}× · ${kinds} z ${STORIES.length} pohádek. Ukládá se jen v tomhle zařízení.</p>
+      <div class="hist">${h.slice(0, 50).map((x) => {
+        const st = STORIES.find((s) => s.id === x.id);
+        return `<button class="person" data-a="open" data-id="${x.id}"${st ? '' : ' disabled'}>
+          <div class="av" style="background:${st ? catColor(st) : 'var(--line)'}">${st ? catIcon(st.cats[0], 'cat-ico') : ''}</div>
+          <div class="nm"><b>${esc(x.title)}</b><span>${when(x.at)} · ${esc(x.who)} · ${x.done ? 'celá' : `rozposlechnutá (${Math.round(x.part * 100)} %)`}</span></div>
+        </button>`;
+      }).join('')}</div>
+      <div class="footer-actions"><button class="btn ghost" data-a="clearHistory">Smazat historii poslechu</button></div>`
+    : `<div class="empty"><img src="${MASCOT.head}" alt="">Zatím jste žádnou pohádku neposlouchali. Až nějakou pustíte, objeví se tady.</div>`}`;
   },
 
   settings: () => `
@@ -226,6 +279,9 @@ const screens = {
     <div class="section-t">Rodiče a blízcí</div>${peopleList('parent')}
     <div class="section-t">Bydliště</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
+    <div class="section-t">Poslech bez internetu</div>
+    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Stažené pohádky pustíš v autě nebo na chalupě bez signálu. Co dohrajete do konce, uloží se samo.</span></div></div>
+    <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
       ${S.premium ? `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>` : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
@@ -247,13 +303,15 @@ function peopleList(kind) {
       <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
     </div>`).join('')}</div>
-    <button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`;
+    ${arr.length < LIMIT[kind === 'child' ? 'children' : 'parents']
+      ? `<button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`
+      : `<p class="note">${kind === 'child' ? `Víc než ${LIMIT.children} děti přidat nejde.` : `Víc než ${LIMIT.parents} dospělé přidat nejde.`}</p>`}`;
 }
 
 const stepKids = () => `
   <img class="onb-mascot" src="${MASCOT.head}" alt="">
   <h1>Kdo bude hlavní hrdina?</h1>
-  <p class="lead">Přidej své děti. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
+  <p class="lead">Přidej své děti, nejvýš ${LIMIT.children}. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
   ${peopleList('child')}
   <div class="footer-actions"><button class="btn" data-a="next" ${S.family.children.length ? '' : 'disabled'}>Pokračovat</button></div>`;
 
@@ -280,14 +338,14 @@ function homeForm() {
   const chips = (opts, sel, kind) => opts.map((o, i) => `<button class="chip ${sel.includes(o) ? 'on' : ''}" data-a="toggleSpot" data-kind="${kind}" data-i="${i}">${esc(o)}</button>`).join('');
   return `
     <label for="town">Obec nebo město</label>
-    <div class="row"><input id="town" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small" style="flex:0 0 auto" data-a="findSpots">Najít okolí</button></div>
+    <div class="row"><input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small" style="flex:0 0 auto" data-a="findSpots">Najít okolí</button></div>
     <label for="inTown">Jak doma říkáte: „bydlíme …“</label>
-    <input id="inTown" placeholder="v Benešově" value="${esc(h.inTown)}">
+    <input id="inTown" maxlength="${LIMIT.place + 4}" placeholder="v Benešově" value="${esc(h.inTown)}">
     <div id="spotsMsg" class="note" style="margin-top:8px"></div>
     ${h.nearOpts.length ? `<div class="section-t">Obce v okolí</div><div class="chips">${chips(h.nearOpts, h.near, 'near')}</div>` : ''}
     ${h.attrOpts.length ? `<div class="section-t">Výletní místa</div><div class="chips">${chips(h.attrOpts, h.attr, 'attr')}</div>` : ''}
     <label for="addSpot">Přidat vlastní oblíbené místo</label>
-    <div class="row"><input id="addSpot" placeholder="např. Zoo Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
+    <div class="row"><input id="addSpot" maxlength="${LIMIT.place}" placeholder="např. Zoo Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
 }
 
 // ---------- Okolí z OpenStreetMap ----------
@@ -295,7 +353,7 @@ async function findSpots() {
   const town = document.getElementById('town').value.trim();
   const msg = document.getElementById('spotsMsg');
   if (!town) { msg.textContent = 'Nejdřív napiš obec.'; return; }
-  syncHome();
+  if (syncHome() === false) return;
   msg.textContent = 'Hledám místa v okolí…';
   try {
     const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=cz,sk&accept-language=cs&q=${encodeURIComponent(town)}`).then((r) => r.json());
@@ -331,8 +389,15 @@ function syncHome() {
   const t = document.getElementById('town'), i = document.getElementById('inTown');
   if (!t) return;
   const h = S.family.home;
-  if (t.value.trim() !== h.town) { h.town = t.value.trim(); if (!i.value.trim() || i.dataset.auto) i.value = inTownGuess(h.town); }
-  h.inTown = i.value.trim() || inTownGuess(h.town);
+  const town = cleanText(t.value, LIMIT.place);
+  const inTown = cleanText(i.value, LIMIT.place + 4);
+  if ((town !== h.town || (inTown && inTown !== h.inTown)) && !useChange()) {
+    t.value = h.town; i.value = h.inTown;
+    const msg = document.getElementById('spotsMsg'); if (msg) msg.innerHTML = `<span class="err">${changesOut}</span>`;
+    return false;
+  }
+  if (town !== h.town) { h.town = town; if (!i.value.trim() || i.dataset.auto) i.value = inTownGuess(h.town); }
+  h.inTown = cleanText(i.value, LIMIT.place + 4) || inTownGuess(h.town);
   save();
 }
 
@@ -347,25 +412,26 @@ function personSheet(kind, id) {
       <h2>${p.id ? 'Upravit' : 'Přidat'} ${isChild ? 'dítě' : 'člena rodiny'}</h2>
       ${isChild ? `
         <label for="pName">Jak dítěti doma říkáte?</label>
-        <input id="pName" value="${esc(p.forms.nom)}" placeholder="např. Toník, Ema, Kubík">
+        <input id="pName" maxlength="${LIMIT.name}" value="${esc(p.forms.nom)}" placeholder="např. Toník, Ema, Kubík">
         <label>Je to</label>
         <div class="seg" id="gSeg"><button data-a="gender" data-v="m" class="${p.gender !== 'f' ? 'on' : ''}">Kluk</button><button data-a="gender" data-v="f" class="${p.gender === 'f' ? 'on' : ''}">Holka</button></div>
         <div class="row">
           <div><label for="pAge">Věk</label><select id="pAge">${[2, 3, 4, 5, 6, 7, 8, 9, 10].map((a) => `<option ${a === p.age ? 'selected' : ''}>${a}</option>`).join('')}</select></div>
         </div>
         <label for="pFood">Oblíbené jídlo</label>
-        <input id="pFood" value="${esc(p.food || '')}" placeholder="např. palačinky">
+        <input id="pFood" maxlength="${LIMIT.item}" value="${esc(p.food || '')}" placeholder="např. palačinky">
         <label for="pAnimal">Oblíbené zvíře</label>
-        <input id="pAnimal" value="${esc(p.animal || '')}" placeholder="např. liška">
+        <input id="pAnimal" maxlength="${LIMIT.item}" value="${esc(p.animal || '')}" placeholder="např. liška">
       ` : `
         <label>Kdo to je</label>
         <div class="seg" id="rSeg">${Object.entries(ROLES).map(([k, r]) => `<button data-a="role" data-v="${k}" class="${p.role === k ? 'on' : ''}">${r.label}</button>`).join('')}</div>
                 <label for="pName">Jméno (nepovinné)</label>
-        <input id="pName" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra">
+        <input id="pName" maxlength="${LIMIT.name}" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra">
         <p class="note">V pohádce pak zazní třeba „maminka Petra“. Bez jména jen „maminka“.</p>
       `}
+      ${changesNote()}
       <details><summary>Skloňování jména (zkontroluj)</summary>
-        <div class="cases">${CASES.map(([k, l]) => `<div><label for="c_${k}">${l}</label><input id="c_${k}" value="${esc(p.forms[k])}"></div>`).join('')}</div>
+        <div class="cases">${CASES.map(([k, l]) => `<div><label for="c_${k}">${l}</label><input id="c_${k}" maxlength="${LIMIT.cases}" value="${esc(p.forms[k])}"></div>`).join('')}</div>
       </details>
       <div class="footer-actions">
         <button class="btn" data-a="savePerson">Uložit</button>
@@ -383,16 +449,23 @@ function refreshCases() {
 }
 
 function savePerson() {
-  const name = document.getElementById('pName').value.trim();
+  const name = cleanName(document.getElementById('pName').value);
   const isChild = ui.edit.kind === 'child';
   if (isChild && !name) { document.getElementById('pName').focus(); return; }
   const forms = {};
-  CASES.forEach(([k]) => { forms[k] = document.getElementById('c_' + k).value.trim() || name; });
+  CASES.forEach(([k]) => { forms[k] = cleanName(document.getElementById('c_' + k).value, LIMIT.cases) || name; });
+  if (name) forms.nom = name;
   const arr = isChild ? S.family.children : S.family.parents;
   let p = arr.find((x) => x.id === ui.edit.id);
+  if (!p && arr.length >= LIMIT[isChild ? 'children' : 'parents']) { closeModal(); return; }
+  const next = isChild
+    ? { forms, gender: ui.edit.gender || 'm', age: +document.getElementById('pAge').value, food: cleanText(document.getElementById('pFood').value, LIMIT.item), animal: cleanText(document.getElementById('pAnimal').value, LIMIT.item) }
+    : { forms, role: ui.edit.role, name: !!name };
+  // věk se do textu pohádky nepromítá, ostatní ano
+  const story = (o) => o && JSON.stringify([o.forms, o.gender, o.food, o.animal, o.role, o.name]);
+  if (story(p) !== story(next) && !useChange()) { document.getElementById('changesMsg').innerHTML = `<span class="err">${changesOut}</span>`; return; }
   if (!p) { p = { id: uid() }; arr.push(p); }
-  if (isChild) Object.assign(p, { forms, gender: ui.edit.gender || 'm', age: +document.getElementById('pAge').value, food: document.getElementById('pFood').value.trim(), animal: document.getElementById('pAnimal').value.trim() });
-  else Object.assign(p, { forms, role: ui.edit.role, name: !!name });
+  Object.assign(p, next);
   if (!S.heroIds.length && isChild) S.heroIds = [p.id];
   save(); closeModal(); render();
 }
@@ -403,12 +476,13 @@ function paywall() {
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
       <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
       <h2 style="text-align:center">${APP_NAME} Plus</h2>
-      <p class="lead" style="text-align:center">Celá knihovna pohádek pro všechny tvoje děti.</p>
+      <p class="lead" style="text-align:center">Celá knihovna pohádek pro tvůj účet.</p>
       <ul class="perks">
         <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
-        <li>Pro všechny děti v rodině</li>
-        <li>Brzy i poslech offline a časovač usínání</li>
+        <li>Pro jeden účet, až ${LIMIT.children} děti, na všech tvých zařízeních</li>
+        <li>Poslech bez internetu: pohádky si stáhneš na cestu</li>
+        <li>Brzy i časovač usínání</li>
       </ul>
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>129 Kč / měsíc · zrušit můžeš kdykoli</small></div></div>
@@ -449,11 +523,17 @@ const cloudClips = new Map();
 function cloudClip(text, mood) {
   const id = (mood || '') + '|' + text;
   if (!cloudClips.has(id)) {
-    const p = fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
-      .then(async (r) => {
-        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.');
-        return URL.createObjectURL(await r.blob());
-      });
+    // věta už stažená v zařízení (offline.js), jinak z Workeru a hned ji uložit na příště i na cestu
+    const p = OFFLINE.get(id)
+      .then((buf) => buf || fetch(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
+        .catch(() => { throw Object.assign(new Error('Bez připojení k internetu se hlas nenačte.'), { status: 0 }); })
+        .then(async (r) => {
+          if (!r.ok) throw Object.assign(new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.'), { status: r.status });
+          const b = await r.arrayBuffer();
+          await OFFLINE.put(id, b);
+          return b;
+        }))
+      .then((b) => URL.createObjectURL(new Blob([b], { type: 'audio/mpeg' })));
     p.catch(() => cloudClips.delete(id)); // chybu příště zkusit znovu
     cloudClips.set(id, p);
   }
@@ -481,6 +561,104 @@ function cloudSpeak(text, onend) {
   return () => { stopped = true; el.onended = null; el.pause(); fallback && fallback(); };
 }
 
+// ---------- Poslech bez internetu (offline.js, sw.js) ----------
+const lineId = (t, mood) => (mood || '') + '|' + t;
+// co pohádka pro dané hrdiny potřebuje: věty s rodinou (IndexedDB) a soubory (společné věty, obálka)
+async function storyNeeds(st, hs = heroes()) {
+  await voiceLines.ready;
+  const lines = VOICE_LINES.planStory(st.text(ctx(hs))).flatMap((p) => p.lines);
+  return {
+    family: [...new Set(lines.filter((l) => !voiceLines.has(l)).map((l) => l.t))],
+    files: [...new Set([...lines.filter((l) => voiceLines.has(l)).map(voiceLines.url), ...(st.cover.img ? [coverImg(st, hs)] : [])])],
+  };
+}
+const offlineMemo = new Map(); // pohádka + hrdinové → Promise<true/false>
+const memoKey = (st, hs) => st.id + '|' + hs.map((k) => k.id).join(',');
+function storyOffline(st, hs = heroes()) {
+  const k = memoKey(st, hs);
+  if (!offlineMemo.has(k)) {
+    offlineMemo.set(k, (async () => {
+      const n = await storyNeeds(st, hs);
+      const have = await OFFLINE.keys();
+      if (!n.family.every((t) => have.has(lineId(t, st.mood)))) return false;
+      for (const f of n.files) if (!(await OFFLINE.hasFile(f))) return false;
+      return true;
+    })().catch(() => false));
+  }
+  return offlineMemo.get(k);
+}
+// stáhne vše, co pohádka potřebuje; věty rodiny jdou přes cloudClip, takže se zaplatí jen jednou
+async function downloadStory(st, onprog) {
+  const n = await storyNeeds(st);
+  const jobs = [...n.family.map((t) => () => cloudClip(t, st.mood)), ...n.files.map((f) => () => OFFLINE.saveFile(f))];
+  const run = async (job) => {
+    for (let a = 1; ; a++) {
+      try { return await job(); } catch (e) {
+        // limit nových vět ve Workeru (120 za minutu) – chvilku počkat
+        if (e.status === 429 && a < 4) { await new Promise((r) => setTimeout(r, 20000)); continue; }
+        throw navigator.onLine ? e : new Error('Bez internetu se pohádka stáhnout nedá.');
+      }
+    }
+  };
+  let done = 0;
+  const q = [...jobs];
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    while (q.length) { await run(q.shift()); onprog && onprog(++done, jobs.length); }
+  }));
+  offlineMemo.delete(memoKey(st, heroes()));
+}
+// věty se jmény, které už žádná pohádka nepotřebuje (změna jména, smazané dítě), ze zařízení smazat
+async function pruneOffline() {
+  try {
+    await voiceLines.ready;
+    const kids = S.family.children, need = new Set();
+    for (let m = 1; m < 1 << kids.length; m++) {
+      const c = kids.filter((_, i) => m & (1 << i));
+      if (c.length > LIMIT.heroes) continue;
+      STORIES.forEach((st) => VOICE_LINES.planStory(st.text(ctx(c))).forEach((p) => p.lines.forEach((l) => need.add(lineId(l.t, st.mood)))));
+    }
+    await OFFLINE.remove([...(await OFFLINE.keys())].filter((k) => !need.has(k)));
+  } catch (e) { /* příště znovu */ }
+}
+// značky Offline v knihovně; bez internetu nestažené pohádky zešednou
+function markOffline() {
+  const hs = heroes();
+  document.querySelectorAll('.card[data-id]').forEach(async (card) => {
+    const st = STORIES.find((s) => s.id === card.dataset.id);
+    const ok = unlocked(st) && (await storyOffline(st, hs));
+    const b = card.querySelector('.badge.off');
+    if (b) b.hidden = !ok;
+    card.classList.toggle('dim', !navigator.onLine && !ok);
+  });
+}
+async function offlineStats() {
+  const el = document.getElementById('offStat');
+  if (!el) return;
+  const list = STORIES.filter(unlocked);
+  const ok = (await Promise.all(list.map((st) => storyOffline(st)))).filter(Boolean).length;
+  if (el.dataset.busy) return;
+  el.textContent = `Staženo ${ok} z ${list.length} pohádek`;
+}
+function notOffline() {
+  $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+    <img class="sheet-mascot" src="${MASCOT.trip}" alt="">
+    <h2 style="text-align:center">Tahle pohádka není stažená</h2>
+    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budeš zase připojený, otevři pohádku a klepni na <b>Stáhnout na cestu</b>.</p>
+    <button class="btn" data-a="closeModal">Rozumím</button>
+  </div></div>`;
+}
+const dlLabel = (ok) => (ok ? '✓ Staženo' : `${I.down} Stáhnout na cestu`);
+
+// ---------- Co jsme už slyšeli (jen v zařízení, S.history) ----------
+const heardCount = (id) => (S.history || []).filter((x) => x.id === id && x.done).length;
+function logListen(done) {
+  if (!P || P.logged || (!done && P.i === 0)) return;
+  P.logged = true;
+  const c = ctx(heroes());
+  S.history = [{ id: P.st.id, title: P.st.title(c), who: c.H, at: Date.now(), done, part: done ? 1 : Math.round((P.i / P.segs.length) * 100) / 100 }, ...(S.history || [])].slice(0, 200);
+  store.set(S); // historie zůstává v zařízení, na server se neposílá
+}
+
 function openPlayer(st) {
   const c = ctx(heroes());
   // nahrávky z ElevenLabs existují jen pro rodinu, pro kterou byly vygenerované
@@ -495,7 +673,7 @@ function openPlayer(st) {
   $app.insertAdjacentHTML('beforeend', `
     <div class="player" id="player" style="--c:${catColor(st)}">
       <div class="inner">
-        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
+        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="chip dl" data-a="download" id="dlBtn">${dlLabel(false)}</button><button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
         <p class="narrator">${I.mic} Čte ${NARRATOR}</p>
@@ -506,11 +684,17 @@ function openPlayer(st) {
           <button class="play" data-a="playPause" id="playBtn" aria-label="Přehrát">${I.play}</button>
           <button class="skip" data-a="nextSeg" aria-label="Další">${I.next}</button>
         </div>
-        <div class="mix">${I.music} Hudba <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol ?? 0.5}"></div>
+        <div class="seg bgmode" role="group" aria-label="Zvuk v pozadí">
+          <button data-a="bgOn" aria-pressed="${ambience.bedOn}" class="${ambience.bedOn ? 'on' : ''}">${I.music} Se zvukem</button>
+          <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.book} Jen čtení</button>
+        </div>
+        <div class="mix${ambience.bedOn ? '' : ' off'}" id="bgMix">Hlasitost pozadí <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol}" aria-label="Hlasitost zvuku v pozadí"></div>
         <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
+  ambience.preloadBackground(st);
+  storyOffline(st).then((ok) => { const b = document.getElementById('dlBtn'); if (b && ok && P && P.st === st) { b.innerHTML = dlLabel(true); b.classList.add('on'); } });
   highlight();
 }
 
@@ -551,9 +735,11 @@ function playSeg() {
   if (lines) voiceLines.prefetch(P.plan[P.i + 1], fallback);
   const after = () => {
     if (!seg.pause) return setTimeout(go, 500);
+    ambience.duck(false); // čas na odpověď: pozadí zase nahlas
     P.stop = waitAnswer(seg.pause, go);
   };
   const delay = setTimeout(() => {
+    ambience.duck(true);
     P.stop = lines
       ? voiceLines.speak(P.plan[P.i], after, { fallback, onerror: (e) => {
         P.cloudFailed = true;
@@ -586,6 +772,7 @@ async function playRec() {
   }
   if (P.audio.ended) P.audio.currentTime = 0;
   P.audio.play();
+  ambience.duck(true);
   highlight();
 }
 function onRecTime() {
@@ -602,7 +789,8 @@ function onRecTime() {
       P.audio.pause();
       P.audio.currentTime = v.starts[i];
       P.waiting = true;
-      P.stop = waitAnswer(prev.pause, () => { P.waiting = false; P.audio.play(); });
+      ambience.duck(false);
+      P.stop = waitAnswer(prev.pause, () => { P.waiting = false; ambience.duck(true); P.audio.play(); });
       return;
     }
     P.i = i;
@@ -631,13 +819,13 @@ function playPause() {
   if (P.playing) {
     P.playing = false;
     stopVoice();
-    ambience.stopMusic(true);
+    ambience.stopBackground(true);
     highlight();
   } else {
     P.playing = true;
-    if (P.i >= P.segs.length) P.i = 0;
+    if (P.i >= P.segs.length) { P.i = 0; P.logged = false; }
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
-    ambience.startMusic(P.st.mood);
+    ambience.startBackground(P.st);
     document.querySelector('.the-end')?.remove();
     recVoice() ? playRec() : playSeg();
   }
@@ -652,17 +840,35 @@ function jump(d) {
 
 function theEnd() {
   P.playing = false;
+  logListen(true);
+  // dohraná pohádka je teď celá v zařízení (věty i soubory se uložily při přehrávání)
+  offlineMemo.delete(memoKey(P.st, heroes()));
   SYNC.playEnd(P.sync, true);
-  ambience.stopMusic(false); // pomalé ztlumení
+  ambience.duck(false);
+  ambience.stopBackground(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
   scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
 }
 
+// „Se zvukem“ / „Jen čtení“: volbu si pamatuje audio.js (localStorage)
+function setBackground(on) {
+  ambience.setBackgroundOn(on);
+  document.querySelectorAll('.bgmode button').forEach((b) => {
+    const sel = (b.dataset.a === 'bgOn') === on;
+    b.classList.toggle('on', sel);
+    b.setAttribute('aria-pressed', sel);
+  });
+  document.getElementById('bgMix').classList.toggle('off', !on); // jen skrýt, ať tlačítka neposkočí
+  if (!P || !P.playing) return;
+  if (on) { ambience.startBackground(P.st); ambience.duck(true); } else ambience.stopBackground(true);
+}
+
 function closePlayer() {
-  if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); stopVoice(); P = null; }
-  ambience.stopMusic(true);
+  if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
+  if (ui.screen === 'lib' || ui.screen === 'history') render();
+  ambience.stopBackground(true);
   document.getElementById('player')?.remove();
 }
 
@@ -692,26 +898,72 @@ const actions = {
     syncHome();
     const h = S.family.home; const kind = el.dataset.kind;
     const name = h[kind + 'Opts'][+el.dataset.i];
+    if (!h[kind].includes(name) && h[kind].length >= LIMIT.spots) return;
     h[kind] = h[kind].includes(name) ? h[kind].filter((x) => x !== name) : [...h[kind], name];
     save(); render();
   },
   addSpot: () => {
     syncHome();
-    const v = document.getElementById('addSpot').value.trim();
+    const v = cleanText(document.getElementById('addSpot').value, LIMIT.place);
     if (!v) return;
-    const h = S.family.home; h.attrOpts = [v, ...h.attrOpts.filter((x) => x !== v)]; h.attr = [v, ...h.attr.filter((x) => x !== v)];
+    const h = S.family.home;
+    if (h.attr.length >= LIMIT.spots && !h.attr.includes(v)) { document.getElementById('spotsMsg').textContent = `Vybraných může být nejvýš ${LIMIT.spots} výletních míst. Nějaké nejdřív vypni.`; return; }
+    if (!h.attr.includes(v) && !useChange()) { document.getElementById('spotsMsg').innerHTML = `<span class="err">${changesOut}</span>`; return; }
+    h.attrOpts = [v, ...h.attrOpts.filter((x) => x !== v)]; h.attr = [v, ...h.attr.filter((x) => x !== v)];
     save(); render();
   },
   hero: (el) => {
     // přepínání hrdinů – aspoň jeden musí zůstat vybraný
     const ids = heroes().map((k) => k.id);
     const id = el.dataset.id;
-    S.heroIds = ids.includes(id) ? (ids.length > 1 ? ids.filter((x) => x !== id) : ids) : [...ids, id];
+    // a nejvýš LIMIT.heroes najednou (každá kombinace hrdinů jsou nové věty k namluvení)
+    S.heroIds = ids.includes(id) ? (ids.length > 1 ? ids.filter((x) => x !== id) : ids) : ids.length < LIMIT.heroes ? [...ids, id] : ids;
     save(); render();
   },
   cat: (el) => { ui.cat = el.dataset.id; render(); },
   age: () => { ui.ageOnly = !ui.ageOnly; render(); },
-  open: (el) => { const st = STORIES.find((s) => s.id === el.dataset.id); unlocked(st) ? openPlayer(st) : paywall(); },
+  open: async (el) => {
+    const st = STORIES.find((s) => s.id === el.dataset.id);
+    if (!st) return;
+    if (!unlocked(st)) return paywall();
+    if (!navigator.onLine && !(await storyOffline(st))) return notOffline();
+    openPlayer(st);
+  },
+  unheard: () => { ui.unheard = !ui.unheard; render(); },
+  history: () => go('history'),
+  clearHistory: () => { if (confirm('Smazat historii poslechu v tomhle zařízení?')) { S.history = []; store.set(S); render(); } },
+  download: async (el) => {
+    if (!P || P.dl || el.classList.contains('on')) return;
+    const st = P.st;
+    P.dl = true;
+    try {
+      await downloadStory(st, (d, n) => { el.innerHTML = `${I.down} ${Math.round((d / n) * 100)} %`; });
+      el.innerHTML = dlLabel(true); el.classList.add('on');
+    } catch (e) {
+      el.innerHTML = `${I.down} Zkusit znovu`;
+      const w = document.getElementById('voicewarn'); if (w) w.textContent = e.message || 'Stažení se nepovedlo.';
+    } finally { if (P) P.dl = false; }
+  },
+  downloadAll: async (el) => {
+    if (el.dataset.busy) return;
+    const stat = document.getElementById('offStat');
+    const todo = [];
+    for (const st of STORIES.filter(unlocked)) if (!(await storyOffline(st))) todo.push(st);
+    if (!todo.length) return offlineStats();
+    el.dataset.busy = stat.dataset.busy = '1';
+    try {
+      for (let i = 0; i < todo.length; i++) {
+        await downloadStory(todo[i], (d, n) => { stat.textContent = `Stahuji ${i + 1}. z ${todo.length}: ${Math.round((d / n) * 100)} %`; });
+      }
+      delete stat.dataset.busy; offlineStats();
+    } catch (e) {
+      stat.textContent = e.message || 'Stažení se nepovedlo.';
+    } finally { delete el.dataset.busy; delete stat.dataset.busy; }
+  },
+  clearOffline: async () => {
+    if (!confirm('Smazat pohádky stažené na cestu? Bez internetu pak nepůjdou pustit.')) return;
+    await OFFLINE.clear(); offlineMemo.clear(); render();
+  },
   paywall,
   subscribe: async (el) => {
     // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
@@ -729,14 +981,16 @@ const actions = {
   theme: (el) => { S.theme = el.dataset.v === 'auto' ? null : el.dataset.v; save(); applyTheme(); render(); },
   back: () => go('lib'),
   editHome: () => {
-    $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
+    $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
-  saveHome: () => { syncHome(); closeModal(); render(); },
-  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
+  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
   toggleText: () => document.getElementById('ptext').classList.toggle('hide'),
+  bgOn: () => setBackground(true),
+  bgOff: () => setBackground(false),
   closePlayer,
 };
 
@@ -750,8 +1004,10 @@ function applyTheme() {
 function go(screen) { ui.screen = screen; render(); window.scrollTo(0, 0); }
 
 function render() {
-  if ((ui.screen === 'lib' || ui.screen === 'settings') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
+  if ((ui.screen === 'lib' || ui.screen === 'settings' || ui.screen === 'history') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
   $app.innerHTML = screens[ui.screen]();
+  if (ui.screen === 'lib') markOffline();
+  if (ui.screen === 'settings') offlineStats();
   // formulář bydliště může být i v modalu – překreslit ho s novými daty
   if ($modal.querySelector('#town') && ui.screen !== 'onb') actions.editHome();
 }
@@ -763,6 +1019,8 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   actions[el.dataset.a]?.(el, e);
 });
+// připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
+['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
@@ -776,3 +1034,4 @@ const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="
 render();
 // v aplikaci: stav předplatného z obchodu (RevenueCat) má přednost před uloženým
 BILLING.status().then((v) => { if (v !== null && v !== S.premium) { S.premium = v; save(); render(); } });
+pruneOffline();

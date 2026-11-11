@@ -9,7 +9,8 @@ aplikace (app/) ── POST /tts { text, voice } ──▶ Worker (klíč jako t
 
 Co Worker hlídá:
 - Přijme jen požadavky z webů v `ALLOWED_ORIGINS` (ospalek.cz, GitHub Pages, localhost).
-- Pustí jen hlasy z `VOICES` a text nejvýš `MAX_CHARS` znaků (aplikace posílá po odstavcích).
+- Pustí jen hlasy z `VOICES` a text nejvýš `MAX_CHARS` znaků (400; aplikace posílá po větách, nejdelší má ~190 znaků).
+- Jedna IP adresa smí nechat namluvit nejvýš 120 nových vět za minutu (`[[ratelimits]]` TTS_LIMIT ve `wrangler.toml`). Věty z mezipaměti se nepočítají. Celkový strop drží měsíční limit kreditů u klíče v ElevenLabs – ten nech nastavený.
 - Stejný text a hlas vrací z mezipaměti, takže se neplatí znovu.
 
 Skript mimo prohlížeč ale může hlavičku `Origin` podvrhnout. Hlavní pojistka proti zneužití je proto **limit kreditů nastavený přímo u klíče** v ElevenLabs.
@@ -93,3 +94,12 @@ Platí se jen za větu, která ještě nikdy nezazněla, a to u kterékoli rodin
 Druhá rodina se stejným jménem dítěte dnes použije zhruba 83 % hotových nahrávek. Platí jen věty se svým městem, jídlem nebo jménem rodiče. Věty pro nejčastější jména jde namluvit předem: `node tools/hlas/plan.mjs jmena`, víc v `tools/hlas/README.md`.
 
 Do ElevenLabs odchází text pohádky včetně jmen dětí a obce. Měl by to zmínit text o ochraně údajů.
+
+## Náklady v administraci (GET /naklady)
+
+Stránka **Hlas a náklady** v administraci ukazuje skutečnou spotřebu kreditů: celkem od začátku, tento měsíc, dnes, průměr na den a graf po dnech. Worker se na ni ptá ElevenLabs svým klíčem (endpointy `user/subscription` a `usage/character-stats`) a kurz bere z ČNB. Výsledek drží 10 minut v mezipaměti.
+
+- Pustí jen člena týmu přihlášeného do administrace i kódem z Google Authenticatoru. Worker to ověří u Supabase funkcí `admin_role` (`SUPABASE_URL`, `SUPABASE_KEY` ve `wrangler.toml`; publishable klíč je veřejný).
+- Klíč ElevenLabs k tomu potřebuje navíc oprávnění **User: Read** (tarif a zbývající kredity) a **Usage** / **Workspace analytics: Read** (spotřeba po dnech). Bez nich administrace ukáže, co chybí, a hlas funguje dál.
+- Kredity jsou za celý účet ElevenLabs. Kč jsou odhad: cena tarifu ÷ kredity v tarifu × kurz ČNB, bez DPH.
+- Lokálně: `node tts-worker/dev-mock.mjs` (vymyšlená spotřeba, ověření přes `supabase/dev-server.mjs`), administrace s `?db=http://localhost:54321&tts=http://localhost:8787`.
