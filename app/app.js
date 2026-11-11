@@ -584,12 +584,28 @@ async function checkTrial(ask) {
   if (JSON.stringify(t) !== was && ui.screen === 'lib' && !document.getElementById('player')) render();
 }
 
+// kolik toho předplatné odemkne: počet pohádek a celková délka (stejný výpočet jako minutes, spočítá se jednou)
+let libraryStats = null;
+function libraryStat() {
+  if (!libraryStats || libraryStats.n !== STORIES.length) {
+    let sec = 0;
+    try {
+      const c = ctx(heroes());
+      STORIES.forEach((st) => { sec += st.text(c).reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0); });
+    } catch (e) { /* bez rodiny jen počet */ }
+    libraryStats = { n: STORIES.length, hours: Math.floor(sec / 3600) };
+  }
+  return libraryStats;
+}
 function paywall() {
+  const lib = libraryStat();
+  const many = lib.n >= 100 ? `více než ${Math.floor(lib.n / 50) * 50} pohádkám` : `${lib.n} pohádkám`;
   $modal.innerHTML = `
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+      <button class="icon-btn sheet-close" data-a="closeModal" aria-label="Zavřít">${I.close}</button>
       <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
       <h2 style="text-align:center">${APP_NAME} Plus</h2>
-      <p class="lead" style="text-align:center">Celá knihovna pohádek pro váš účet.</p>
+      <p class="lead" style="text-align:center">Předplatným získáte přístup k ${many}${lib.hours >= 2 ? `, dohromady přes ${lib.hours}&nbsp;hodin poslechu` : ''}.</p>
       <ul class="perks">
         <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
@@ -600,7 +616,7 @@ function paywall() {
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžete kdykoli</small></div></div>
       </div>
-      ${BILLING.native || WEB_DEMO ? `<button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
+      ${BILLING.native || WEB_DEMO ? `<button class="btn cta2" data-a="subscribe"><span>Vyzkoušet 3 dny zdarma,</span><span>pak ${PRICE.text} měsíčně</span></button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
       <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se předplatné koupit nedá. Kupuje se v mobilní aplikaci Ospalek pro iPhone a Android přes App Store nebo Google Play. Tady si zatím pustíte 3 pohádky zdarma.</p>'}
     </div></div>`;
@@ -778,7 +794,7 @@ function logListen(done) {
   store.set(S); // historie zůstává v zařízení, na server se neposílá
 }
 
-function openPlayer(st) {
+function openPlayer(st, queue) {
   const c = ctx(heroes());
   // nahrávky z ElevenLabs existují jen pro rodinu, pro kterou byly vygenerované
   const rec = RECORDINGS[st.id] && RECORDINGS[st.id].hero === c.H ? RECORDINGS[st.id] : null;
@@ -787,6 +803,8 @@ function openPlayer(st) {
   const plan = VOICE_LINES.planStory(segs);
   const linesOk = voiceLines.missing(plan) === 0 || !!TTS_URL;
   P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null };
+  // pořadí pohádek pro Předchozí / Další ze zamčené obrazovky: polička, ze které se pohádka otevřela
+  P.queue = queue && queue.includes(st.id) ? queue : STORIES.map((s) => s.id);
   // jeden přehrávač vytvořený při kliknutí – iOS pak pustí i další odstavce bez dalšího klepnutí
   if (TTS_URL) P.cloudEl = new Audio();
   $app.insertAdjacentHTML('beforeend', `
@@ -795,10 +813,6 @@ function openPlayer(st) {
         <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="chip dl" data-a="download" id="dlBtn">${dlLabel(false)}</button><div class="pbtns">${favBtn(st.id, 'icon-btn pfav')}<button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
-        <div class="seg readmode" role="group" aria-label="Kdo čte">
-          <button data-a="readVoice" aria-pressed="true" class="on">${I.mic} Čte ${NARRATOR}</button>
-          <button data-a="readSelf" aria-pressed="false">${I.book} Čtu já</button>
-        </div>
         <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}<div class="self-end"><img src="${st.cats.includes('noc') ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${st.cats.includes('noc') ? 'Dobrou noc' : 'Konec'}</h2></div></div>
         <div class="waiting" id="waiting"></div>
         <div class="controls">
@@ -811,13 +825,13 @@ function openPlayer(st) {
           <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.mic} Bez hudby</button>
         </div>
         <div class="mix${ambience.bedOn ? '' : ' off'}" id="bgMix">Hlasitost pozadí <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol}" aria-label="Hlasitost zvuku v pozadí"></div>
+        <button class="readswitch" data-a="readSelf" id="readSwitch">${I.book} Raději ji přečtu já</button>
         <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL || BILLING.native ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
   ambience.preloadBackground(st);
   document.getElementById('ptext').addEventListener('scroll', selfReadEnd, { passive: true });
-  if (readSelfPref()) setReadSelf(true);
   storyOffline(st).then((ok) => { const b = document.getElementById('dlBtn'); if (b && ok && P && P.st === st) { b.innerHTML = dlLabel(true); b.classList.add('on'); } });
   highlight();
 }
@@ -839,7 +853,51 @@ function highlight() {
   const b = document.getElementById('playBtn');
   b.innerHTML = P.playing ? I.pause : I.play;
   b.setAttribute('aria-label', P.playing ? 'Pozastavit' : 'Přehrát');
+  syncMedia();
 }
+
+// ---------- zamčená obrazovka a oznámení (media.js) ----------
+// sousední odemčená pohádka ve frontě (d = 1 další, -1 předchozí)
+function neighbour(d) {
+  if (!P) return null;
+  const q = P.queue;
+  for (let k = q.indexOf(P.st.id) + d; k >= 0 && k < q.length; k += d) {
+    const st = STORIES.find((s) => s.id === q[k]);
+    if (st && unlocked(st)) return st;
+  }
+  return null;
+}
+// ovládání se ukáže, až pohádka poprvé začne hrát, a pak drží stav přehrávače
+function syncMedia() {
+  if (!P || !P.started) return;
+  const hs = heroes();
+  MEDIA.update({
+    title: P.st.title(ctx(hs)),
+    subtitle: `Ospalek · čte ${NARRATOR}`,
+    cover: P.st.cover.img ? coverImg(P.st, hs) : null,
+    playing: P.playing,
+    hasPrev: !!neighbour(-1),
+    hasNext: !!neighbour(1),
+  });
+}
+// přepnutí na jinou pohádku (i se zhasnutým displejem): rovnou hraje
+async function switchStory(d) {
+  const st = neighbour(d);
+  if (!st) return;
+  if (!navigator.onLine && !(await storyOffline(st))) return;
+  const queue = P.queue;
+  closePlayer(true);
+  openPlayer(st, queue);
+  playPause();
+}
+MEDIA.onAction((a) => {
+  if (!P) return;
+  if (a === 'play' && !P.playing) playPause();
+  else if (a === 'pause' && P.playing) playPause();
+  else if (a === 'toggle') playPause();
+  else if (a === 'next' || a === 'prev') switchStory(a === 'next' ? 1 : -1);
+  else if (a === 'stop') closePlayer();
+});
 
 function playSeg() {
   if (!P) return;
@@ -963,6 +1021,7 @@ function playPause() {
     highlight();
   } else {
     P.playing = true;
+    P.started = true;
     if (P.i >= P.segs.length) { P.i = 0; P.logged = false; }
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
     ambience.startBackground(P.st);
@@ -990,23 +1049,20 @@ function theEnd() {
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
   scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
+  syncMedia();
 }
 
-// „Čtu já“: rodič čte sám, přehrávač ukáže jen celý text pohádky. Volba se pamatuje v zařízení.
-const READ_KEY = 'ospalek.readSelf';
-const readSelfPref = () => { try { return localStorage.getItem(READ_KEY) === '1'; } catch (e) { return false; } };
+// „Raději ji přečtu já“: rodič čte sám, přehrávač ukáže jen celý text pohádky. Je to vedlejší volba –
+// každá pohádka se otevře tak, že čte teta Terezka, a hlavní je tlačítko Přehrát.
 function setReadSelf(on) {
   if (!P) return;
-  try { localStorage.setItem(READ_KEY, on ? '1' : '0'); } catch (e) {}
   if (on && P.playing) playPause(); // zastavit hlas i hudbu
   P.self = on;
   const pl = document.getElementById('player');
   pl.classList.toggle('self', on);
-  pl.querySelectorAll('.readmode button').forEach((b) => {
-    const sel = (b.dataset.a === 'readSelf') === on;
-    b.classList.toggle('on', sel);
-    b.setAttribute('aria-pressed', sel);
-  });
+  const sw = document.getElementById('readSwitch');
+  sw.dataset.a = on ? 'readVoice' : 'readSelf';
+  sw.innerHTML = on ? `${I.mic} Ať čte ${NARRATOR}` : `${I.book} Raději ji přečtu já`;
   document.getElementById('ptext').classList.remove('hide');
   if (on) document.getElementById('ptext').scrollTo({ top: 0 });
   else highlight();
@@ -1031,8 +1087,10 @@ function setBackground(on) {
   if (on) { ambience.startBackground(P.st); ambience.duck(true); } else ambience.stopBackground(true);
 }
 
-function closePlayer() {
+// keepMedia: přepnutí na další pohádku – oznámení na zamčené obrazovce nezmizí, jen se přepíše
+function closePlayer(keepMedia) {
   if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
+  if (keepMedia !== true) MEDIA.stop();
   if (ui.screen === 'lib' || ui.screen === 'history') render();
   ambience.stopBackground(true);
   document.getElementById('player')?.remove();
@@ -1124,7 +1182,8 @@ const actions = {
     if (!st) return;
     if (!unlocked(st)) return paywall();
     if (!navigator.onLine && !(await storyOffline(st))) return notOffline();
-    openPlayer(st);
+    const row = el.closest('.shelf-row, .grid');
+    openPlayer(st, row ? [...row.querySelectorAll('.card[data-id]')].map((c) => c.dataset.id) : null);
   },
   unheard: () => { ui.unheard = !ui.unheard; render(); },
   history: () => go('history'),
