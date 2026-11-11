@@ -14,7 +14,7 @@ const keys = await fetch(DB + '/dev/push-key').then((r) => r.json()).catch(() =>
 if (!keys) { console.error(`Nejdřív spusť napodobeninu Supabase (${DB}).`); process.exit(1); }
 const env = {
   SUPABASE_URL: DB, SUPABASE_KEY: 'dev', SUPABASE_SECRET: 'dev-secret',
-  VAPID_PUBLIC_KEY: keys.publicKey, VAPID_PRIVATE_KEY: keys.privateKey, VAPID_SUBJECT: 'mailto:podpora@ospalek.cz',
+  VAPID_PUBLIC_KEY: keys.publicKey, VAPID_PRIVATE_KEY: keys.privateKey, VAPID_SUBJECT: 'mailto:support@ospalek.cz',
   ALLOWED_ORIGINS: 'http://localhost:5174', BATCH_SIZE: '2',
 };
 const inbox = [];

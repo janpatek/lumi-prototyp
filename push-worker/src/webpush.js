@@ -73,7 +73,7 @@ export async function vapidHeader(endpoint, vapid) {
   }, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
   const exp = now + 12 * 3600;
   const head = b64u.encode(enc.encode(JSON.stringify({ typ: 'JWT', alg: 'ES256' })));
-  const body = b64u.encode(enc.encode(JSON.stringify({ aud, exp, sub: vapid.subject || 'mailto:podpora@ospalek.cz' })));
+  const body = b64u.encode(enc.encode(JSON.stringify({ aud, exp, sub: vapid.subject || 'mailto:support@ospalek.cz' })));
   const sig = await subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, enc.encode(head + '.' + body));
   const header = `vapid t=${head}.${body}.${b64u.encode(sig)}, k=${vapid.publicKey}`;
   jwtCache.set(aud, { exp, header });
