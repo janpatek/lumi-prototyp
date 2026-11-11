@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="landing.css?v=7">
+  <link rel="stylesheet" href="landing.css?v=8">
   <link rel="preload" as="image" href="covers/hvezdicka.jpg">
 </head>
 <body>
@@ -40,12 +40,13 @@
   </header>
 
   <main id="top">
-    <!-- 1. Hero: jméno dítěte → pohádky na jméno → tlačítko -->
+    <!-- 1. Hero: mobilní aplikace → jméno dítěte → telefon s pohádkami na jméno → obchody -->
     <section class="hero">
       <div class="wrap hero-in">
         <div class="hero-copy">
+          <p class="eyebrow"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10.5 18.5h3"/></svg>Aplikace pro iPhone a&nbsp;Android</p>
           <h1>Pohádky, kde je hlavním hrdinou vaše dítě</h1>
-          <p class="hero-sub">Napište jeho jméno a sledujte, co se stane.</p>
+          <p class="hero-sub">Pohádky na jméno ve vašem telefonu. Napište, jak se dítě jmenuje, a&nbsp;podívejte se.</p>
 
           <div class="namebox">
             <label for="kid-name">Jak se jmenuje vaše dítě?</label>
@@ -58,47 +59,56 @@
             </div>
           </div>
 
+          <!-- Dokud aplikace nejsou v obchodech, je hlavní tlačítko webová ukázka a obchody mají „Již brzy“.
+               Jakmile je v landing.js odkaz do obchodu, obchody se stanou hlavní výzvou (třída stores-live na <body>). -->
           <div class="hero-cta" id="hero-cta">
-            <a class="btn btn-xl" href="app/" data-try><span data-tpl="Pustit pohádku pro {acc}">Pustit pohádku pro Toníka</span>
-              <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
-            <p class="hero-fine">První 3&nbsp;pohádky zdarma. Bez karty, bez registrace.</p>
-            <div class="hero-stores">
-              <p class="hero-stores-t">Aplikace do telefonu</p>
-              <div class="stores">
-              <a class="store is-soon" href="#" data-store="appStore" aria-disabled="true" aria-label="Stáhnout v App Store – již brzy">
-                <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M16.37 12.73c-.03-2.87 2.34-4.25 2.45-4.32-1.34-1.95-3.42-2.22-4.16-2.25-1.77-.18-3.45 1.04-4.35 1.04-.9 0-2.28-1.02-3.75-.99-1.93.03-3.71 1.12-4.7 2.85-2 3.48-.51 8.62 1.44 11.44.95 1.38 2.09 2.93 3.58 2.87 1.44-.06 1.98-.93 3.72-.93 1.73 0 2.22.93 3.74.9 1.55-.03 2.53-1.4 3.47-2.79 1.1-1.6 1.55-3.15 1.57-3.23-.03-.02-3.01-1.16-3.02-4.59zM13.52 4.31c.79-.96 1.33-2.29 1.18-3.62-1.14.05-2.53.76-3.35 1.72-.73.85-1.38 2.2-1.2 3.51 1.27.1 2.57-.65 3.37-1.61z"/></svg>
-                <span class="store-txt"><small>Stáhnout v</small><b>App Store</b></span>
-                <span class="soon">Již brzy</span>
-              </a>
-              <a class="store is-soon" href="#" data-store="googlePlay" aria-disabled="true" aria-label="Stáhnout na Google Play – již brzy">
-                <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#00a0ff" d="M3.6 1.85 13.35 12 3.6 22.15c-.32-.2-.52-.58-.52-1.07V2.92c0-.49.2-.87.52-1.07z"/>
-                  <path fill="#00e070" d="M3.6 1.85c.32-.2.74-.2 1.2.06L16.73 8.7 13.35 12z"/>
-                  <path fill="#ff3a44" d="M3.6 22.15 13.35 12l3.38 3.3-11.93 6.79c-.46.26-.88.26-1.2.06z"/>
-                  <path fill="#ffd400" d="m16.73 8.7 3.5 1.99c1 .57 1 1.5 0 2.06l-3.5 1.99-3.38-3.3z"/>
-                </svg>
-                <span class="store-txt"><small>Stáhnout na</small><b>Google Play</b></span>
-                <span class="soon">Již brzy</span>
-              </a>
-              </div>
+            <div class="stores hero-stores">
+            <a class="store is-soon" href="#" data-store="appStore" aria-disabled="true" aria-label="Stáhnout v App Store – již brzy">
+              <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M16.37 12.73c-.03-2.87 2.34-4.25 2.45-4.32-1.34-1.95-3.42-2.22-4.16-2.25-1.77-.18-3.45 1.04-4.35 1.04-.9 0-2.28-1.02-3.75-.99-1.93.03-3.71 1.12-4.7 2.85-2 3.48-.51 8.62 1.44 11.44.95 1.38 2.09 2.93 3.58 2.87 1.44-.06 1.98-.93 3.72-.93 1.73 0 2.22.93 3.74.9 1.55-.03 2.53-1.4 3.47-2.79 1.1-1.6 1.55-3.15 1.57-3.23-.03-.02-3.01-1.16-3.02-4.59zM13.52 4.31c.79-.96 1.33-2.29 1.18-3.62-1.14.05-2.53.76-3.35 1.72-.73.85-1.38 2.2-1.2 3.51 1.27.1 2.57-.65 3.37-1.61z"/></svg>
+              <span class="store-txt"><small>Stáhnout v</small><b>App Store</b></span>
+              <span class="soon">Již brzy</span>
+            </a>
+            <a class="store is-soon" href="#" data-store="googlePlay" aria-disabled="true" aria-label="Stáhnout na Google Play – již brzy">
+              <svg class="store-logo" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#00a0ff" d="M3.6 1.85 13.35 12 3.6 22.15c-.32-.2-.52-.58-.52-1.07V2.92c0-.49.2-.87.52-1.07z"/>
+                <path fill="#00e070" d="M3.6 1.85c.32-.2.74-.2 1.2.06L16.73 8.7 13.35 12z"/>
+                <path fill="#ff3a44" d="M3.6 22.15 13.35 12l3.38 3.3-11.93 6.79c-.46.26-.88.26-1.2.06z"/>
+                <path fill="#ffd400" d="m16.73 8.7 3.5 1.99c1 .57 1 1.5 0 2.06l-3.5 1.99-3.38-3.3z"/>
+              </svg>
+              <span class="store-txt"><small>Stáhnout na</small><b>Google Play</b></span>
+              <span class="soon">Již brzy</span>
+            </a>
             </div>
+            <a class="btn btn-xl hero-try" href="app/" data-try><span data-tpl="Pustit pohádku pro {acc}">Pustit pohádku pro Toníka</span>
+              <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
+            <p class="hero-fine hero-fine-soon">První 3&nbsp;pohádky zdarma hned v&nbsp;prohlížeči. Bez karty, bez registrace.</p>
+            <p class="hero-fine hero-fine-live">Nebo si <a href="app/" data-try>první pohádku pusťte hned v&nbsp;prohlížeči</a></p>
           </div>
         </div>
 
-        <ul class="shelf" aria-label="Ukázky pohádek se jménem vašeho dítěte">
-          <li class="book book-1">
-            <img src="covers/hvezdicka.jpg" data-img-m="covers/hvezdicka.jpg" data-img-f="covers/hvezdicka-f.jpg" width="573" height="768" alt="">
-            <p data-tpl="Hvězdička, která spadla k {dat}">Hvězdička, která spadla k Toníkovi</p>
-          </li>
-          <li class="book book-2">
-            <img src="covers/vyprava.jpg" data-img-m="covers/vyprava.jpg" data-img-f="covers/vyprava-f.jpg" width="573" height="768" alt="">
-            <p data-tpl="{nom} a velká výprava">Toník a velká výprava</p>
-          </li>
-          <li class="book book-3">
-            <img src="covers/zubar.jpg" data-img-m="covers/zubar.jpg" data-img-f="covers/zubar-f.jpg" width="573" height="768" alt="">
-            <p data-tpl="{nom} jde statečně k zubaři">Toník jde statečně k zubaři</p>
-          </li>
-        </ul>
+        <!-- Telefon s knihovnou aplikace: jméno a obálky se mění podle toho, co rodič napíše -->
+        <div class="hero-phone">
+          <div class="phone" role="img" aria-label="Ukázka aplikace Ospalek: knihovna pohádek se jménem vašeho dítěte">
+            <div class="phone-screen" aria-hidden="true">
+              <div class="ph-status"><span>19:30</span><span class="ph-island"></span><span class="ph-icons"><i></i><i></i><i></i></span></div>
+              <p class="ph-h" data-tpl="Pohádky pro {acc}">Pohádky pro Toníka</p>
+              <div class="ph-chips"><span class="on">Vše</span><span>Na dobrou noc</span><span>Do auta</span></div>
+              <ul class="ph-grid">
+                <li><img src="covers/hvezdicka.jpg" data-img-m="covers/hvezdicka.jpg" data-img-f="covers/hvezdicka-f.jpg" width="573" height="768" alt=""><p data-tpl="Hvězdička, která spadla k {dat}">Hvězdička, která spadla k Toníkovi</p></li>
+                <li><img src="covers/vyprava.jpg" data-img-m="covers/vyprava.jpg" data-img-f="covers/vyprava-f.jpg" width="573" height="768" alt=""><p data-tpl="{nom} a velká výprava">Toník a velká výprava</p></li>
+                <li><img src="covers/zubar.jpg" data-img-m="covers/zubar.jpg" data-img-f="covers/zubar-f.jpg" width="573" height="768" alt=""><p data-tpl="{nom} jde statečně k zubaři">Toník jde statečně k zubaři</p></li>
+                <li><img src="covers/raketou-na-mesic.jpg" data-img-m="covers/raketou-na-mesic.jpg" data-img-f="covers/raketou-na-mesic-f.jpg" width="573" height="768" alt="" loading="lazy"><p>Raketou na Měsíc</p></li>
+              </ul>
+              <div class="ph-player">
+                <img src="covers/hvezdicka.jpg" data-img-m="covers/hvezdicka.jpg" data-img-f="covers/hvezdicka-f.jpg" width="573" height="768" alt="">
+                <div><b data-tpl="Hvězdička, která spadla k {dat}">Hvězdička, která spadla k Toníkovi</b><small>Čte Jana</small></div>
+                <span class="ph-play"><svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></span>
+              </div>
+            </div>
+          </div>
+          <p class="phone-note phone-note-1">Jméno zazní v&nbsp;celé pohádce</p>
+          <p class="phone-note phone-note-2">Čte klidný český hlas</p>
+        </div>
       </div>
     </section>
 
@@ -280,6 +290,6 @@
     <a class="btn" href="app/" data-try><span data-tpl="Pustit pohádku pro {acc}">Pustit pohádku pro Toníka</span></a>
   </div>
 
-  <script src="landing.js?v=7" defer></script>
+  <script src="landing.js?v=8" defer></script>
 </body>
 </html>
