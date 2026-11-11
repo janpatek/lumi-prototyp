@@ -17,7 +17,7 @@ Ověřeno na stránkách Googlu 9. 11. 2026. Kroky v konzolích dělá majitel �
 
 - [ ] Předplatné, ID např. `ospalek_plus` (ID nejde změnit), název „Ospalek Plus“.
 - [ ] Základní tarif (base plan) `mesicne`: automatické obnovení, 1 měsíc, **129 Kč** v CZ (Google cenu zadává bez daně a DPH přičte; zkontrolujte, že zákazník vidí konečných 129 Kč). SK cena **4,99 €** (rozhodnuto 9. 11. 2026).
-- [ ] Nabídka (offer) `tyden-zdarma`: zkušební doba **7 dní**, jen pro nové zákazníky.
+- [ ] Bez zkušební doby: k základnímu tarifu **nezakládat** nabídku (offer) se zkušební dobou. Vyzkoušení zdarma se dává jen kupóny (administrace → Kupóny).
 - [ ] Země: jen **Česko a Slovensko**.
 - **Poplatek Googlu:** od 30. 6. 2026 je v EHP u předplatného **10 % + 5 % billing fee = 15 %**. [answer/112622](https://support.google.com/googleplay/android-developer/answer/112622)
 - Prodávajícím vůči zákazníkovi (merchant of record) je v CZ i SK Google, DPH zákazníkovi vybírá a odvádí Google. [answer/7645364](https://support.google.com/googleplay/android-developer/answer/7645364), [answer/138000](https://support.google.com/googleplay/android-developer/answer/138000)
