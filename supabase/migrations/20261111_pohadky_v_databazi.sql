@@ -58,6 +58,7 @@ begin
   return v;
 end $$;
 
+revoke execute on function public.app_catalog(bigint), public.admin_story_catalog(), public.admin_publish_stories(jsonb, jsonb, bigint, text) from public, anon, authenticated;
 grant execute on function public.admin_story_catalog(), public.admin_publish_stories(jsonb, jsonb, bigint, text) to authenticated;
 grant execute on function public.app_catalog(bigint) to anon, authenticated;
 
