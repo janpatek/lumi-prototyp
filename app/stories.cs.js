@@ -2076,7 +2076,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'adventure',
     cover: { img: '../covers/narozeninove-prani.jpg', imgF: '../covers/narozeninove-prani-f.jpg', emoji: '🎂', g1: '#ffb74d', g2: '#f8bbd0' },
-    title: () => `Narozeninové přání`,
+    title: (c) => `Narozeninové přání ${c.h.gen}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1, q = c.p2 || c.p1;
       return [
@@ -2141,7 +2141,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/jeziskova-posta.jpg', emoji: '✉️', g1: '#1a237e', g2: '#90caf9' },
-    title: () => `Ježíškova ztracená pošta`,
+    title: (c) => `Jak ${c.H} ${c.g('doručoval', 'doručovala', 'doručovali', 'doručovaly')} Ježíškovu poštu`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const far = c.near[0] ? `Až za kopec, tam, kde leží ${c.near[0]}.` : `Až za kopec, k sousední vesnici.`;
@@ -2230,7 +2230,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/certik-bez-strachu.jpg', emoji: '😈', g1: '#b71c1c', g2: '#ffcc80' },
-    title: () => `Čertík, který neuměl strašit`,
+    title: (c) => `Čertík, který nevystrašil ${c.h.acc}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2297,7 +2297,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'lullaby',
     cover: { img: '../covers/zajicek-malir.jpg', emoji: '🐰', g1: '#aed581', g2: '#fff59d' },
-    title: () => `Zajíček malíř`,
+    title: (c) => `Zajíček malíř a ${c.g('jeho pomocník', 'jeho pomocnice', 'jeho pomocníci', 'jeho pomocnice')} ${c.H}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2367,7 +2367,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/lampionovy-pruvod.jpg', imgF: '../covers/lampionovy-pruvod-f.jpg', emoji: '🏮', g1: '#283593', g2: '#ffb74d' },
-    title: () => `Lampionový průvod`,
+    title: (c) => `Lampionový průvod s ${c.h.ins}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2411,7 +2411,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/karneval-masek.jpg', imgF: '../covers/karneval-masek-f.jpg', emoji: '🎭', g1: '#7b1fa2', g2: '#81c784' },
-    title: () => `Kdo je pod maskou?`,
+    title: (c) => `Kdo je pod maskou, ${c.h.voc}?`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2477,7 +2477,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'adventure',
     cover: { img: '../covers/kartackovy-rytir.jpg', emoji: '🪥', g1: '#0277bd', g2: '#80deea' },
-    title: () => `Kartáčkový rytíř`,
+    title: (c) => `Kartáčkový rytíř u ${c.h.gen}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2514,7 +2514,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/bublinka.jpg', emoji: '🫧', g1: '#f8bbd0', g2: '#b2ebf2' },
-    title: () => `Mýdlová bublina Bublinka`,
+    title: (c) => `Jak Bublinka naučila ${c.h.acc} mýt ruce`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2554,7 +2554,7 @@ window.STORIES = [
     ages: [2, 4],
     mood: 'adventure',
     cover: { img: '../covers/nocnikova-vyprava.jpg', emoji: '🐸', g1: '#558b2f', g2: '#c5e1a5' },
-    title: () => `Velká nočníková výprava`,
+    title: (c) => `Velká nočníková výprava ${c.h.gen}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2595,7 +2595,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'adventure',
     cover: { img: '../covers/odvazny-ochutnavac.jpg', imgF: '../covers/odvazny-ochutnavac-f.jpg', emoji: '🥦', g1: '#2e7d32', g2: '#ffcc80' },
-    title: (c) => c.g('Odvážný ochutnávač', 'Odvážná ochutnávačka', 'Odvážní ochutnávači', 'Odvážné ochutnávačky'),
+    title: (c) => `${c.g('Odvážný ochutnávač', 'Odvážná ochutnávačka', 'Odvážní ochutnávači', 'Odvážné ochutnávačky')} ${c.H}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const och = g('ochutnávač', 'ochutnávačka', 'ochutnávači', 'ochutnávačky');
@@ -2658,7 +2658,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/statecna-naplast.jpg', emoji: '🩹', g1: '#ef6c00', g2: '#ffe0b2' },
-    title: () => `Statečná náplast`,
+    title: (c) => `Statečná náplast pro ${c.h.acc}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2699,7 +2699,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/proc-spime.jpg', imgF: '../covers/proc-spime-f.jpg', emoji: '🦉', g1: '#283593', g2: '#9fa8da' },
-    title: () => `Proč musí všichni spát?`,
+    title: (c) => `Proč musí ${c.H} spát?`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2760,7 +2760,7 @@ window.STORIES = [
     ages: [3, 7],
     mood: 'adventure',
     cover: { img: '../covers/ztraceny-v-obchode.jpg', imgF: '../covers/ztraceny-v-obchode-f.jpg', emoji: '🛒', g1: '#00695c', g2: '#ffd54f' },
-    title: () => `Když se ztratím`,
+    title: (c) => `Když se ${c.H} ztratí v obchodě`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2802,7 +2802,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/tablet-chtel-spat.jpg', emoji: '📱', g1: '#37474f', g2: '#90caf9' },
-    title: () => `Tablet, který chtěl spát`,
+    title: (c) => `Jak ${c.h.dat} usnul tablet`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2866,7 +2866,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'lullaby',
     cover: { img: '../covers/miminko-u-nas.jpg', imgF: '../covers/miminko-u-nas-f.jpg', emoji: '👶', g1: '#f8bbd0', g2: '#fff3e0' },
-    title: () => `Miminko u nás doma`,
+    title: (c) => `Miminko u ${c.h.gen} doma`,
     text: (c) => {
       const g = c.g, n = c.n;
       // miminko nosí maminka; když v rodině není, použije se obecná „maminka“ bez jména
@@ -2935,7 +2935,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/vztekloun.jpg', emoji: '🌶️', g1: '#e53935', g2: '#ffcc80' },
-    title: () => `Vztekloun v kapse`,
+    title: (c) => `Jak ${c.H} ${c.g('zkrotil', 'zkrotila', 'zkrotili', 'zkrotily')} Vzteklouna`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -2998,7 +2998,7 @@ window.STORIES = [
     ages: [3, 7],
     mood: 'adventure',
     cover: { img: '../covers/kouzelne-promin.jpg', imgF: '../covers/kouzelne-promin-f.jpg', emoji: '⛵', g1: '#1e88e5', g2: '#b3e5fc' },
-    title: () => `Kouzelné slovo promiň`,
+    title: (c) => `Kouzelné slovo ${c.h.gen}`,
     text: (c) => {
       const g = c.g, n = c.n;
       return [
@@ -3036,7 +3036,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/lez-ktera-rostla.jpg', emoji: '⚪', g1: '#90a4ae', g2: '#e1f5fe' },
-    title: () => `Lež, která rostla`,
+    title: (c) => `Lež, která ${c.h.dat} rostla`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3098,7 +3098,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/kdo-prohraje-vyhraje.jpg', imgF: '../covers/kdo-prohraje-vyhraje-f.jpg', emoji: '🏃', g1: '#43a047', g2: '#fff59d' },
-    title: () => `Kdo prohraje, vyhraje`,
+    title: (c) => `${c.H} ${c.n('prohraje', 'prohrají')}, a přece ${c.n('vyhraje', 'vyhrají')}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3160,7 +3160,7 @@ window.STORIES = [
     ages: [2, 5],
     mood: 'lullaby',
     cover: { img: '../covers/jedna-lopatka.jpg', imgF: '../covers/jedna-lopatka-f.jpg', emoji: '🪣', g1: '#ffb300', g2: '#fff8e1' },
-    title: (c) => c.n(`Jedna lopatka pro dva`, `Jedna lopatka pro všechny`),
+    title: (c) => `Jedna lopatka pro ${c.h.acc}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3202,7 +3202,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/kamarad-pres-plot.jpg', imgF: '../covers/kamarad-pres-plot-f.jpg', emoji: '🏡', g1: '#81c784', g2: '#fff9c4' },
-    title: () => `Kamarád přes plot`,
+    title: (c) => `Kamarád přes plot pro ${c.h.acc}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3266,7 +3266,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/pusa-vetrem.jpg', emoji: '💋', g1: '#7e57c2', g2: '#f8bbd0' },
-    title: () => `Pusa poslaná větrem`,
+    title: (c) => `Pusa, kterou ${c.H} ${c.g('poslal', 'poslala', 'poslali', 'poslaly')} větrem`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3308,7 +3308,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/kapka-kapicka.jpg', imgF: '../covers/kapka-kapicka-f.jpg', emoji: '💧', g1: '#81d4fa', g2: '#1565c0' },
-    title: () => `Kapka Kapička na cestách`,
+    title: (c) => `Kapka Kapička cestuje s ${c.h.ins}`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       const ly = c.g('li', 'ly', 'li', 'ly');
@@ -3391,7 +3391,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/od-zrnicka-k-chlebu.jpg', emoji: '🍞', g1: '#ffe082', g2: '#a1887f' },
-    title: () => `Od zrníčka k chlebíčku`,
+    title: (c) => `Odkud ${c.n('má', 'mají')} ${c.H} chleba?`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       return [
@@ -3459,7 +3459,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/vcelka-medunka.jpg', imgF: '../covers/vcelka-medunka-f.jpg', emoji: '🐝', g1: '#fff176', g2: '#ffb74d' },
-    title: () => `Včelka Medunka`,
+    title: (c) => `Včelka Medunka ukazuje ${c.h.dat} louku`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       const socha = c.n('já jsem socha', 'my jsme sochy');
@@ -3523,7 +3523,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/housenka-zmena.jpg', imgF: '../covers/housenka-zmena-f.jpg', emoji: '🐛', g1: '#c5e1a5', g2: '#ff8a65' },
-    title: () => `Housenka, která se bála změny`,
+    title: (c) => `Housenka, kterou ${c.H} ${c.g('našel', 'našla', 'našli', 'našly')}`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       const ja = c.n('jsem', 'jsme');
@@ -3566,7 +3566,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'lullaby',
     cover: { img: '../covers/strom-ctyri-kabaty.jpg', emoji: '🌳', g1: '#a5d6a7', g2: '#ffcc80' },
-    title: () => `Strom, který měl čtyři kabáty`,
+    title: (c) => `Čtyři kabáty stromu u ${c.h.gen}`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       return [
@@ -3628,7 +3628,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/seminko-nespechalo.jpg', imgF: '../covers/seminko-nespechalo-f.jpg', emoji: '🌱', g1: '#dcedc8', g2: '#8d6e63' },
-    title: () => `Semínko, které nespěchalo`,
+    title: (c) => `Semínko, které ${c.H} ${c.g('zasadil', 'zasadila', 'zasadili', 'zasadily')}`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       return [
@@ -3668,7 +3668,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/tovarna-v-brisku.jpg', imgF: '../covers/tovarna-v-brisku-f.jpg', emoji: '🏭', g1: '#ffccbc', g2: '#ff7043' },
-    title: () => `Továrna v bříšku`,
+    title: (c) => `Továrna v bříšku ${c.h.gen}`,
     text: (c) => {
       const a = c.g('', 'a', 'i', 'y');
       return [
@@ -3732,7 +3732,7 @@ window.STORIES = [
     ages: [5, 9],
     mood: 'adventure',
     cover: { img: '../covers/vylet-slunecni-soustavou.jpg', imgF: '../covers/vylet-slunecni-soustavou-f.jpg', emoji: '🪐', g1: '#0b1d51', g2: '#f9a825' },
-    title: () => `Výlet po Sluneční soustavě`,
+    title: (c) => `${c.H} na výletě po Sluneční soustavě`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3811,7 +3811,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'lullaby',
     cover: { img: '../covers/ztracene-souhvezdi.jpg', imgF: '../covers/ztracene-souhvezdi-f.jpg', emoji: '🦉', g1: '#0d1442', g2: '#3949ab' },
-    title: () => `Ztracené souhvězdí`,
+    title: (c) => `${c.H} ${c.n('hledá', 'hledají')} ztracené souhvězdí`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const sp = (m, f) => (g('m', 'f', 'm', 'f') === 'f' && p.g('m', 'f') === 'f' ? f : m);
@@ -3896,7 +3896,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/nula-dulezita.jpg', emoji: '🔟', g1: '#00897b', g2: '#ffd54f' },
-    title: () => `Nula, která chtěla být důležitá`,
+    title: (c) => `Jak ${c.H} ${c.g('pomohl', 'pomohla', 'pomohli', 'pomohly')} nule`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -3958,7 +3958,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/utekla-pismenka.jpg', imgF: '../covers/utekla-pismenka-f.jpg', emoji: '🔤', g1: '#8e24aa', g2: '#ffb74d' },
-    title: () => `Písmenka utekla z knížky`,
+    title: (c) => `Písmenka utekla ${c.h.dat} z knížky`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const jmena = c.H.split(/, | a /);
@@ -4027,7 +4027,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'road',
     cover: { img: '../covers/semafor-blikalek.jpg', imgF: '../covers/semafor-blikalek-f.jpg', emoji: '🚦', g1: '#2e7d32', g2: '#e53935' },
-    title: () => `Semafor Blikálek`,
+    title: (c) => `${c.H} u semaforu Blikálka`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -4063,7 +4063,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/mali-hasici.jpg', imgF: '../covers/mali-hasici-f.jpg', emoji: '🚒', g1: '#c62828', g2: '#ffb300' },
-    title: (c) => c.g('Malý hasič a číslo 112', 'Malá hasička a číslo 112', 'Malí hasiči a číslo 112', 'Malé hasičky a číslo 112'),
+    title: (c) => `Číslo 112 a ${c.g('malý hasič', 'malá hasička', 'malí hasiči', 'malé hasičky')} ${c.H}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -4127,7 +4127,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/o-smolickovi.jpg', emoji: '🦌', g1: '#4e342e', g2: '#ffd54f' },
-    title: () => `O Smolíčkovi`,
+    title: (c) => `Smolíček a ${c.g('jeho kamarád', 'jeho kamarádka', 'jeho kamarádi', 'jeho kamarádky')} ${c.H}`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4164,7 +4164,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'adventure',
     cover: { img: '../covers/kohoutek-a-slepicka.jpg', emoji: '🐓', g1: '#bf360c', g2: '#ffe082' },
-    title: () => `O kohoutkovi a slepičce`,
+    title: (c) => `Jak ${c.H} ${c.g('pomohl', 'pomohla', 'pomohli', 'pomohly')} kohoutkovi`,
     text: (c) => {
       const { g, n } = c;
       // sloveso pro slepičku a hrdinu dohromady (s klukem „běželi“, s holkou „běžely“)
@@ -4203,7 +4203,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/princezna-ktera-se-nesmala.jpg', emoji: '🪿', g1: '#f9a825', g2: '#fff59d' },
-    title: () => `Hloupý Honza a princezna, která se nesmála`,
+    title: (c) => `Jak Honza s ${c.h.ins} rozesmáli princeznu`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4281,7 +4281,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/sipkova-ruzenka.jpg', emoji: '🌹', g1: '#4a148c', g2: '#f48fb1' },
-    title: () => `Šípková Růženka`,
+    title: (c) => `Šípková Růženka a ${c.g('její kamarád', 'její kamarádka', 'její kamarádi', 'její kamarádky')} ${c.H}`,
     text: (c) => {
       const { g, n } = c;
       // sloveso pro Růženku a hrdinu dohromady (s klukem „šli“, s holkou „šly“)
@@ -4344,7 +4344,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/popelka.jpg', emoji: '👠', g1: '#283593', g2: '#b0bec5' },
-    title: () => `Popelka`,
+    title: (c) => `Popelka a ${c.g('její kamarád', 'její kamarádka', 'její kamarádi', 'její kamarádky')} ${c.H}`,
     text: (c) => {
       const { g, n } = c;
       // sloveso pro Popelku a hrdinu dohromady (s klukem „šli“, s holkou „šly“)
@@ -4430,7 +4430,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/hvezdne-tolary.jpg', imgF: '../covers/hvezdne-tolary-f.jpg', emoji: '🌠', g1: '#0d1b4c', g2: '#ffd54f' },
-    title: () => `Hvězdné tolary`,
+    title: (c) => `Hvězdné tolary pro ${c.h.acc}`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4471,7 +4471,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'lullaby',
     cover: { img: '../covers/zlata-rybka.jpg', emoji: '🐟', g1: '#0d47a1', g2: '#ffca28' },
-    title: () => `O rybáři a zlaté rybce`,
+    title: (c) => `Jak ${c.H} ${c.g('potkal', 'potkala', 'potkali', 'potkaly')} zlatou rybku`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4531,7 +4531,7 @@ window.STORIES = [
     ages: [5, 9],
     mood: 'adventure',
     cover: { img: '../covers/tri-zlate-vlasy.jpg', emoji: '☀️', g1: '#e65100', g2: '#ffe082' },
-    title: () => `Tři zlaté vlasy děda Vševěda`,
+    title: (c) => `${c.H} ${c.n('jde', 'jdou')} pro tři zlaté vlasy`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4610,7 +4610,7 @@ window.STORIES = [
     ages: [5, 9],
     mood: 'adventure',
     cover: { img: '../covers/chytra-horakyne.jpg', emoji: '🐐', g1: '#33691e', g2: '#c5e1a5' },
-    title: () => `Chytrá horákyně`,
+    title: (c) => `Chytrá horákyně a ${c.g('chytrý', 'chytrá', 'chytří', 'chytré')} ${c.H}`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4670,7 +4670,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/oskliva-kachna.jpg', emoji: '🦢', g1: '#4fc3f7', g2: '#e1f5fe' },
-    title: () => `Ošklivé káčátko`,
+    title: (c) => `Ošklivé káčátko a ${c.g('jeho kamarád', 'jeho kamarádka', 'jeho kamarádi', 'jeho kamarádky')} ${c.H}`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4733,7 +4733,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/cisarovy-nove-saty.jpg', imgF: '../covers/cisarovy-nove-saty-f.jpg', emoji: '👑', g1: '#6a1b9a', g2: '#f8bbd0' },
-    title: () => `Císařovy nové šaty`,
+    title: (c) => `Císařovy nové šaty a ${c.g('odvážný', 'odvážná', 'odvážní', 'odvážné')} ${c.H}`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -4791,7 +4791,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/superhrdina-laskavec.jpg', imgF: '../covers/superhrdina-laskavec-f.jpg', emoji: '🦸', g1: '#c62828', g2: '#ffcc80' },
-    title: (c) => c.g('Superhrdina Laskavec', 'Superhrdinka Laskavka', 'Superhrdinové Laskavci', 'Superhrdinky Laskavky'),
+    title: (c) => `${c.H}, ${c.g('superhrdina Laskavec', 'superhrdinka Laskavka', 'superhrdinové Laskavci', 'superhrdinky Laskavky')}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const L = g('Laskavec', 'Laskavka', 'Laskavci', 'Laskavky');
@@ -4852,7 +4852,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/strazci-snu.jpg', imgF: '../covers/strazci-snu-f.jpg', emoji: '🏮', g1: '#1a237e', g2: '#9fa8da' },
-    title: () => `Strážci snů`,
+    title: (c) => `${c.g('Strážce', 'Strážkyně', 'Strážci', 'Strážkyně')} snů ${c.H}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const S = g('Strážce snů', 'Strážkyně snů', 'Strážci snů', 'Strážkyně snů');
@@ -4913,7 +4913,7 @@ window.STORIES = [
     ages: [5, 9],
     mood: 'adventure',
     cover: { img: '../covers/zelena-hlidka.jpg', emoji: '♻️', g1: '#2e7d32', g2: '#81d4fa' },
-    title: () => `Zelená hlídka zachraňuje řeku`,
+    title: (c) => `${c.H} v Zelené hlídce`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const V = g('velitel', 'velitelka', 'velitelé', 'velitelky');
@@ -4998,7 +4998,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/mesto-bez-smichu.jpg', imgF: '../covers/mesto-bez-smichu-f.jpg', emoji: '😄', g1: '#ef6c00', g2: '#ffe082' },
-    title: () => `Město, které ztratilo smích`,
+    title: (c) => `${c.H} ${c.n('vrací', 'vracejí')} městu smích`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const D = g('smíchový detektiv', 'smíchová detektivka', 'smíchoví detektivové', 'smíchové detektivky');
@@ -5057,7 +5057,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/rytir-bez-mece.jpg', imgF: '../covers/rytir-bez-mece-f.jpg', emoji: '🍎', g1: '#5d4037', g2: '#e57373' },
-    title: (c) => c.g('Rytíř, který nechtěl bojovat', 'Rytířka, která nechtěla bojovat', 'Rytíři, kteří nechtěli bojovat', 'Rytířky, které nechtěly bojovat'),
+    title: (c) => `${c.g('Rytíř', 'Rytířka', 'Rytíři', 'Rytířky')} ${c.H}, ${c.g('který nechtěl', 'která nechtěla', 'kteří nechtěli', 'které nechtěly')} bojovat`,
     text: (c) => {
       const g = c.g, n = c.n;
       return [
@@ -5141,7 +5141,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/maly-jako-mravenec.jpg', imgF: '../covers/maly-jako-mravenec-f.jpg', emoji: '🐜', g1: '#558b2f', g2: '#dce775' },
-    title: (c) => c.g('Malý jako mravenec', 'Malá jako mravenec', 'Malí jako mravenci', 'Malé jako mravenci'),
+    title: (c) => `${c.H}, ${c.g('malý', 'malá', 'malí', 'malé')} jako ${c.n('mravenec', 'mravenci')}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       const a = g('', 'a', 'i', 'y');
@@ -5235,7 +5235,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'lullaby',
     cover: { img: '../covers/vila-rosicka.jpg', emoji: '💧', g1: '#4a148c', g2: '#b2ebf2' },
-    title: () => `Víla Rosička`,
+    title: (c) => `Jak ${c.H} ${c.g('pomohl', 'pomohla', 'pomohli', 'pomohly')} víle Rosičce`,
     text: (c) => {
       const g = c.g, n = c.n;
       return [
@@ -5298,7 +5298,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/jezek-mazlik.jpg', emoji: '🦔', g1: '#5d4037', g2: '#ffcc80' },
-    title: () => `Ježek, který se chtěl mazlit`,
+    title: (c) => `Ježek, který se chtěl mazlit s ${c.h.ins}`,
     text: (c) => [
       { t: `Na kraji zahrady, pod hromádkou suchého listí, bydlel malý ježek Pichlík. Měl čumáček černý jako korálek, krátké nožky a na zádech asi šest tisíc bodlinek.` },
       { t: `Pichlík měl jednu velikou slabost. Strašně rád se mazlil. Kdyby mohl, objímal by od rána do večera každého, koho potká.` },
@@ -5333,7 +5333,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/snek-postak.jpg', emoji: '🐌', g1: '#33691e', g2: '#dce775' },
-    title: () => `Šnek pošťák`,
+    title: (c) => `Šnek pošťák nese dopis ${c.h.dat}`,
     text: (c) => [
       { t: `Hluboko v lese, ve starém dutém pařezu, sídlila Lesní pošta. Nad dveřmi visela cedulka z kůry a vedle dveří stála schránka z vydlabané šišky.` },
       { t: `Poštmistrem byl jezevec Hubert. Měl brýle na čumáku, razítko v tlapě a pořádek v každé přihrádce. A měl dva pošťáky.` },
@@ -5388,7 +5388,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/pejsek-z-utulku.jpg', imgF: '../covers/pejsek-z-utulku-f.jpg', emoji: '🐶', g1: '#8d6e63', g2: '#ffe0b2' },
-    title: () => `Pejsek z útulku`,
+    title: (c) => `Pejsek z útulku jde k ${c.h.dat}`,
     text: (c) => [
       { t: `Ten den se ${c.H} ${c.g('vzbudil', 'vzbudila', 'vzbudili')} dřív než budík.`, sfx: 'birds' },
       { t: `Dřív než kos za oknem. Dokonce dřív než slunce. Dneska se totiž mělo jet pro pejska. Ne pro plyšového a ne pro pejska z knížky. Pro opravdového, živého pejska, který bude bydlet s nimi.` },
@@ -5447,7 +5447,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'adventure',
     cover: { img: '../covers/chameleon.jpg', emoji: '🦎', g1: '#00897b', g2: '#ffb74d' },
-    title: () => `Chameleon, který chtěl být vidět`,
+    title: (c) => `Chameleon, kterého ${c.H} ${c.g('uviděl', 'uviděla', 'uviděli', 'uviděly')}`,
     text: (c) => [
       { t: `V zoologické zahradě je pavilon, kde je teplo jako v létě, i když venku sněží. Voní to tam vlhkou hlínou a listím. A v jednom skleněném teráriu tam bydlel chameleon Kamil.` },
       { t: `V pavilonu bydlela spousta zvířat. Papoušci, kteří se hádali o banán. Želvy, které se nikam nehnaly. A opice, které dělaly největší rámus ze všech. Chameleoni pocházejí z teplých krajů, hlavně z Afriky a z ostrova Madagaskar, a tak se tu Kamilovi líbilo.` },
@@ -5503,7 +5503,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/velryba-zpevacka.jpg', imgF: '../covers/velryba-zpevacka-f.jpg', emoji: '🐋', g1: '#0d47a1', g2: '#80deea' },
-    title: () => `Velryba, která zpívala jinak`,
+    title: (c) => `Velryba, která zpívala ${c.h.dat}`,
     text: (c) => [
       { t: `V pokojíčku na poličce ležela velká mušle. Uvnitř růžová, zvenku hrbolatá a tak velká, že by se do ní vešla celá dlaň.` },
       { t: `${cap(c.p1.nom)} kdysi ${c.p1.g('říkal', 'říkala')}, že když si ji člověk přiloží k uchu, uslyší moře.` },
@@ -5583,7 +5583,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/svetluska.jpg', emoji: '✨', g1: '#1b2a49', g2: '#c6ff00' },
-    title: () => `Světluška, která svítila málo`,
+    title: (c) => `Světluška pod oknem ${c.h.gen}`,
     text: (c) => [
       { t: `Byl teplý letní večer. Okno v pokojíčku bylo otevřené a dovnitř voněla posekaná tráva. Někde v trávě cvrčel cvrček, cvrk, cvrk, jako by natahoval malé hodinky.` },
       { t: `${c.H} ${c.g('ležel', 'ležela', 'leželi')} v posteli a ${c.g('díval', 'dívala', 'dívali')} se ven.` },
@@ -5620,7 +5620,7 @@ window.STORIES = [
     ages: [2, 6],
     mood: 'lullaby',
     cover: { img: '../covers/mesto-usina.jpg', emoji: '🏘️', g1: '#283593', g2: '#ffab91' },
-    title: () => `Jak u nás všechno usíná`,
+    title: (c) => `Jak u ${c.h.gen} všechno usíná`,
     text: (c) => [
       { t: `Slunce už je nízko. Klouže po střechách, po komínech a po anténách. Pak se schová za kopec a nebe zrůžoví jako tvářičky po koupání.` },
       { t: `${cap(c.inTown)} začíná večer.` },
@@ -5656,7 +5656,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'lullaby',
     cover: { img: '../covers/pyzamova-party.jpg', emoji: '🧸', g1: '#5c6bc0', g2: '#f8bbd0' },
-    title: () => `Pyžamová párty plyšáků`,
+    title: (c) => `Pyžamová párty plyšáků ${c.h.gen}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -5720,7 +5720,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'lullaby',
     cover: { img: '../covers/polstarova-zeme.jpg', emoji: '🪶', g1: '#3949ab', g2: '#e1f5fe' },
-    title: () => `Polštářová země`,
+    title: (c) => `${c.H} v Polštářové zemi`,
     text: (c) => {
       const g = c.g, n = c.n;
       return [
@@ -5807,7 +5807,7 @@ window.STORIES = [
     ages: [3, 8],
     mood: 'road',
     cover: { img: '../covers/uz-tam-budem.jpg', emoji: '🦎', g1: '#2e7d32', g2: '#ffe082' },
-    title: () => `Už tam budem?`,
+    title: (c) => `„Už tam budem?“ ${c.n('ptá', 'ptají')} se ${c.H}`,
     text: (c) => {
       const g = c.g, n = c.n;
       return [
@@ -5886,7 +5886,7 @@ window.STORIES = [
     ages: [3, 7],
     mood: 'road',
     cover: { img: '../covers/barevna-honicka.jpg', emoji: '🌈', g1: '#0288d1', g2: '#ffca28' },
-    title: () => `Barevná honička`,
+    title: (c) => `Barevná honička s ${c.h.ins}`,
     text: (c) => {
       const g = c.g, n = c.n;
       return [
@@ -5939,7 +5939,7 @@ window.STORIES = [
     ages: [2, 7],
     mood: 'adventure',
     cover: { img: '../covers/pirati-z-vany.jpg', emoji: '🏴‍☠️', g1: '#01579b', g2: '#80deea' },
-    title: () => `Piráti z vany`,
+    title: (c) => `Piráti z vany a ${c.g('kapitán', 'kapitánka', 'kapitáni', 'kapitánky')} ${c.H}`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -6002,7 +6002,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/babicka-na-skateboardu.jpg', imgF: '../covers/babicka-na-skateboardu-f.jpg', emoji: '🛹', g1: '#ad1457', g2: '#ffd54f' },
-    title: () => `Babička na skateboardu`,
+    title: (c) => `${c.H} ${c.n('učí', 'učí')} babičku jezdit na skateboardu`,
     text: (c) => {
       const g = c.g, n = c.n, p = c.p1;
       return [
@@ -6063,7 +6063,7 @@ window.STORIES = [
     ages: [4, 9],
     mood: 'adventure',
     cover: { img: '../covers/kouzelnik-ucen.jpg', emoji: '🎩', g1: '#4a148c', g2: '#ffab91' },
-    title: () => `Kouzelník, kterému nic nešlo`,
+    title: (c) => `Kouzelník, kterému ${c.H} ${c.n('fandí', 'fandí')}`,
     text: (c) => {
       const g = c.g, n = c.n;
       const kouzlo = `Kroutím kloboukem, kroutím krempou, ať z klobouku vykoukne králík!`;
