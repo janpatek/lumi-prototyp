@@ -226,7 +226,7 @@ const screens = {
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
         <button class="chip ${ui.unheard ? 'on' : ''}" data-a="unheard">Ještě neslyšené</button>
       </div>
-      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak 129 Kč měsíčně</span></div></button>`}
+      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak ${PRICE.text} měsíčně</span></div></button>`}
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžeš nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změníš to kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       <div class="grid">
         ${list.map((s) => {
@@ -471,6 +471,12 @@ function savePerson() {
 }
 
 // ---------- Předplatné ----------
+// cena předplatného: z obchodu (App Store / Google Play), jinak česká cena; slovenská je v textu u plánu
+const PRICE = { text: '129 Kč', store: false };
+BILLING.price().then((p) => { if (p) { PRICE.text = p; PRICE.store = true; render(); } });
+// předplatné jde koupit jen přihlášený (Apple nebo Google), host si pouští jen pohádky zdarma
+const signedIn = () => !!(S.user && S.user.provider !== 'guest');
+
 function paywall() {
   $modal.innerHTML = `
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
@@ -485,10 +491,10 @@ function paywall() {
         <li>Brzy i časovač usínání</li>
       </ul>
       <div class="plans">
-        <div class="plan on"><div><b>Měsíčně</b><small>129 Kč / měsíc · zrušit můžeš kdykoli</small></div></div>
+        <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžeš kdykoli</small></div></div>
       </div>
-      <button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma</button>
-      <p class="fine" style="text-align:center">Po 7 dnech 129 Kč měsíčně, dokud předplatné nezrušíš. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíš s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
+      ${signedIn() ? `<button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma, pak ${PRICE.text} měsíčně</button>` : `<p class="fine" style="text-align:center">K předplatnému se nejdřív přihlas. Pohádky ti zůstanou uložené.</p>${SHOW_APPLE ? `<button class="btn apple" data-a="payApple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}<button class="btn white" data-a="payGoogle">${GOOGLE_SVG} Pokračovat přes Google</button>`}
+      <p class="fine" style="text-align:center">Po 7 dnech ${PRICE.text} měsíčně, dokud předplatné nezrušíš. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíš s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžeš kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se nic neplatí: předplatné se kupuje v mobilní aplikaci. Tady se pohádky pro vyzkoušení jen odemknou.</p>'}
     </div></div>`;
 }
@@ -541,7 +547,8 @@ function cloudClip(text, mood) {
 }
 // Vypravěčka pohádek. Výběr hlasu v přehrávači není, hlas (ElevenLabs „Jana“) určuje tts-worker.
 const NARRATOR = 'teta Terezka';
-const voiceFail = (e) => `${e.message} Teta Terezka se teď nenačetla, zatím čte náhradní hlas.`;
+// Síťová chyba (TypeError: „Failed to fetch“, na iOS „Load failed“) je anglicky, tu nezobrazujeme. České chyby z workeru ano.
+const voiceFail = (e) => `${e instanceof TypeError ? '' : e.message + ' '}Teta Terezka se teď nenačetla, zatím čte náhradní hlas.`;
 // stejné rozhraní jako speak(): zavolá onend, vrací funkci pro zastavení; při chybě dočte hlasem prohlížeče
 function cloudSpeak(text, onend) {
   let stopped = false, fallback = null;
@@ -876,6 +883,9 @@ const closeModal = () => { $modal.innerHTML = ''; ui.edit = null; };
 const actions = {
   google: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
   apple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
+  // přihlášení přímo z paywallu: po přihlášení se paywall ukáže znovu s tlačítkem nákupu
+  payApple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); paywall(); },
+  payGoogle: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); paywall(); },
   guest: () => { S.user = { email: 'host', provider: 'guest' }; save(); go('onb'); },
   next: () => { ui.step++; render(); },
   prev: () => { syncHome(); ui.step--; render(); },
@@ -965,6 +975,7 @@ const actions = {
   },
   paywall,
   subscribe: async (el) => {
+    if (!signedIn()) return paywall();
     // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
     if (!BILLING.native) { S.premium = true; save(); closeModal(); render(); return; }
     el.disabled = true;
