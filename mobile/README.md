@@ -83,3 +83,12 @@ Ostatní věty si aplikace stáhne z ospalek.cz při prvním poslechu nebo tlač
 přes `@capacitor/filesystem` do složky `hlas/` v datech aplikace (app/remote.js). Při startu a po návratu
 z pozadí si stáhne aktuální `app/stories.cs.js` z webu a přidá pohádky, které v balíčku ještě nejsou
 (app/catalog.js), takže nové pohádky nepotřebují novou verzi v obchodě – stačí je nasadit na web.
+
+## Přehrávání na pozadí (Android)
+
+Pohádka hraje dál i se zhasnutým displejem. Hlas a hudba hrají ve WebView (Web Audio), aplikaci drží naživu
+služba v popředí `PrehravacService` (typ mediaPlayback) s mediální relací: na zamčené obrazovce a v oznámeních
+je obálka, název a tlačítka předchozí / přehrát-pozastavit / další; fungují i tlačítka na sluchátkách.
+JS strana je `app/media.js`, doplněk `PrehravacPlugin` (registrovaný v MainActivity). Předchozí / další
+přepíná pohádky v pořadí poličky, ze které se pohádka otevřela, a přeskočí zamčené.
+Ladění: `adb shell cmd media_session dispatch next`, stav `adb shell dumpsys media_session`.
