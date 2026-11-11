@@ -2,7 +2,7 @@
 
 ## Obchodní podmínky a ochranu osobních údajů drž aktuální
 
-Provozovatel: Magnet Marketing s.r.o., IČO 21367647, Ponětovice 74, 664 51 Ponětovice (KS Brno, C 138420), plátce DPH. Kontakt support@ospalek.cz.
+Provozovatel: Magnet Marketing s.r.o., IČO 21367647, Ponětovice 74, 664 51 Ponětovice (KS Brno, C 138420), není plátce DPH (DIČ CZ21367647 má). Kontakt support@ospalek.cz.
 
 - Obchodní podmínky: `obchodni-podminky/index.html` (ospalek.cz/obchodni-podminky/)
 - Ochrana osobních údajů: `ochrana-osobnich-udaju/index.html` (ospalek.cz/ochrana-osobnich-udaju/)
