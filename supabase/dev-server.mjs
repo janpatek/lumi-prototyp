@@ -248,6 +248,27 @@ if (seedN) await serial(async () => {
     await db.query(`insert into families (id, created_at, last_seen_at, town, country, platform, app_version, source, onboarded, premium, analytics) values ($1, $2, now(), $3, $4, 'Web', 'web-9', $5, true, $6, $7)`,
       [uid, created, town, country, consent ? pick(['Přímý přístup', 'instagram.com', 'google.com', 'Doporučení']) : null, Math.random() < 0.15, consent]);
     await db.query(`insert into children (family_id, id, name, gender, age) values ($1, 'a', $2, $3, $4)`, [uid, k[0], k[1], 2 + Math.floor(Math.random() * 7)]);
+    // předplatné z obchodů přes stejnou funkci, kterou volá Edge Function store (zkušební 3 dny, pak měsíčně)
+    if (Math.random() < 0.45) {
+      const platform = Math.random() < 0.5 ? 'ios' : 'android', sk = country === 'SK', price = sk ? 4.99 : 129, cur = sk ? 'EUR' : 'CZK', czk = sk ? 124.5 : 129;
+      const id = `${platform}:dev-${i}`, t0 = new Date(created.getTime() + Math.random() * 2 * DAY), iso = (t) => new Date(t).toISOString();
+      const rec = (status, trial, exp, renew, events) => db.query(`select store_record($1::jsonb)`, [JSON.stringify({ family: uid, events,
+        sub: { id, platform, product: platform === 'ios' ? 'ospalek_plus_mesicne' : 'ospalek_plus:mesicne', status, trial, started_at: iso(t0), expires_at: iso(exp), will_renew: renew, country, currency: cur, price, env: Math.random() < 0.1 ? 'Sandbox' : 'Production' } })]);
+      let end = t0.getTime() + 3 * DAY, n = 0;
+      await rec(end > Date.now() ? 'trial' : 'expired', true, end, true, [{ key: id + ':t', type: 'trial', at: iso(t0), period_start: iso(t0), period_end: iso(end) }]);
+      if (end <= Date.now()) {
+        if (Math.random() < 0.35) await rec('expired', false, end, false, [{ key: id + ':c', type: 'cancel', at: iso(t0.getTime() + DAY) }, { key: id + ':x', type: 'expire', at: iso(end) }]);
+        else {
+          let gone = false;
+          while (end <= Date.now() && !gone) {
+            const s0 = end; end += 30 * DAY;
+            await rec(end > Date.now() ? 'active' : 'expired', false, end, true, [{ key: `${id}:p${n++}`, type: 'renew', at: iso(s0), period_start: iso(s0), period_end: iso(end), amount: price, currency: cur, czk }]);
+            if (Math.random() < 0.012) await rec('active', false, end, true, [{ key: `${id}:r${n}`, type: 'refund', at: iso(s0 + DAY), amount: -price, currency: cur, czk: -czk }]);
+            if (Math.random() < 0.1) { gone = true; const x = Math.min(end, Date.now() + 20 * DAY); await rec(end > Date.now() ? 'active' : 'expired', false, end, false, [{ key: id + ':c', type: 'cancel', at: iso(end - 6 * DAY) }, ...(end <= Date.now() ? [{ key: id + ':x', type: 'expire', at: iso(x) }] : [])]); }
+          }
+        }
+      }
+    }
     for (let d = age; d >= 0; d--) {
       if (Math.random() > activity * 0.7) continue;
       const [sid, cat, len] = pick(STORIES.slice(0, 3)), done = Math.random() < 0.8;

@@ -1,0 +1,86 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "cs",
+        "policyText" : "",
+        "policyURL" : "https://ospalek.cz/ochrana-osobnich-udaju/"
+      }
+    ]
+  },
+  "identifier" : "6F2B1C1E",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "cs_CZ",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "CZE",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "5A1C0E01",
+      "localizations" : [
+        {
+          "description" : "",
+          "displayName" : "Ospalek Plus",
+          "locale" : "cs"
+        }
+      ],
+      "name" : "Ospalek Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "129",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "5A1C0E02",
+          "introductoryOffer" : {
+            "internalID" : "5A1C0E03",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Všechny pohádky bez omezení",
+              "displayName" : "Ospalek Plus měsíčně",
+              "locale" : "cs"
+            }
+          ],
+          "productID" : "ospalek_plus_mesicne",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Ospalek Plus měsíčně",
+          "subscriptionGroupID" : "5A1C0E01",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

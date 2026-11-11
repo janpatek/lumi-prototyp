@@ -51,6 +51,8 @@ dependencies {
     // MediaSession a oznámení přehrávače (PrehravacService)
     implementation "androidx.media:media:1.7.1"
     implementation project(':capacitor-android')
+    // Předplatné přes Google Play Billing (vlastní plugin StorePlugin.java, náhrada RevenueCat)
+    implementation "com.android.billingclient:billing:8.3.0"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

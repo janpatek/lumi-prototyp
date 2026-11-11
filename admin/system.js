@@ -114,7 +114,7 @@ function pageData() {
       </section>
       <section class="panel"><div class="panel-head"><h2>Co je napojené</h2></div>
         <div class="table-wrap"><table><tbody>
-          ${[['Rodiny, děti, obec, zařízení', 'ano', 'aplikace posílá po každém uložení'], ['Poslechy (pohádka, délka, dohráno)', 'ano', 'začátek a konec poslechu'], ['Používání, retence, heatmapa, výkon pohádek', 'ano', 'předpočítané souhrny v databázi'], ['Audit log', 'ano', 'zapisuje administrace'], ['Předplatné a platby', 'ne', 'v aplikaci zatím simulované; RevenueCat a Stripe'], ['Helpdesk', 'ne', 'příjem e-mailů a zpráv z aplikace'], ['Návštěvy webu', 'ne', 'Plausible'], ['Kupony v aplikaci', 'ne', 'pole na kód při registraci']].map(([a, b, c]) => `<tr><td>${a}</td><td class="${b === 'ano' ? 'status-ok' : 'status-warn'}">${b}</td><td class="muted">${c}</td></tr>`).join('')}
+          ${[['Rodiny, děti, obec, zařízení', 'ano', 'aplikace posílá po každém uložení'], ['Poslechy (pohádka, délka, dohráno)', 'ano', 'začátek a konec poslechu'], ['Používání, retence, heatmapa, výkon pohádek', 'ano', 'předpočítané souhrny v databázi'], ['Audit log', 'ano', 'zapisuje administrace'], ['Předplatné a platby', 'ano', 'oznámení App Store a Google Play přes funkci store (supabase/functions/store)'], ['Helpdesk', 'ne', 'příjem e-mailů a zpráv z aplikace'], ['Návštěvy webu', 'ne', 'Plausible'], ['Kupony v aplikaci', 'ne', 'pole na kód při registraci']].map(([a, b, c]) => `<tr><td>${a}</td><td class="${b === 'ano' ? 'status-ok' : 'status-warn'}">${b}</td><td class="muted">${c}</td></tr>`).join('')}
         </tbody></table></div>
       </section>
     </div>

@@ -3,9 +3,9 @@
 //  1. co kód dává   – vyzkoušení zdarma bez karty, měsíce zdarma, procentní sleva, sleva v Kč,
 //  2. pro koho je   – známí, influencer/partner, kampaň, školky a firmy, kompenzace z podpory,
 //  3. jak se rozdává – jeden společný kód (VECERNI) nebo sada jednorázových kódů (ZNAMI-7KQ4-M2PX).
-// Vyzkoušení a měsíce zdarma přiděluje RevenueCat jako dočasný nárok (promotional entitlement): rodina nic
-// neplatí a nezadává kartu, proto fungují stejně na iOS, Androidu i webu. Slevy z ceny musí projít obchodem
-// (App Store / Google Play nabídkové kódy) nebo Stripe na webu.
+// Vyzkoušení a měsíce zdarma zapne náš server jako dočasný přístup rodiny (bez RevenueCat): rodina nic
+// neplatí a nezadává kartu, proto fungují stejně na iOS i Androidu. Slevy z ceny musí projít obchodem
+// (App Store nabídkové kódy, Google Play promo kódy), platby na webu nemáme.
 // Partner dostává provizi z rodin, které se registrovaly s jeho kódem (atribuce 30 dní od kliknutí na odkaz).
 // Dnes ukázková data; nové kampaně, kódy a výplaty se drží v localStorage tohoto prohlížeče.
 
@@ -14,10 +14,10 @@ const CPN = (() => {
   const KEY = D.live ? 'ospalek.admin.live.coupons.v1' : 'ospalek.admin.coupons.v1';
   const ALPH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // bez 0/O, 1/I/L, ať se kód dá přečíst a opsat
   const GIVES = {
-    trial: { label: 'Vyzkoušení zdarma bez karty', unit: 'dní', where: 'iOS, Android i web', how: 'RevenueCat přidělí dočasný přístup. Rodina nic neplatí ani nezadává kartu, po skončení uvidí nabídku předplatného.' },
-    months: { label: 'Měsíce zdarma', unit: 'měs.', where: 'iOS, Android i web', how: 'RevenueCat přidělí dočasný přístup. U už platících rodin se místo toho použije nabídka obchodu (Apple promotional offer, odklad platby v Google Play).' },
-    percent: { label: 'Procentní sleva', unit: '%', where: 'web; v obchodech přes nabídkové kódy', how: 'Na webu Stripe kupon. App Store a Google Play umí jen předem založené nabídky, sleva se zaokrouhlí na jejich cenovou úroveň.' },
-    amount: { label: 'Sleva v Kč', unit: 'Kč', where: 'jen web', how: 'Pevnou částku umí jen Stripe na webu, obchody ne.' },
+    trial: { label: 'Vyzkoušení zdarma bez karty', unit: 'dní', where: 'iOS i Android', how: 'Dočasný přístup zapne náš server. Rodina nic neplatí ani nezadává kartu, po skončení uvidí nabídku předplatného.' },
+    months: { label: 'Měsíce zdarma', unit: 'měs.', where: 'iOS i Android', how: 'Dočasný přístup zapne náš server. U už platících rodin se místo toho použije nabídka obchodu (Apple promotional offer, odklad platby v Google Play).' },
+    percent: { label: 'Procentní sleva', unit: '%', where: 'App Store a Google Play přes nabídkové kódy', how: 'Obchody umí jen předem založené nabídky (Apple offer codes, Google promo kódy), sleva se zaokrouhlí na jejich cenovou úroveň.' },
+    amount: { label: 'Sleva v Kč', unit: 'Kč', where: 'zatím nikde', how: 'Pevnou slevu v Kč obchody neumí a platby na webu nemáme. Použij měsíce zdarma nebo procentní slevu.' },
   };
   const PURPOSE = {
     znami: { label: 'Přátelé a známí', tag: 'mint' },

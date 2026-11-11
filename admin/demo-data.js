@@ -199,7 +199,7 @@ window.makeDemo = function () {
   // ceník od 8. 11. 2026: jen měsíční předplatné 129 Kč; cena pro Slovensko zatím neurčená, 4,99 € je předpoklad
   const PRICE = { CZ: 129, SK: 4.99 };
   const EUR = 25; // pevný kurz pro ukázku
-  const STORE = { iOS: 'App Store', Android: 'Google Play', Web: 'Stripe' };
+  const STORE = { iOS: 'App Store', Android: 'Google Play', Web: 'Google Play' }; // platby na webu nejsou, ukázkové webové rodiny platí jako Android
   const fee = (store, czk) => (store === 'Stripe' ? Math.round((czk * 0.015 + 6.5) * 100) / 100 : Math.round(czk * 0.15 * 100) / 100);
   const payments = [];
   const mrrDiff = new Float64Array(DAYS + 1), subDiff = new Float64Array(DAYS + 1);
@@ -292,7 +292,7 @@ window.makeDemo = function () {
     } else if (ageH > 1 && rnd() < 0.4) status = 'open';
     const assignee = status === 'new' && rnd() < 0.7 ? null : pick(agents);
     const msgs = [{ from: 'family', author: f.name, at: created, text: sc2.t }];
-    if (rnd() < 0.3) msgs.push({ from: 'note', author: STAFF.find((x) => x.id === (assignee || 'u2')).name, at: new Date(created.getTime() + respH * 0.5 * 36e5), text: pick(['Ověřit v RevenueCat.', 'Stejný problém hlásili i další dva lidé.', 'Rodina je předplatitel od začátku, vyjít vstříc.', 'Předat Tereze kvůli obsahu.']) });
+    if (rnd() < 0.3) msgs.push({ from: 'note', author: STAFF.find((x) => x.id === (assignee || 'u2')).name, at: new Date(created.getTime() + respH * 0.5 * 36e5), text: pick(['Ověřit v administraci Předplatné.', 'Stejný problém hlásili i další dva lidé.', 'Rodina je předplatitel od začátku, vyjít vstříc.', 'Předat Tereze kvůli obsahu.']) });
     if (firstResp) msgs.push({ from: 'agent', author: STAFF.find((x) => x.id === (assignee || 'u2')).name, at: firstResp, text: sc2.r });
     if (status === 'waiting' || (firstResp && rnd() < 0.3 && status !== 'new')) {
       const t2 = new Date(firstResp.getTime() + (0.5 + rnd() * 20) * 36e5);

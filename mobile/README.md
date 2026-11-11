@@ -7,7 +7,7 @@ Nativní obal webové aplikace z `../app`. Jeden projekt pro obě platformy:
 
 | | Capacitor | TWA (Trusted Web Activity) |
 |---|---|---|
-| Google Play Billing | nativní plugin (RevenueCat nebo vlastní) | jen přes Digital Goods API + Payment Request, složitější a jen Android |
+| Google Play Billing | nativní plugin (vlastní OspalekStore) | jen přes Digital Goods API + Payment Request, složitější a jen Android |
 | iOS | stejný projekt (`npx cap add ios`) | neexistuje, pro App Store by byl potřeba jiný obal |
 | Offline poslech | soubory v aplikaci + stahování do zařízení (Filesystem) | jen Service Worker a cache prohlížeče, ta se může vymazat |
 | Zvuk na pozadí / zamčený displej | nativní přehrávač s foreground service `mediaPlayback` a ovládáním na zamčené obrazovce | jen to, co dovolí Chrome; po zhasnutí se může zastavit |
@@ -67,7 +67,7 @@ Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gr
 
 ## Co ještě chybí (další kroky)
 
-1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
+1. Platby: vlastní plugin **OspalekStore** (11. 11. 2026, místo RevenueCat): Android `android/app/src/main/java/cz/ospalek/app/StorePlugin.java` (Google Play Billing 8.3), iOS `ios/App/App/StorePlugin.swift` (StoreKit 2, registrace v `MainViewController.swift`). JS v `app/billing.js`, ověření nákupů a oznámení obchodů v `supabase/functions/store`. Chybí nastavit produkty a oznámení v Play Console a App Store Connect (`supabase/README.md`, sekce Předplatné). Na iOS jde nákup zkusit v simulátoru s `ios/App/Ospalek.storekit` (Edit Scheme → Run → Options → StoreKit Configuration).
 2. Přehrávání na pozadí: hotové ve verzi 1.4 (PrehravacService, viz Přehrávání na pozadí). V Play Console je potřeba vyplnit deklaraci služby na popředí `mediaPlayback` s videem (GOOGLE-PLAY.md) a ověřit na skutečném telefonu.
 3. Offline poslech a stahování na vyžádání: hotové ve verzi 1.4 (`@capacitor/filesystem`, app/remote.js).
 4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.

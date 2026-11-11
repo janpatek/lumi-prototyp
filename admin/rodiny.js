@@ -181,7 +181,7 @@ let famT;
 Object.assign(ACTIONS, {
   famSeg: (v) => { FAM.seg = v; const h = 'rodiny/segment-' + v; if (location.hash === '#' + h) render(); else go(h); },
   famCsv: () => { download('ospalek-rodiny-ukazka.csv', '﻿' + famCsv(), 'text/csv'); API.log('family.export', 'seznam', `Export CSV (${FAM.seg})`); toast('CSV se stahuje'); },
-  famGift: (v) => confirmBox('Darovat měsíc předplatného?', 'V ukázce se jen zapíše do časové osy a audit logu. Skutečně by šlo o propagační nárok v RevenueCat.', 'Darovat', () => { API.families.gift(v, 1); render(); toast('Dárek je zapsaný'); }),
+  famGift: (v) => confirmBox('Darovat měsíc předplatného?', 'V ukázce se jen zapíše do časové osy a audit logu. Skutečně by náš server rodině zapnul dočasný přístup.', 'Darovat', () => { API.families.gift(v, 1); render(); toast('Dárek je zapsaný'); }),
   famExport: (v) => {
     const f = API.families.get(v), a = API.families.activity(v);
     const data = { rodina: { id: f.id, email: f.email, jmeno: f.name, bydliste: f.town, zeme: f.country, registrace: f.created, zarizeni: f.platform }, deti: f.kids, predplatne: { stav: f.status, tarif: f.plan }, platby: API.families.payments(v), tickety: API.families.tickets(v).map((t) => ({ id: t.id, predmet: t.subject, zpravy: t.msgs.filter((m) => m.from !== 'note') })), poslech: a.series.events.map((e) => ({ den: iso(D.dayAt(e.i)), hodina: e.hour, pohadka: e.story, minut: Math.round(e.min * 10) / 10 })) };

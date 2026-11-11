@@ -74,6 +74,54 @@ Google Authenticator (nebo jiné TOTP aplikace). Při prvním přihlášení adm
 - **Ztracený telefon:** vlastník dá na stránce Tým „Zrušit kód“ (nebo smaže v Supabase Authentication → Users → uživatel → MFA factors) a člověk si
   při dalším přihlášení naskenuje nový QR kód. Jde to i SQL: `delete from auth.mfa_factors where user_id = (select id from auth.users where email = '…');`
 
+## Předplatné z App Store a Google Play (bez RevenueCat)
+
+Nákupy ověřujeme sami a evidujeme v tabulkách `store_subs` a `store_events`, nic neplatíme žádné další službě.
+Dashboard Předplatné v administraci z nich počítá MRR, aktivní předplatná, zkušební doby, konverze, odchody, kohorty a LTV.
+
+- Aplikace (`app/billing.js`) nakupuje vlastním nativním pluginem OspalekStore (Google Play Billing 8, StoreKit 2).
+  Obchodu předá ID rodiny (Google `obfuscatedAccountId`, Apple `appAccountToken`) a po nákupu pošle potvrzení na `/functions/v1/store/app`.
+- Obchody samy posílají oznámení o obnovení, zrušení, selhání karty a vrácení peněz:
+  - Apple: `/functions/v1/store/apple` (App Store Server Notifications V2, podpis ověřený až ke kořenovému certifikátu Applu),
+  - Google: `/functions/v1/store/google?secret=…` (Pub/Sub). Stav se pak dočte z Google Play Developer API.
+
+Zapojení (jednou):
+
+1. **Databáze:** SQL Editor → spustit `migrations/20261111_predplatne_z_obchodu.sql`.
+2. **Edge Function:** Edge Functions → Deploy a new function → Via editor.
+   - Název `store`, obsah `functions/store/index.ts`.
+   - V nastavení funkce **vypnout „Verify JWT“**, protože Apple ani Google token Supabase neposílají. `/app` si přihlášení rodiny ověřuje sama.
+3. **Google Play:**
+   - Google Cloud → zapnout *Google Play Android Developer API*.
+   - Založit servisní účet a JSON klíč. V Play Console → Uživatelé a oprávnění ho pozvat s právy *Zobrazit finanční údaje* a *Spravovat objednávky a předplatná*.
+   - Klíč vložit do Edge Functions → Secrets jako `GOOGLE_SERVICE_ACCOUNT` (celý JSON). Propsání práv trvá až 36 hodin.
+   - Pub/Sub:
+     - Založit téma (např. `ospalek-play`) a dát roli *Pub/Sub Publisher* účtu `google-play-developer-notifications@system.gserviceaccount.com`.
+     - Vytvořit odběr typu Push na `https://imiujppjewddeldjifkl.supabase.co/functions/v1/store/google?secret=<náhodný řetězec>`.
+     - Stejný řetězec uložit do Secrets jako `PUBSUB_SECRET`.
+   - Play Console → Zpeněžení → Nastavení zpeněžení → Oznámení v reálném čase: vybrat téma a poslat testovací zprávu.
+   - Produkt v Play Console:
+     - předplatné `ospalek_plus` se základním plánem `mesicne` (měsíčně, automatické obnovení, 129 Kč / 4,99 €),
+     - nabídka `zkusebni-3-dny` (zkušební doba 3 dny zdarma, jen pro nové zákazníky).
+4. **App Store:**
+   - App Store Connect → Aplikace → Informace o aplikaci → App Store Server Notifications, verze 2, adresa pro produkci i sandbox `https://imiujppjewddeldjifkl.supabase.co/functions/v1/store/apple`.
+   - Produkt: automaticky obnovované předplatné `ospalek_plus_mesicne` ve skupině „Ospalek Plus“ s úvodní nabídkou 3 dny zdarma.
+5. **Ověření:** po testovacím nákupu (licenční tester, sandbox) zaškrtnout v administraci Předplatné „testovací nákupy“.
+
+Částky jsou v měně obchodu včetně DPH, přepočet na Kč kurzem ČNB ke dni platby. „Do kapsy“ v administraci = bez DPH (CZ 21 %, SK 23 %) a bez provize obchodu 15 % (Small Business Program; zapnout v App Store Connect i v Play Console).
+
+Test ověřování podpisu a převodu událostí (bez Deno, v Node 24; testovací řetěz certifikátů s OID Applu):
+
+```bash
+d=$(mktemp -d) && cd $d && printf '[mid]\nbasicConstraints=critical,CA:true\n1.2.840.113635.100.6.2.1=ASN1:NULL\n[leaf]\nbasicConstraints=CA:false\n1.2.840.113635.100.6.11.1=ASN1:NULL\n' > ext.cnf \
+  && openssl ecparam -name secp384r1 -genkey -noout -out root.key && openssl req -x509 -new -key root.key -subj /CN=Root -days 30 -out root.pem \
+  && openssl ecparam -name secp384r1 -genkey -noout -out mid.key && openssl req -new -key mid.key -subj /CN=Mid -out mid.csr \
+  && openssl x509 -req -in mid.csr -CA root.pem -CAkey root.key -CAcreateserial -days 30 -sha384 -extfile ext.cnf -extensions mid -out mid.pem \
+  && openssl ecparam -name prime256v1 -genkey -noout -out leaf.key && openssl req -new -key leaf.key -subj /CN=Leaf -out leaf.csr \
+  && openssl x509 -req -in leaf.csr -CA mid.pem -CAkey mid.key -CAcreateserial -days 30 -sha384 -extfile ext.cnf -extensions leaf -out leaf.pem \
+  && cd - && node supabase/functions/store/test.mjs $d
+```
+
 ## Lokální vyzkoušení bez účtu
 
 ```bash
@@ -87,7 +135,7 @@ Pod napodobeninou Supabase běží skutečné `schema.sql` v PGlite (Postgres ve
 ## Co zatím chybí
 
 - Skutečné přihlášení rodičů (Google, Apple, e-mail) místo simulovaného; anonymní účet se pak k němu připojí.
-- Předplatné z RevenueCat a Stripe (webhooky do tabulky `subscriptions`), dnes je v aplikaci jen simulované.
+- Pravidelné srovnání s obchody (noční kontrola stavu předplatných přes API, kdyby se nějaké oznámení ztratilo).
 - Helpdesk (příjem e-mailů do tabulky `tickets`), návštěvy webu (Plausible), uplatnění kuponů v aplikaci.
 - Úklid opuštěných anonymních účtů bez rodiny (pg_cron, např. jednou týdně).
 - Při desítkách tisíc rodin stránkovat `admin_families` na serveru místo načtení celého souhrnu najednou.

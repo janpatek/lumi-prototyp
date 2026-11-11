@@ -99,6 +99,8 @@ const SYNC = (() => {
 
   return {
     on: true,
+    // přihlášení rodiny pro ověření nákupu na serveru (app/billing.js)
+    token: async () => (await session()).access_token,
     // po každém uložení; odešle se s krátkým zpožděním, ať se nepíše při každém písmenku
     family(S) {
       if (!S.user) return;

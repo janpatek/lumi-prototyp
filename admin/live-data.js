@@ -217,6 +217,9 @@ const LIVE = (() => {
       rpc('admin_families'), rpc('admin_daily', { n: DAYS }), rpc('admin_cohorts', { weeks: 26 }), rpc('admin_wau', { weeks: 26 }),
       rpc('admin_heat', { n: DAYS }), rpc('admin_stories'), rpc('admin_staff'), rpc('admin_audit', { n: 2000 }),
     ]);
+    // předplatné z obchodů (admin/store-data.js); bez nasazené funkce admin_store administrace funguje dál bez plateb
+    const sandbox = get('ospalek.admin.sandbox') === true;
+    const storeRaw = await rpc('admin_store', { sandbox }).catch((e) => ({ subs: [], events: [], error: e.message }));
     const fetchMs = performance.now() - t0;
     const day0 = new Date(); day0.setHours(0, 0, 0, 0);
     const dayAt = (i) => { const d = new Date(day0); d.setDate(d.getDate() - (DAYS - 1 - i)); return d; };
@@ -238,7 +241,7 @@ const LIVE = (() => {
       wau: new Float64Array(WEEKS), heat: new Float64Array(7 * 24),
       cohorts: Array.from({ length: WEEKS }, () => ({ size: 0, active: new Float64Array(WEEKS) })),
       stories: (window.STORIES || []).map((s) => ({ id: s.id, free: !!s.free, cat: s.cats[0], min: 9 })),
-      storyAgg: {}, payments: [], vouchers: [], promos: [], tickets: [], ttsJobs: [],
+      storeRaw, sandbox, storyAgg: {}, payments: [], vouchers: [], promos: [], tickets: [], ttsJobs: [],
       ticketCats: { platby: 'Platby', prehravani: 'Přehrávání', hlas: 'Hlas a výslovnost', ucet: 'Účet a přihlášení', obsah: 'Obsah a přání', gdpr: 'Osobní údaje (GDPR)', chyba: 'Chyba aplikace' },
       slaH: { urgent: 2, high: 8, normal: 24, low: 72 },
     };

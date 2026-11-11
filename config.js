@@ -5,9 +5,8 @@
 window.OSPALEK_CONFIG = {
   supabaseUrl: 'https://imiujppjewddeldjifkl.supabase.co',
   supabaseAnonKey: 'sb_publishable_uX729wkKmJ4vtTQaWcWzig_dGjzNaJC',
-  // RevenueCat: veřejné SDK klíče pro předplatné v mobilní aplikaci (app/billing.js). Prázdné = platby vypnuté.
-  revenuecatAndroidKey: 'goog_GieDadUsqyXyKRECgLlGLrjVnTt',
-  revenuecatIosKey: '',
+  // Předplatné v mobilní aplikaci (app/billing.js): produkty v Google Play Console a App Store Connect.
+  storeAndroid: 'ospalek_plus', storeAndroidPlan: 'mesicne', storeIos: 'ospalek_plus_mesicne',
   // Večerní upozornění (push-worker/README.md): veřejný klíč VAPID vyplní `node push-worker/klice.mjs`.
   // Prázdný = aplikace se na upozornění neptá.
   pushKey: '',

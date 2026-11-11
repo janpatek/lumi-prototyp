@@ -103,7 +103,7 @@ const ROUTES = [
   { id: 'registrace', label: 'Registrace', ico: I.reg, perm: 'analytics.read' },
   { id: 'navstevy', label: 'Návštěvy', ico: I.eye, perm: 'analytics.read' },
   { grp: 'Byznys' },
-  { id: 'platby', label: 'Předplatné a platby', ico: I.card, perm: 'billing.read' },
+  { id: 'platby', label: 'Předplatné', ico: I.card, perm: 'billing.read' },
   { id: 'kupony', label: 'Kupony a partneři', ico: I.gift, perm: 'billing.read' },
   { grp: 'Obsah' },
   { id: 'pohadky', label: 'Pohádky', ico: I.book, perm: 'content.edit' },
@@ -274,11 +274,10 @@ const legend = () => '<div class="legend"><span><i class="key" style="--c:var(--
 // V ostrém režimu lišta říká, odkud data jsou a co zatím napojené není (místo vymyšlených čísel jsou tam nuly).
 const LIVE_GAPS = {
   navstevy: 'Návštěvy webu zatím neměříme (doplní se Plausible), proto jsou nulové.',
-  platby: 'Předplatné je v aplikaci zatím jen simulované a platby nejsou napojené (RevenueCat, Stripe), čísla o penězích jsou nulová.',
   hlas: 'Kredity jsou skutečná spotřeba z ElevenLabs (přes tts-worker), Kč odhad podle tarifu a kurzu ČNB.',
   kupony: 'Kódy zatím nejde uplatnit v aplikaci; kampaně, které tu založíš, se drží jen v tomhle prohlížeči.',
   helpdesk: 'Helpdesk zatím nepřijímá e-maily ani zprávy z aplikace.',
-  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami. Tržby jsou zatím nulové, platby ještě nejsou napojené.',
+  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami. Tržby a MRR jsou platby z App Store a Google Play (stránka Předplatné).',
   pouzivani: 'Přehrání, pohádky a heatmapa zahrnují i anonymní poslechy; aktivní rodiny a retence jen rodiny se souhlasem se statistikami.',
   rodiny: 'Rodiny bez souhlasu se statistikami vidíš celé, jen bez poslechů (štítek „bez statistik“).',
 };
@@ -310,13 +309,14 @@ function pageOverview() {
   const dau = sumR(dl.dau, N - 7, L) / 7, dauB = sumR(dl.dau, N - 37, N - 31) / 7;
   const mau = fams.reduce((n, f) => n + (f.days30 > 0 ? 1 : 0), 0);
   const mrr = dl.mrr[L], mrrB = dl.mrr[N - 31], subs = dl.subs[L], subsB = dl.subs[N - 31];
-  const ended = fams.filter((f) => f.trialI >= N - 38 && f.trialI <= N - 8);
-  const conv = ended.filter((f) => f.subI >= 0).length;
+  // zkušební doby z obchodů (admin/store-data.js): skončené za 30 dní a kolik z nich platí
+  const ended = D.store.trialsAll.filter((t) => t.ended && Math.min(Date.now(), t.end) >= addDays(TODAY, -29).getTime());
+  const conv = ended.filter((t) => t.converted).length;
   const churned = fams.filter((f) => f.subEnd >= N - 30).length;
   const tc = API.tickets.counts();
   const gdpr = tc.gdpr, pastDue = fams.filter((f) => f.status === 'past_due').length;
   const risk = fams.filter((f) => f.risk).length;
-  const trialEnd = fams.filter((f) => f.status === 'trial' && f.trialI + 7 <= L + 2).length;
+  const trialEnd = D.store.subs.filter((s) => s.status === 'trial' && s.expires && s.expires - Date.now() < 2 * 864e5).length;
   const ttsFail = D.ttsJobs.filter((j) => j.status === 'selhalo').length;
   const r90 = buckets(iso(addDays(TODAY, -89)), iso(TODAY), 'tyden');
   regChart('chReg', r90, 'tyden');
@@ -361,7 +361,7 @@ function pageOverview() {
     [gdpr, plural(gdpr, 'žádost o osobní údaje', 'žádosti o osobní údaje', 'žádostí o osobní údaje') + ' (lhůta 30 dní)', '#helpdesk/gdpr', gdpr ? 'bad' : ''],
     [pastDue, plural(pastDue, 'neuhrazená platba', 'neuhrazené platby', 'neuhrazených plateb'), '#platby', ''],
     [risk, plural(risk, 'platící rodina', 'platící rodiny', 'platících rodin') + ' bez poslechu 10+ dní', '#rodiny/segment-risk', ''],
-    [trialEnd, plural(trialEnd, 'zkušební týden končí', 'zkušební týdny končí', 'zkušebních týdnů končí') + ' do 2 dnů', '#rodiny/segment-trial', ''],
+    [trialEnd, plural(trialEnd, 'zkušební doba končí', 'zkušební doby končí', 'zkušebních dob končí') + ' do 2 dnů', '#rodiny/segment-trial', ''],
     [ttsFail, plural(ttsFail, 'selhané generování hlasu', 'selhaná generování hlasu', 'selhaných generování hlasu'), '#hlas', ttsFail ? 'bad' : ''],
   ].filter((x) => x[0] > 0);
   return `
@@ -374,7 +374,7 @@ function pageOverview() {
       ${tile('Hodin poslechu za 30 dní', fmt(m30 / 60), trend(m30, m30b))}
       ${tile('MRR', kc(mrr), `${trend(mrr, mrrB, 'za 30 dní')} · ARR ${kc(mrr * 12)}`)}
       ${tile('Platící rodiny', fmt(subs), `${trend(subs, subsB, 'za 30 dní')} · odešlo ${fmt(churned)}`)}
-      ${tile('Konverze zkušebního týdne', pct(conv, ended.length), `${fmt(conv)} z ${fmt(ended.length)} za 30 dní`)}
+      ${tile('Konverze zkušební doby', pct(conv, ended.length), `${fmt(conv)} z ${fmt(ended.length)} za 30 dní`)}
       ${tile('Otevřené tickety', `<a class="v" href="#helpdesk/open">${fmt(tc.open)}</a>`, tc.breach ? `<span class="down">${tc.breach} se SLA v ohrožení</span>` : '<span class="up">SLA v pořádku</span>')}
     </div>
     <div class="grid21">
