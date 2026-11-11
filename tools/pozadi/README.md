@@ -29,12 +29,11 @@ Skript ořízne doznění na konci, ztlumí náhlé hlasité zvuky, prolne konec
 
 ffmpeg bez Homebrew: `uvx --from imageio-ffmpeg python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"`.
 
-## Sdílené smyčky (30 pohádek z 2026-11-10)
+## Sdílené kulisy (30 pohádek z 2026-11-10)
 
-Na 30 nových pohádek nestačily kredity, proto si část pohádek smyčku půjčuje od podobné pohádky. Seznam je v `sdilene.json`. Skript je v `index.json` nasměruje na cizí soubor, takže se nic nekopíruje.
+Každá pohádka má vlastní hudbu. Kulisu má vlastní jen část nových pohádek, ostatní si ji půjčují od pohádky s podobným prostředím. Seznam je v `sdilene.json`. Skript je v `index.json` nasměruje na cizí soubor, takže se nic nekopíruje.
 
-- **Vlastní kulisa** (9): mesicni-lodka (řeka v noci), spaci-vlak, tajna-superschopnost (náměstí s fontánou, sdílí robot-na-namesti a zmrzlinovy-dest), bourka-nebojsa (déšť a vzdálený hrom, sdílí hrdinove-a-dest), dvanact-mesicku (oheň v zimním lese), raketou-na-mesic, ponorka-pod-rybnikem, jednorozec-narozeniny (kouzelné třpytky). Kulisa pro velika-repa (statek se slepicemi) vyšla skoro tichá, proto se nepoužila. Řepa a hrnecku-var hrají kulisu zubar.
-- **Vlastní hudba** (14): jednorozec-duhanek, jednorozci-hvezdna-louka, jednorozec-narozeniny, mesicni-lodka, utekle-ovecky, spaci-vlak, tajna-superschopnost, zachrana-zviratka, kapitan-nocni-svetlo, super-uklid, hrdinove-a-dest, robot-na-namesti, sul-nad-zlato, dlouhy-siroky-bystrozraky.
-- **Dočasně půjčená hudba** (16, až budou kredity, vygenerovat vlastní): dvanact-mesicku, zlatovlaska, velika-repa, hrnecku-var, prvni-den-ve-skolce, spani-u-babicky, bourka-nebojsa, ponozkozrout, den-naruby, cesta-za-pokladem, zmrzlinovy-dest, kdo-to-dela, noc-v-lese, dinosaurus-na-zahrade, raketou-na-mesic, ponorka-pod-rybnikem.
+- **Vlastní kulisa** (9): mesicni-lodka (řeka v noci), spaci-vlak, tajna-superschopnost (náměstí s fontánou), bourka-nebojsa (déšť a vzdálený hrom), dvanact-mesicku (oheň v zimním lese), raketou-na-mesic, ponorka-pod-rybnikem, jednorozec-narozeniny (kouzelné třpytky), velika-repa (statek se slepicemi, 2026-11-11).
+- **Vlastní hudba**: všech 30. Šestnáct z nich (dvanact-mesicku, zlatovlaska, velika-repa, hrnecku-var, prvni-den-ve-skolce, spani-u-babicky, bourka-nebojsa, ponozkozrout, den-naruby, cesta-za-pokladem, zmrzlinovy-dest, kdo-to-dela, noc-v-lese, dinosaurus-na-zahrade, raketou-na-mesic, ponorka-pod-rybnikem) přibylo 2026-11-11, do té doby hrály hudbu jiné pohádky.
 
 Když přibude vlastní smyčka, ulož nahrávku, spusť skript a smaž odpovídající řádek v `sdilene.json`.
