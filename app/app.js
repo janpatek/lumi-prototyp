@@ -778,7 +778,7 @@ function logListen(done) {
   store.set(S); // historie zůstává v zařízení, na server se neposílá
 }
 
-function openPlayer(st) {
+function openPlayer(st, queue) {
   const c = ctx(heroes());
   // nahrávky z ElevenLabs existují jen pro rodinu, pro kterou byly vygenerované
   const rec = RECORDINGS[st.id] && RECORDINGS[st.id].hero === c.H ? RECORDINGS[st.id] : null;
@@ -787,6 +787,8 @@ function openPlayer(st) {
   const plan = VOICE_LINES.planStory(segs);
   const linesOk = voiceLines.missing(plan) === 0 || !!TTS_URL;
   P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null };
+  // pořadí pohádek pro Předchozí / Další ze zamčené obrazovky: polička, ze které se pohádka otevřela
+  P.queue = queue && queue.includes(st.id) ? queue : STORIES.map((s) => s.id);
   // jeden přehrávač vytvořený při kliknutí – iOS pak pustí i další odstavce bez dalšího klepnutí
   if (TTS_URL) P.cloudEl = new Audio();
   $app.insertAdjacentHTML('beforeend', `
@@ -839,7 +841,50 @@ function highlight() {
   const b = document.getElementById('playBtn');
   b.innerHTML = P.playing ? I.pause : I.play;
   b.setAttribute('aria-label', P.playing ? 'Pozastavit' : 'Přehrát');
+  syncMedia();
 }
+
+// ---------- zamčená obrazovka a oznámení (media.js) ----------
+// sousední odemčená pohádka ve frontě (d = 1 další, -1 předchozí)
+function neighbour(d) {
+  if (!P) return null;
+  const q = P.queue;
+  for (let k = q.indexOf(P.st.id) + d; k >= 0 && k < q.length; k += d) {
+    const st = STORIES.find((s) => s.id === q[k]);
+    if (st && unlocked(st)) return st;
+  }
+  return null;
+}
+// ovládání se ukáže, až pohádka poprvé začne hrát, a pak drží stav přehrávače
+function syncMedia() {
+  if (!P || !P.started) return;
+  const hs = heroes();
+  MEDIA.update({
+    title: P.st.title(ctx(hs)),
+    subtitle: `Ospalek · čte ${NARRATOR}`,
+    cover: P.st.cover.img ? coverImg(P.st, hs) : null,
+    playing: P.playing,
+    hasPrev: !!neighbour(-1),
+    hasNext: !!neighbour(1),
+  });
+}
+// přepnutí na jinou pohádku (i se zhasnutým displejem): rovnou hraje
+async function switchStory(d) {
+  const st = neighbour(d);
+  if (!st) return;
+  if (!navigator.onLine && !(await storyOffline(st))) return;
+  const queue = P.queue;
+  closePlayer(true);
+  openPlayer(st, queue);
+  playPause();
+}
+MEDIA.onAction((a) => {
+  if (!P) return;
+  if (a === 'play' && !P.playing) playPause();
+  else if (a === 'pause' && P.playing) playPause();
+  else if (a === 'next' || a === 'prev') switchStory(a === 'next' ? 1 : -1);
+  else if (a === 'stop') closePlayer();
+});
 
 function playSeg() {
   if (!P) return;
@@ -963,6 +1008,7 @@ function playPause() {
     highlight();
   } else {
     P.playing = true;
+    P.started = true;
     if (P.i >= P.segs.length) { P.i = 0; P.logged = false; }
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
     ambience.startBackground(P.st);
@@ -990,6 +1036,7 @@ function theEnd() {
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
   scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
+  syncMedia();
 }
 
 // „Čtu já“: rodič čte sám, přehrávač ukáže jen celý text pohádky. Volba se pamatuje v zařízení.
@@ -1031,8 +1078,10 @@ function setBackground(on) {
   if (on) { ambience.startBackground(P.st); ambience.duck(true); } else ambience.stopBackground(true);
 }
 
-function closePlayer() {
+// keepMedia: přepnutí na další pohádku – oznámení na zamčené obrazovce nezmizí, jen se přepíše
+function closePlayer(keepMedia) {
   if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
+  if (keepMedia !== true) MEDIA.stop();
   if (ui.screen === 'lib' || ui.screen === 'history') render();
   ambience.stopBackground(true);
   document.getElementById('player')?.remove();
@@ -1124,7 +1173,8 @@ const actions = {
     if (!st) return;
     if (!unlocked(st)) return paywall();
     if (!navigator.onLine && !(await storyOffline(st))) return notOffline();
-    openPlayer(st);
+    const row = el.closest('.shelf-row, .grid');
+    openPlayer(st, row ? [...row.querySelectorAll('.card[data-id]')].map((c) => c.dataset.id) : null);
   },
   unheard: () => { ui.unheard = !ui.unheard; render(); },
   history: () => go('history'),
