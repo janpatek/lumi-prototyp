@@ -217,8 +217,6 @@ html, body { background: var(--felt), var(--surface); }
 .btn, .seg button.on, .controls .play { box-shadow: var(--shadow-pillow); outline: 2px dashed var(--stitch-on-accent); outline-offset: -6px; }
 .btn.ghost { box-shadow: inset 0 0 0 2px var(--lavender-ink); outline-color: var(--stitch); }
 .btn.white { box-shadow: var(--shadow-plush); outline-color: var(--stitch); background-image: var(--felt); }
-.btn.apple { background: #000; color: #fff; box-shadow: none; outline: none; background-image: none; }
-:root[data-theme="dark"] .btn.apple { background: #fff; color: #000; }
 .btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
 .icon-btn, .chip, .seg { border-color: transparent; box-shadow: var(--shadow-plush); }
 .chip.on { box-shadow: var(--shadow-plush), inset 0 0 0 2px var(--lavender-ink); }

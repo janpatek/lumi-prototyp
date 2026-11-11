@@ -55,8 +55,8 @@ Ověřeno 10. 11. 2026: debug APK se sestaví a běží v emulátoru Pixel 8, An
 ## Co ještě chybí (další kroky)
 
 1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
-2. Přehrávání na pozadí: nativní audio plugin + foreground service `mediaPlayback` (a deklarace v Play Console).
+2. Přehrávání se zhasnutým displejem: ověřeno 11. 11. 2026 v emulátoru (Android 16), 7 minut se zhasnutým displejem bez zpomalení, proces nezamrzl. Aplikace zůstává nahoře („top sleeping“), takže služba na popředí není potřeba. Hrát dál po přepnutí do jiné aplikace by ji potřebovalo (a deklaraci `mediaPlayback` v Play Console). Ověřit ještě na skutečném telefonu.
 3. Offline poslech: stáhnout nahrávky do zařízení (`@capacitor/filesystem`).
 4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.
-5. Smazání účtu v aplikaci i přes web (požadavek Google Play pro aplikace s účtem).
+5. Smazání účtu: v aplikaci „Smazat účet a všechna data“, na webu návod https://ospalek.cz/smazani-uctu/ (adresa do Play Console → Bezpečnost údajů).
 6. Podepisovací klíč pro vydání (Play App Signing) a verze `versionCode`.

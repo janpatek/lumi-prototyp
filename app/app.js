@@ -194,10 +194,8 @@ const screens = {
     <div class="login">
       <div class="logo"><img src="${MASCOT.mark}" alt=""><h1 class="wordmark">${APP_NAME}</h1></div>
       <p class="tag">Pohádky, kde je hlavním hrdinou vaše dítě.</p>
-      ${SHOW_APPLE ? `<button class="btn apple" data-a="apple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}
-      <button class="btn white" data-a="google">${GOOGLE_SVG} Pokračovat přes Google</button>
-      <button class="btn ghost" data-a="guest">Vyzkoušet bez přihlášení</button>
-      <p class="fine">Prototyp: přihlášení je zatím jen simulované.</p>
+      <button class="btn" data-a="start">Začít</button>
+      <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
     </div>`,
 
   onb: () => {
@@ -288,7 +286,7 @@ const screens = {
     <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     ${remindSettings()}
     <div class="section-t">Předplatné</div>
-    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
+    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
       ${S.premium ? `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>` : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
     ${SYNC.on ? `<div class="section-t">Statistiky</div>
     <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
@@ -296,7 +294,7 @@ const screens = {
     <div class="section-t">Vzhled</div>
     <div class="seg">${[['auto', 'Podle času'], ['light', 'Den'], ['dark', 'Noc']].map(([v, l]) => `<button data-a="theme" data-v="${v}" class="${(S.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>
     <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin je zapnutý noční režim.</p>
-    <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat všechna data a začít znovu</button></div>`,
+    <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat účet a všechna data</button></div>`,
 };
 
 function peopleList(kind) {
@@ -537,8 +535,6 @@ function savePerson() {
 // cena předplatného: z obchodu (App Store / Google Play), jinak česká cena; slovenská je v textu u plánu
 const PRICE = { text: '129 Kč', store: false };
 BILLING.price().then((p) => { if (p) { PRICE.text = p; PRICE.store = true; render(); } });
-// předplatné jde koupit jen přihlášený (Apple nebo Google), host si pouští jen pohádky zdarma
-const signedIn = () => !!(S.user && S.user.provider !== 'guest');
 
 function paywall() {
   $modal.innerHTML = `
@@ -556,8 +552,8 @@ function paywall() {
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžete kdykoli</small></div></div>
       </div>
-      ${signedIn() ? `<button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>` : `<p class="fine" style="text-align:center">K předplatnému se nejdřív přihlaste. Pohádky vám zůstanou uložené.</p>${SHOW_APPLE ? `<button class="btn apple" data-a="payApple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}<button class="btn white" data-a="payGoogle">${GOOGLE_SVG} Pokračovat přes Google</button>`}
-      <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
+      <button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>
+      <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se nic neplatí: předplatné se kupuje v mobilní aplikaci. Tady se pohádky pro vyzkoušení jen odemknou.</p>'}
     </div></div>`;
 }
@@ -758,7 +754,7 @@ function openPlayer(st) {
           <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.book} Jen čtení</button>
         </div>
         <div class="mix${ambience.bedOn ? '' : ' off'}" id="bgMix">Hlasitost pozadí <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol}" aria-label="Hlasitost zvuku v pozadí"></div>
-        <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
+        <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL || BILLING.native ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
@@ -944,12 +940,8 @@ function closePlayer() {
 // ---------- Akce ----------
 const closeModal = () => { $modal.innerHTML = ''; ui.edit = null; };
 const actions = {
-  google: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
-  apple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
-  // přihlášení přímo z paywallu: po přihlášení se paywall ukáže znovu s tlačítkem nákupu
-  payApple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); paywall(); },
-  payGoogle: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); paywall(); },
-  guest: () => { S.user = { email: 'host', provider: 'guest' }; save(); go('onb'); },
+  // Bez přihlášení: rodina má anonymní účet (sync.js), předplatné patří k účtu v obchodě (Obnovit nákupy na dalším zařízení).
+  start: () => { S.user = { provider: 'device' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
   next: () => { ui.step++; render(); },
   prev: () => { syncHome(); ui.step--; render(); },
   finish: () => { syncHome(); S.onboarded = true; save(); go('lib'); },
@@ -1060,7 +1052,6 @@ const actions = {
   },
   paywall,
   subscribe: async (el) => {
-    if (!signedIn()) return paywall();
     // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
     if (!BILLING.native) { S.premium = true; save(); closeModal(); render(); return; }
     el.disabled = true;
@@ -1079,7 +1070,7 @@ const actions = {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
   saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
-  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { DAILY.disable(); SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  reset: () => { if (confirm(`Smazat účet a všechna data rodiny v tomto zařízení i na našem serveru? Nejde to vrátit.${S.premium && BILLING.native ? '\n\nPředplatné se tím nezruší. Zrušte ho v nastavení předplatných App Store nebo Google Play.' : ''}`)) { DAILY.disable(); SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
@@ -1123,10 +1114,6 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
 });
 
-// Přihlášení přes Apple: na iOS povinné vedle Google (App Review 4.8). Na Androidu ho nenabízíme.
-const SHOW_APPLE = !(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android');
-const APPLE_SVG = '<svg width="18" height="22" viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
-const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 
 // Klepnutí na upozornění otevře aplikaci s ?pohadka=<id> (nebo pošle zprávu už otevřenému oknu)
 function openFromNotice(id) {
