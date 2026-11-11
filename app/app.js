@@ -230,7 +230,7 @@ const screens = {
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
         <button class="chip ${ui.unheard ? 'on' : ''}" data-a="unheard">Ještě neslyšené</button>
       </div>
-      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkněte všechny pohádky</b><span>${PRICE.text} měsíčně, zrušit můžete kdykoli</span></div></button>`}
+      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkněte všechny pohádky</b><span>3 dny zdarma, pak ${PRICE.text} měsíčně</span></div></button>`}
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžete nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změnit to můžete kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       <div class="grid">
         ${list.map((s) => {
@@ -556,8 +556,8 @@ function paywall() {
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžete kdykoli</small></div></div>
       </div>
-      ${signedIn() ? `<button class="btn" data-a="subscribe">Předplatit za ${PRICE.text} měsíčně</button>` : `<p class="fine" style="text-align:center">K předplatnému se nejdřív přihlaste. Pohádky vám zůstanou uložené.</p>${SHOW_APPLE ? `<button class="btn apple" data-a="payApple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}<button class="btn white" data-a="payGoogle">${GOOGLE_SVG} Pokračovat přes Google</button>`}
-      <p class="fine" style="text-align:center">${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
+      ${signedIn() ? `<button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>` : `<p class="fine" style="text-align:center">K předplatnému se nejdřív přihlaste. Pohádky vám zůstanou uložené.</p>${SHOW_APPLE ? `<button class="btn apple" data-a="payApple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}<button class="btn white" data-a="payGoogle">${GOOGLE_SVG} Pokračovat přes Google</button>`}
+      <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se nic neplatí: předplatné se kupuje v mobilní aplikaci. Tady se pohádky pro vyzkoušení jen odemknou.</p>'}
     </div></div>`;
 }
