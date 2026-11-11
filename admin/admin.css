@@ -503,3 +503,14 @@ table.clickable tbody tr { cursor: pointer; }
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; }
 .steps code, .data-page code { font-family: var(--mono); font-size: 12px; background: var(--lavender-soft); padding: 1px 6px; border-radius: 6px; }
 .row-acts { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Pohádka dne a upozornění: náhled na zamčené obrazovce */
+.lock-mock { border-radius: 22px; padding: 18px 14px 22px; background: linear-gradient(170deg, #2E2C52, #1C1E33 70%); color: #fff; }
+.lock-time { text-align: center; font-family: var(--display); font-weight: 800; font-size: 44px; letter-spacing: .02em; margin-bottom: 14px; opacity: .95; }
+.lock-mock .notif { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 16px; background: rgba(255, 255, 255, .88); color: #2E3150; }
+.lock-mock .notif img { width: 34px; height: 34px; border-radius: 8px; }
+.lock-mock .notif div { flex: 1; min-width: 0; }
+.lock-mock .notif b { display: block; font-size: 14px; }
+.lock-mock .notif span { font-size: 14px; }
+.lock-mock .notif small { font-size: 12px; opacity: .7; }
+.chips-row { display: flex; flex-wrap: wrap; gap: 6px; }

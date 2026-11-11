@@ -12,7 +12,7 @@ const TTS_URL = (() => {
   return q && /^http:\/\/localhost(:\d+)?$/.test(q) ? q : TTS_URL_DEFAULT;
 })();
 // Limity formulářů: brání tomu, aby rodina (nebo skript) zbytečně pálila kredity za hlas. Worker má vlastní pojistky.
-const LIMIT = { children: 4, parents: 4, heroes: 3, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
+const LIMIT = { children: 2, parents: 4, heroes: 2, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
 // jméno: jen písmena, mezera, spojovník a apostrof
 const cleanName = (s, max = LIMIT.name) => String(s || '').replace(/[^\p{L}\s'’-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
 const cleanText = (s, max) => String(s || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -62,6 +62,7 @@ const I = {
   music: ico('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
   down: ico('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
   hist: ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  bell: ico('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
   mic: ico('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>',
@@ -192,18 +193,17 @@ const screens = {
   login: () => `
     <div class="login">
       <div class="logo"><img src="${MASCOT.mark}" alt=""><h1 class="wordmark">${APP_NAME}</h1></div>
-      <p class="tag">Pohádky, kde je hrdinou tvoje dítě.</p>
-      ${SHOW_APPLE ? `<button class="btn apple" data-a="apple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}
-      <button class="btn white" data-a="google">${GOOGLE_SVG} Pokračovat přes Google</button>
-      <button class="btn ghost" data-a="guest">Vyzkoušet bez přihlášení</button>
-      <p class="fine">Prototyp: přihlášení je zatím jen simulované.</p>
+      <p class="tag">Pohádky, kde je hlavním hrdinou vaše dítě.</p>
+      <button class="btn" data-a="start">Začít</button>
+      <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
     </div>`,
 
   onb: () => {
-    const steps = [stepKids, stepParents, stepHome];
+    const steps = onbSteps();
+    ui.step = Math.min(ui.step, steps.length - 1);
     return `
-      <div class="step-label">Krok ${ui.step + 1} ze 3</div>
-      <div class="progress"><div style="width:${((ui.step + 1) / 3) * 100}%"></div></div>
+      <div class="step-label">Krok ${ui.step + 1} ze ${steps.length}</div>
+      <div class="progress"><div style="width:${((ui.step + 1) / steps.length) * 100}%"></div></div>
       ${steps[ui.step]()}`;
   },
 
@@ -216,9 +216,11 @@ const screens = {
         <h1>Pohádky pro ${esc(c.h.acc)}</h1>
         <div class="top-btns"><button class="icon-btn" data-a="history" aria-label="Co jsme už slyšeli">${I.hist}</button><button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button></div>
       </div>
-      ${navigator.onLine ? '' : `<div class="netnote">${I.down}<span><b>Jsi bez internetu.</b> Pustit jdou pohádky se značkou Offline.</span></div>`}
+      ${navigator.onLine ? '' : `<div class="netnote">${I.down}<span><b>Jste bez internetu.</b> Pustit jdou pohádky se značkou Offline.</span></div>`}
+      ${todayCard(hs, c)}
+      ${S.onboarded && S.notify === undefined && DAILY.supported() ? `<div class="person remind-ask"><div class="av lavender">${I.bell}</div><div class="nm"><b>Připomenout vám večer pohádku?</b><span>Každý den v ${DAILY.hour()}:00 přijde upozornění s pohádkou dne. Vypnout to jde kdykoli v nastavení.</span><span class="err" id="remindMsg"></span></div><button class="btn small" data-a="remindYes">Ano</button><button class="btn small ghost" data-a="remindNo">Ne, díky</button></div>` : ''}
       ${S.family.children.length > 1 ? `
-        <div class="section-t">Hlavní hrdinové <span class="hint">– vyber jednoho nebo víc</span></div>
+        <div class="section-t">Hlavní hrdinové <span class="hint">– vyberte jednoho nebo víc</span></div>
         <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
       <div class="section-t">Kategorie</div>
       <div class="hscroll">
@@ -226,8 +228,8 @@ const screens = {
         <button class="chip ${ui.ageOnly ? 'on' : ''}" data-a="age">${hs.length === 1 ? `Pro ${hs[0].age}leté` : 'Podle věku'}</button>
         <button class="chip ${ui.unheard ? 'on' : ''}" data-a="unheard">Ještě neslyšené</button>
       </div>
-      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkni všechny pohádky</b><span>7 dní zdarma, pak ${PRICE.text} měsíčně</span></div></button>`}
-      ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžeš nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změníš to kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
+      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkněte všechny pohádky</b><span>3 dny zdarma, pak ${PRICE.text} měsíčně</span></div></button>`}
+      ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžete nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změnit to můžete kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       <div class="grid">
         ${list.map((s) => {
           const segs = s.text(c);
@@ -280,10 +282,11 @@ const screens = {
     <div class="section-t">Bydliště</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
     <div class="section-t">Poslech bez internetu</div>
-    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Stažené pohádky pustíš v autě nebo na chalupě bez signálu. Co dohrajete do konce, uloží se samo.</span></div></div>
+    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Stažené pohádky pustíte v autě nebo na chalupě bez signálu. Co dohrajete do konce, uloží se samo.</span></div></div>
     <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
+    ${remindSettings()}
     <div class="section-t">Předplatné</div>
-    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.user ? esc(S.user.email) : 'Nepřihlášeno'}</span></div>
+    <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
       ${S.premium ? `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>` : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
     ${SYNC.on ? `<div class="section-t">Statistiky</div>
     <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
@@ -291,7 +294,7 @@ const screens = {
     <div class="section-t">Vzhled</div>
     <div class="seg">${[['auto', 'Podle času'], ['light', 'Den'], ['dark', 'Noc']].map(([v, l]) => `<button data-a="theme" data-v="${v}" class="${(S.theme || 'auto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>
     <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin je zapnutý noční režim.</p>
-    <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat všechna data a začít znovu</button></div>`,
+    <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat účet a všechna data</button></div>`,
 };
 
 function peopleList(kind) {
@@ -311,7 +314,7 @@ function peopleList(kind) {
 const stepKids = () => `
   <img class="onb-mascot" src="${MASCOT.head}" alt="">
   <h1>Kdo bude hlavní hrdina?</h1>
-  <p class="lead">Přidej své děti, nejvýš ${LIMIT.children}. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
+  <p class="lead">Přidejte své děti, nejvýš ${LIMIT.children}. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
   ${peopleList('child')}
   <div class="footer-actions"><button class="btn" data-a="next" ${S.family.children.length ? '' : 'disabled'}>Pokračovat</button></div>`;
 
@@ -329,9 +332,67 @@ const stepHome = () => `
   <p class="lead">Pohádky se pak budou odehrávat na místech, která děti znají. Stačí obec. Přesnou adresu nepotřebujeme.</p>
   ${homeForm()}
   <div class="footer-actions">
-    <button class="btn" data-a="finish">Hotovo – jdeme na pohádky</button>
+    ${onbSteps().length > 3 ? '<button class="btn" data-a="homeNext">Pokračovat</button>' : '<button class="btn" data-a="finish">Hotovo – jdeme na pohádky</button>'}
     <button class="link" data-a="prev">Zpět</button>
   </div>`;
+
+// Poslední krok: svolení k večerní připomínce. Prohlížeč se na povolení zeptá až po klepnutí na „Ano“.
+const stepRemind = () => {
+  const hs = heroes();
+  const st = DAILY.pick(STORIES);
+  const name = st ? st.title(ctx(hs)) : 'Hvězdička';
+  return `
+  <img class="onb-mascot" src="${MASCOT.sleep}" alt="">
+  <h1>Připomenout večer pohádku?</h1>
+  <p class="lead">Každý den v ${DAILY.hour()}:00 vám Ospalek připomene, že je čas na pohádku, a prozradí, která je pohádkou dne.</p>
+  <div class="notif-demo" aria-hidden="true"><img src="icon-192.png" alt=""><div><b>Je čas na pohádku 🌙</b><span>Čeká na vás pohádka „${esc(name)}“.</span></div><small>${DAILY.hour()}:00</small></div>
+  ${DAILY.needsInstall() ? `<p class="note">Na iPhonu chodí upozornění jen z Ospalka přidaného na plochu: v Safari klepněte na <b>Sdílet → Přidat na plochu</b>, otevřete Ospalka z plochy a připomínku zapněte v nastavení.</p>
+  <div class="footer-actions"><button class="btn" data-a="remindNo">Rozumím, pokračovat</button><button class="link" data-a="prev">Zpět</button></div>` : `
+  <div class="footer-actions">
+    <button class="btn" data-a="remindYes">Ano, připomínat</button>
+    <button class="link" data-a="remindNo">Teď ne</button>
+  </div>
+  <p class="note" id="remindMsg">Telefon se vás zeptá, jestli může Ospalek posílat upozornění. Vypnout to jde kdykoli v nastavení.</p>`}`;
+};
+const onbSteps = () => [stepKids, stepParents, stepHome, ...(DAILY.supported() || DAILY.needsInstall() ? [stepRemind] : [])];
+
+// ---------- Pohádka dne ----------
+function todayCard(hs, c) {
+  const st = DAILY.pick(STORIES);
+  if (!st) return '';
+  return `
+    <button class="today" data-a="open" data-id="${st.id}" style="--g1:${st.cover.g1};--g2:${st.cover.g2};--cat:${catColor(st)}">
+      <div class="today-cover">${st.cover.img ? `<img src="${coverImg(st, hs)}" alt="">` : st.cover.emoji}</div>
+      <div class="today-txt">
+        <span class="today-tag">${I.star} Pohádka dne</span>
+        <h2>${esc(st.title(c))}</h2>
+        <span class="meta">${catIcon(st.cats[0], 'cat-ico sm')}${minutes(st.text(c))} min · ${esc(catLabel(st))}${heardCount(st.id) ? ' · ✓ slyšeli jste' : ''}</span>
+      </div>
+      <span class="today-play" aria-hidden="true">${unlocked(st) ? I.play : I.lock}</span>
+    </button>`;
+}
+
+// Názvy pohádek se jménem dětí pro upozornění (doplní je sw.js, na server nejdou). Jen se zapnutou připomínkou.
+function saveTitles(force) {
+  if (!force && S.notify !== true) return;
+  const c = ctx(heroes());
+  const map = {};
+  STORIES.forEach((st) => { try { map[st.id] = st.title(c); } catch (e) { /* šablona bez dat */ } });
+  DAILY.titles(map);
+}
+
+// Nastavení: večerní připomínka
+function remindSettings() {
+  if (!DAILY.supported() && !DAILY.needsInstall()) return '';
+  const h = `${DAILY.hour()}:00`;
+  if (DAILY.needsInstall()) return `<div class="section-t">Večerní připomínka</div>
+    <div class="person"><div class="av lavender">${I.bell}</div><div class="nm"><b>Jen z aplikace na ploše</b><span>Na iPhonu v Safari klepněte na Sdílet → Přidat na plochu, otevřete Ospalka z plochy a připomínku zapněte tady.</span></div></div>`;
+  const blocked = DAILY.permission() === 'denied';
+  const on = S.notify === true && !blocked;
+  return `<div class="section-t">Večerní připomínka</div>
+    <div class="person"><div class="av lavender">${I.bell}</div><div class="nm"><b>${on ? `Zapnuto: každý den v ${h}` : blocked ? 'Upozornění jsou zakázaná' : 'Vypnuto'}</b><span id="remindMsg">${on ? 'Upozornění „Je čas na pohádku“ s pohádkou dne.' : blocked ? 'Povolte je v nastavení prohlížeče nebo telefonu u webu Ospalek, pak tady připomínku zapněte.' : `Každý den v ${h} připomeneme, že je čas na pohádku, a prozradíme pohádku dne.`}</span></div>
+    ${on ? '<button class="btn small ghost" data-a="remindOff">Vypnout</button>' : `<button class="btn small" data-a="remindYes"${blocked ? ' disabled' : ''}>Zapnout</button>`}</div>`;
+}
 
 function homeForm() {
   const h = S.family.home;
@@ -352,12 +413,12 @@ function homeForm() {
 async function findSpots() {
   const town = document.getElementById('town').value.trim();
   const msg = document.getElementById('spotsMsg');
-  if (!town) { msg.textContent = 'Nejdřív napiš obec.'; return; }
+  if (!town) { msg.textContent = 'Nejdřív napište obec.'; return; }
   if (syncHome() === false) return;
   msg.textContent = 'Hledám místa v okolí…';
   try {
     const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=cz,sk&accept-language=cs&q=${encodeURIComponent(town)}`).then((r) => r.json());
-    if (!g.length) throw new Error('Obec jsme nenašli. Zkus jiný název.');
+    if (!g.length) throw new Error('Obec jsme nenašli. Zkuste jiný název.');
     const lat = +g[0].lat, lon = +g[0].lon;
     const q = `[out:json][timeout:25];(node(around:12000,${lat},${lon})[place~"^(town|village)$"][name];nwr(around:25000,${lat},${lon})[tourism~"^(zoo|theme_park|attraction)$"][name];nwr(around:25000,${lat},${lon})[historic~"^(castle|ruins)$"][name];);out tags center 200;`;
     const d = await overpass(q);
@@ -370,9 +431,9 @@ async function findSpots() {
     h.nearOpts = towns; h.near = towns.slice(0, 4);
     h.attrOpts = uniq([...h.attr, ...attrs]); h.attr = h.attr.length ? h.attr : attrs.slice(0, 3);
     save(); render();
-    document.getElementById('spotsMsg').textContent = towns.length || attrs.length ? 'Vybraná místa se objeví v pohádkách. Klepnutím je zapneš nebo vypneš.' : 'V okolí jsme nic nenašli. Přidej místa ručně.';
+    document.getElementById('spotsMsg').textContent = towns.length || attrs.length ? 'Vybraná místa se objeví v pohádkách. Klepnutím je zapnete nebo vypnete.' : 'V okolí jsme nic nenašli. Přidejte místa ručně.';
   } catch (e) {
-    msg.innerHTML = `<span class="err">${esc(e.message || 'Hledání se nepovedlo.')} Místa můžeš přidat i ručně.</span>`;
+    msg.innerHTML = `<span class="err">${esc(e.message || 'Hledání se nepovedlo.')} Místa můžete přidat i ručně.</span>`;
   }
 }
 // veřejné servery Overpass bývají přetížené – zkusíme víc zrcadel, každé s časovým limitem
@@ -430,7 +491,7 @@ function personSheet(kind, id) {
         <p class="note">V pohádce pak zazní třeba „maminka Petra“. Bez jména jen „maminka“.</p>
       `}
       ${changesNote()}
-      <details><summary>Skloňování jména (zkontroluj)</summary>
+      <details><summary>Skloňování jména (zkontrolujte)</summary>
         <div class="cases">${CASES.map(([k, l]) => `<div><label for="c_${k}">${l}</label><input id="c_${k}" maxlength="${LIMIT.cases}" value="${esc(p.forms[k])}"></div>`).join('')}</div>
       </details>
       <div class="footer-actions">
@@ -473,29 +534,28 @@ function savePerson() {
 // ---------- Předplatné ----------
 // cena předplatného: z obchodu (App Store / Google Play), jinak česká cena; slovenská je v textu u plánu
 const PRICE = { text: '129 Kč', store: false };
+const WEB_DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 BILLING.price().then((p) => { if (p) { PRICE.text = p; PRICE.store = true; render(); } });
-// předplatné jde koupit jen přihlášený (Apple nebo Google), host si pouští jen pohádky zdarma
-const signedIn = () => !!(S.user && S.user.provider !== 'guest');
 
 function paywall() {
   $modal.innerHTML = `
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
       <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
       <h2 style="text-align:center">${APP_NAME} Plus</h2>
-      <p class="lead" style="text-align:center">Celá knihovna pohádek pro tvůj účet.</p>
+      <p class="lead" style="text-align:center">Celá knihovna pohádek pro váš účet.</p>
       <ul class="perks">
         <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
-        <li>Pro jeden účet, až ${LIMIT.children} děti, na všech tvých zařízeních</li>
-        <li>Poslech bez internetu: pohádky si stáhneš na cestu</li>
+        <li>Pro jeden účet, až ${LIMIT.children} děti, na všech vašich zařízeních</li>
+        <li>Poslech bez internetu: pohádky si stáhnete na cestu</li>
         <li>Brzy i časovač usínání</li>
       </ul>
       <div class="plans">
-        <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžeš kdykoli</small></div></div>
+        <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžete kdykoli</small></div></div>
       </div>
-      ${signedIn() ? `<button class="btn" data-a="subscribe">Vyzkoušet 7 dní zdarma, pak ${PRICE.text} měsíčně</button>` : `<p class="fine" style="text-align:center">K předplatnému se nejdřív přihlas. Pohádky ti zůstanou uložené.</p>${SHOW_APPLE ? `<button class="btn apple" data-a="payApple">${APPLE_SVG} Pokračovat přes Apple</button>` : ''}<button class="btn white" data-a="payGoogle">${GOOGLE_SVG} Pokračovat přes Google</button>`}
-      <p class="fine" style="text-align:center">Po 7 dnech ${PRICE.text} měsíčně, dokud předplatné nezrušíš. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíš s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>.</p>
-      ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžeš kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se nic neplatí: předplatné se kupuje v mobilní aplikaci. Tady se pohádky pro vyzkoušení jen odemknou.</p>'}
+      ${BILLING.native || WEB_DEMO ? `<button class="btn" data-a="subscribe">Vyzkoušet 3 dny zdarma, pak ${PRICE.text} měsíčně</button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
+      <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
+      ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se předplatné koupit nedá. Kupuje se v mobilní aplikaci Ospalek pro iPhone a Android přes App Store nebo Google Play. Tady si zatím pustíte 3 pohádky zdarma.</p>'}
     </div></div>`;
 }
 
@@ -649,7 +709,7 @@ function notOffline() {
   $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
     <img class="sheet-mascot" src="${MASCOT.trip}" alt="">
     <h2 style="text-align:center">Tahle pohádka není stažená</h2>
-    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budeš zase připojený, otevři pohádku a klepni na <b>Stáhnout na cestu</b>.</p>
+    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budete zase online, otevřete pohádku a klepněte na <b>Stáhnout na cestu</b>.</p>
     <button class="btn" data-a="closeModal">Rozumím</button>
   </div></div>`;
 }
@@ -695,7 +755,7 @@ function openPlayer(st) {
           <button data-a="bgOff" aria-pressed="${!ambience.bedOn}" class="${ambience.bedOn ? '' : 'on'}">${I.book} Jen čtení</button>
         </div>
         <div class="mix${ambience.bedOn ? '' : ' off'}" id="bgMix">Hlasitost pozadí <input type="range" id="musicVol" min="0" max="1" step="0.05" value="${ambience.musicVol}" aria-label="Hlasitost zvuku v pozadí"></div>
-        <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
+        <div class="voicewarn" id="voicewarn">${linesOk || rec || TTS_URL || BILLING.native ? '' : csVoice ? 'Ukázkový hlas prohlížeče. Ve finální verzi čte realistický hlas (ElevenLabs).' : 'Prohlížeč nemá český hlas – text se jen zvýrazňuje. Ve finální verzi čte hlas ElevenLabs.'}</div>
       </div>
     </div>`);
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
@@ -881,15 +941,33 @@ function closePlayer() {
 // ---------- Akce ----------
 const closeModal = () => { $modal.innerHTML = ''; ui.edit = null; };
 const actions = {
-  google: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
-  apple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
-  // přihlášení přímo z paywallu: po přihlášení se paywall ukáže znovu s tlačítkem nákupu
-  payApple: () => { S.user = { email: 'rodina@example.com', provider: 'apple' }; save(); paywall(); },
-  payGoogle: () => { S.user = { email: 'rodina@example.com', provider: 'google' }; save(); paywall(); },
-  guest: () => { S.user = { email: 'host', provider: 'guest' }; save(); go('onb'); },
+  // Bez přihlášení: rodina má anonymní účet (sync.js), předplatné patří k účtu v obchodě (Obnovit nákupy na dalším zařízení).
+  start: () => { S.user = { provider: 'device' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
   next: () => { ui.step++; render(); },
   prev: () => { syncHome(); ui.step--; render(); },
   finish: () => { syncHome(); S.onboarded = true; save(); go('lib'); },
+  homeNext: () => { syncHome(); ui.step++; render(); },
+  // připomínka: v onboardingu dokončí nastavení, jinde jen přepne stav
+  remindYes: async (el) => {
+    if (el.disabled) return;
+    el.disabled = true;
+    saveTitles(true);
+    const r = await DAILY.enable();
+    S.notify = r === 'ok' ? true : S.notify;
+    if (r === 'denied') S.notify = false;
+    store.set(S);
+    if (ui.screen === 'onb') {
+      if (r === 'ok') return actions.finish();
+      el.disabled = false;
+      el.outerHTML = '<button class="btn" data-a="finish">Pokračovat na pohádky</button>';
+      document.getElementById('remindMsg').innerHTML = `<span class="err">${r === 'denied' ? 'Upozornění jsou v prohlížeči zakázaná. Povolit je jde později v nastavení telefonu, pak připomínku zapnete v nastavení Ospalka.' : 'Připomínku se teď nepodařilo zapnout. Zkuste to později v nastavení.'}</span>`;
+      return;
+    }
+    if (r === 'error') { el.disabled = false; const m = document.getElementById('remindMsg'); if (m) m.innerHTML = '<span class="err">Připomínku se teď nepodařilo zapnout. Zkuste to za chvíli znovu.</span>'; return; }
+    render();
+  },
+  remindNo: () => { S.notify = false; store.set(S); if (ui.screen === 'onb') actions.finish(); else render(); },
+  remindOff: async () => { S.notify = false; store.set(S); await DAILY.disable(); render(); },
   addPerson: (el) => personSheet(el.dataset.kind),
   editPerson: (el) => personSheet(el.dataset.kind, el.dataset.id),
   gender: (el) => { ui.edit.gender = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); refreshCases(); },
@@ -916,7 +994,7 @@ const actions = {
     const v = cleanText(document.getElementById('addSpot').value, LIMIT.place);
     if (!v) return;
     const h = S.family.home;
-    if (h.attr.length >= LIMIT.spots && !h.attr.includes(v)) { document.getElementById('spotsMsg').textContent = `Vybraných může být nejvýš ${LIMIT.spots} výletních míst. Nějaké nejdřív vypni.`; return; }
+    if (h.attr.length >= LIMIT.spots && !h.attr.includes(v)) { document.getElementById('spotsMsg').textContent = `Vybraných může být nejvýš ${LIMIT.spots} výletních míst. Nějaké nejdřív vypněte.`; return; }
     if (!h.attr.includes(v) && !useChange()) { document.getElementById('spotsMsg').innerHTML = `<span class="err">${changesOut}</span>`; return; }
     h.attrOpts = [v, ...h.attrOpts.filter((x) => x !== v)]; h.attr = [v, ...h.attr.filter((x) => x !== v)];
     save(); render();
@@ -975,9 +1053,8 @@ const actions = {
   },
   paywall,
   subscribe: async (el) => {
-    if (!signedIn()) return paywall();
     // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
-    if (!BILLING.native) { S.premium = true; save(); closeModal(); render(); return; }
+    if (!BILLING.native) { if (WEB_DEMO) { S.premium = true; save(); closeModal(); render(); } return; }
     el.disabled = true;
     try {
       if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); } else el.disabled = false;
@@ -994,7 +1071,7 @@ const actions = {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
   saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
-  reset: () => { if (confirm('Opravdu smazat všechna data rodiny?')) { SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  reset: () => { if (confirm(`Smazat účet a všechna data rodiny v tomto zařízení i na našem serveru? Nejde to vrátit.${S.premium && BILLING.native ? '\n\nPředplatné se tím nezruší. Zrušte ho v nastavení předplatných App Store nebo Google Play.' : ''}`)) { DAILY.disable(); SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
@@ -1016,7 +1093,7 @@ function go(screen) { ui.screen = screen; render(); window.scrollTo(0, 0); }
 function render() {
   if ((ui.screen === 'lib' || ui.screen === 'settings' || ui.screen === 'history') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
   $app.innerHTML = screens[ui.screen]();
-  if (ui.screen === 'lib') markOffline();
+  if (ui.screen === 'lib') { markOffline(); saveTitles(); }
   if (ui.screen === 'settings') offlineStats();
   // formulář bydliště může být i v modalu – překreslit ho s novými daty
   if ($modal.querySelector('#town') && ui.screen !== 'onb') actions.editHome();
@@ -1031,17 +1108,40 @@ document.addEventListener('click', (e) => {
 });
 // připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
 ['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
+// tým v administraci zveřejnil novou verzi pohádek (catalog.js) → knihovna a historie se překreslí
+window.addEventListener('ospalek:stories', () => { if (ui.screen === 'lib' || ui.screen === 'history') render(); });
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
 });
 
-// Přihlášení přes Apple: na iOS povinné vedle Google (App Review 4.8). Na Androidu ho nenabízíme.
-const SHOW_APPLE = !(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'android');
-const APPLE_SVG = '<svg width="18" height="22" viewBox="0 0 814 1000" aria-hidden="true"><path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57-155.5-127C46.7 790.7 0 663 0 541.8c0-194.4 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/></svg>';
-const GOOGLE_SVG = '<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+
+// Klepnutí na upozornění otevře aplikaci s ?pohadka=<id> (nebo pošle zprávu už otevřenému oknu)
+function openFromNotice(id) {
+  if (!id || !S.onboarded || !S.family.children.length) return;
+  closePlayer(); closeModal();
+  if (ui.screen !== 'lib') go('lib');
+  const st = STORIES.find((s) => s.id === id);
+  if (st) actions.open({ dataset: { id } });
+}
+navigator.serviceWorker?.addEventListener('message', (e) => { if (e.data && e.data.open) openFromNotice(e.data.open); });
 
 render();
 // v aplikaci: stav předplatného z obchodu (RevenueCat) má přednost před uloženým
+// Na webu se předplatné koupit nedá. Odemknutí naoko zůstává jen pro vývoj na localhostu; dřív odemčené pohádky na webu se zamknou.
+if (!BILLING.native && !WEB_DEMO && S.premium) { S.premium = false; store.set(S); }
 BILLING.status().then((v) => { if (v !== null && v !== S.premium) { S.premium = v; save(); render(); } });
 pruneOffline();
+const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });
+refreshDaily();
+// návrat do aplikace (třeba druhý den večer): nová pohádka dne
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshDaily(); if (ui.screen === 'lib' && !document.getElementById('player')) render(); } });
+DAILY.check(S.notify === true);
+(() => {
+  const q = new URLSearchParams(location.search);
+  const id = q.get('pohadka');
+  if (!id) return;
+  q.delete('pohadka');
+  history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
+  openFromNotice(id);
+})();

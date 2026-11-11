@@ -6,7 +6,7 @@ Ověřeno na stránkách Googlu 9. 11. 2026. Kroky v konzolích dělá majitel �
 
 - [ ] **D-U-N-S číslo** firmy: zdarma u Dun & Bradstreet, vyřízení až 30 dní. Napřed ověřit, jestli ho firma už nemá (neoficiálně jde přes [Apple D-U-N-S lookup](https://developer.apple.com/enroll/duns-lookup/), stejná databáze; hodí se i pro App Store). Neplatit zprostředkovatelům. [Google: požadavky na organizaci](https://support.google.com/googleplay/android-developer/answer/13628312)
 - [ ] Název a adresa u D&B musí **přesně** sedět s údaji v Play Console a v platebním profilu (Magnet Marketing s.r.o., Ponětovice 74, 664 51 Ponětovice).
-- [ ] Firemní web (ospalek.cz) a telefon, firemní kontaktní e-mail a telefon + veřejný e-mail vývojáře (např. podpora@ospalek.cz). Ověřují se kódem.
+- [ ] Firemní web (ospalek.cz) a telefon, firemní kontaktní e-mail a telefon + veřejný e-mail vývojáře (např. support@ospalek.cz). Ověřují se kódem.
 - [ ] **Registrace:** jednorázově **25 USD** kartou (ne předplacenou). Při zamítnutí se nevrací. [answer/6112435](https://support.google.com/googleplay/android-developer/answer/6112435)
 - [ ] **Platební profil (Google Payments) + obchodní účet**: bankovní účet firmy, ověření zkušebním vkladem nebo dokladem (až 5 dní).
 - [ ] **Daňové údaje:** DIČ CZ21367647. Firma podle vás **není plátce DPH**. Pro příjmy od Google Commerce Limited (Irsko) se registrovat jako **identifikovaná osoba** (§ 6i ZDPH) a zadávat DIČ z té registrace. Co přesně zvolit v daňovém profilu, ověřit s účetní.
@@ -17,7 +17,7 @@ Ověřeno na stránkách Googlu 9. 11. 2026. Kroky v konzolích dělá majitel �
 
 - [ ] Předplatné, ID např. `ospalek_plus` (ID nejde změnit), název „Ospalek Plus“.
 - [ ] Základní tarif (base plan) `mesicne`: automatické obnovení, 1 měsíc, **129 Kč** v CZ (Google cenu zadává bez daně a DPH přičte; zkontrolujte, že zákazník vidí konečných 129 Kč). SK cena **4,99 €** (rozhodnuto 9. 11. 2026).
-- [ ] Nabídka (offer) `tyden-zdarma`: zkušební doba **7 dní**, jen pro nové zákazníky.
+- [ ] Nabídka (offer) `tri-dny-zdarma`: zkušební doba **3 dny**, jen pro nové zákazníky. Delší vyzkoušení zdarma se dává kupóny (administrace → Kupóny).
 - [ ] Země: jen **Česko a Slovensko**.
 - **Poplatek Googlu:** od 30. 6. 2026 je v EHP u předplatného **10 % + 5 % billing fee = 15 %**. [answer/112622](https://support.google.com/googleplay/android-developer/answer/112622)
 - Prodávajícím vůči zákazníkovi (merchant of record) je v CZ i SK Google, DPH zákazníkovi vybírá a odvádí Google. [answer/7645364](https://support.google.com/googleplay/android-developer/answer/7645364), [answer/138000](https://support.google.com/googleplay/android-developer/answer/138000)
@@ -39,7 +39,7 @@ Cena: podle srovnávacích webů zdarma do 2 500 USD měsíčních tržeb, nad t
 
 - [ ] **Zásady ochrany osobních údajů:** https://ospalek.cz/ochrana-osobnich-udaju/ musí být veřejně dostupné bez hesla (už jsou mimo zámek gate.js), odkaz i v aplikaci (je v Nastavení).
 - [ ] **Přístup do aplikace:** návod pro recenzenty (3 pohádky zdarma bez přihlášení; na předplatné jim stačí testovací účet licenčního testera).
-- [ ] **Smazání účtu:** v aplikaci (tlačítko „Smazat všechna data“ už existuje, smaže i server) + **webový odkaz**, kde jde o smazání požádat bez aplikace (např. stránka na ospalek.cz nebo e-mail podpora@ospalek.cz). [answer/13327111](https://support.google.com/googleplay/android-developer/answer/13327111)
+- [ ] **Smazání účtu:** v aplikaci (tlačítko „Smazat všechna data“ už existuje, smaže i server) + **webový odkaz**, kde jde o smazání požádat bez aplikace (např. stránka na ospalek.cz nebo e-mail support@ospalek.cz). [answer/13327111](https://support.google.com/googleplay/android-developer/answer/13327111)
 - [ ] **Bezpečnost údajů (Data safety):** jména a věk dětí, obec, e-mail (volitelně), údaje o poslechu (se souhlasem), ID zařízení/aplikace; přenos šifrovaný; možnost smazání. Vyplnit podle zásad 1.4. Navíc historie nákupů (RevenueCat).
 - [ ] **Hodnocení obsahu** (dotazník IARC): nenásilný obsah pro děti.
 - [ ] **Cílové publikum:** aplikaci ovládá rodič (podmínky: 18+), obsah je pro děti 2–9 let. Pokud zvolíte jen 18+, Google může publikum kvůli dětskému vzhledu přepsat na děti. Pak platí **Families policy**: žádné reklamy, žádné reklamní ID, jen certifikovaná SDK, zásady ochrany údajů zmiňující děti. Ospalek reklamy ani analytiku nemá, takže to splní. [answer/9893335](https://support.google.com/googleplay/android-developer/answer/9893335)

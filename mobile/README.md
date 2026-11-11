@@ -41,14 +41,35 @@ iOS: potřeba plné Xcode (ne jen Command Line Tools) s iOS platformou: `sudo xc
 Nastaveno: `UIBackgroundModes: audio` a `AVAudioSession` `.playback` (hraje se zamčenou obrazovkou i s přepínačem ticha), jazyk cs/sk.
 Checklist pro App Store a technický návrh pro iOS: poznámka `ios-app-store.md` ve sdílené složce poznámek sessions.
 
-Potřeba: Android Studio (obsahuje JDK 21 a SDK), Android SDK 36, emulátor s Android 15/16.
+Android: Android Studio, Android SDK 36, build-tools 35.0.0 (chce je AGP 8.13) a emulátor s Androidem 16.
+**JDK 21**: Java přibalená k Android Studiu 2026.2 je verze 25 a Gradle 8.14 na ní nejede. Před sestavením:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/sdk
+```
+
+Ověřeno 10. 11. 2026: debug APK se sestaví a běží v emulátoru Pixel 8, Android 16 (Google Play). Hláška „Error injecting safe area CSS“ při startu je neškodná, Capacitor zapisuje okraje displeje dřív, než se stránka načte.
+
+### Vydání do Google Play (podepsaný AAB)
+
+Upload key leží mimo repo v `~/.ospalek-keys/ospalek-upload.jks` (alias `upload`), heslo je v Klíčence macOS pod „Ospalek Android upload key“. Klíč zálohujte, při ztrátě jde u Googlu vyměnit (Play App Signing), ale trvá to. Release se podepíše jen s nastavenými proměnnými:
+
+```bash
+export JAVA_HOME=$(/usr/libexec/java_home -v 21) ANDROID_HOME=~/Library/Android/sdk
+export OSPALEK_UPLOAD_STORE=~/.ospalek-keys/ospalek-upload.jks
+export OSPALEK_UPLOAD_PASSWORD="$(security find-generic-password -a ospalek-upload -s 'Ospalek Android upload key' -w)"
+npm run android:bundle   # → android/app/build/outputs/bundle/release/app-release.aab
+```
+
+Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gradle`. Verze 2 (1.1, s nákupem přes RevenueCat) je od 11. 11. 2026 v interním testování.
+
 `appId` je `cz.ospalek.app`. Po prvním nahrání do Google Play se už nedá změnit.
 
 ## Co ještě chybí (další kroky)
 
 1. Platby: **RevenueCat** (schváleno 9. 11. 2026), plugin `@revenuecat/purchases-capacitor` 14.1.0. Kód je v `app/billing.js`: na webu simulace, v aplikaci nákup přes obchod. Chybí veřejné SDK klíče v `config.js` (`revenuecatAndroidKey`, `revenuecatIosKey`) a webhook RevenueCat → Supabase (tabulka `subscriptions`).
-2. Přehrávání na pozadí: nativní audio plugin + foreground service `mediaPlayback` (a deklarace v Play Console).
+2. Přehrávání se zhasnutým displejem: ověřeno 11. 11. 2026 v emulátoru (Android 16), 7 minut se zhasnutým displejem bez zpomalení, proces nezamrzl. Aplikace zůstává nahoře („top sleeping“), takže služba na popředí není potřeba. Hrát dál po přepnutí do jiné aplikace by ji potřebovalo (a deklaraci `mediaPlayback` v Play Console). Ověřit ještě na skutečném telefonu.
 3. Offline poslech: stáhnout nahrávky do zařízení (`@capacitor/filesystem`).
-4. Ikona a splash screen z `brand/maskot-3d` (`@capacitor/assets`).
-5. Smazání účtu v aplikaci i přes web (požadavek Google Play pro aplikace s účtem).
+4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.
+5. Smazání účtu: v aplikaci „Smazat účet a všechna data“, na webu návod https://ospalek.cz/smazani-uctu/ (adresa do Play Console → Bezpečnost údajů).
 6. Podepisovací klíč pro vydání (Play App Signing) a verze `versionCode`.

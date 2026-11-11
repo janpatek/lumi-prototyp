@@ -2,7 +2,7 @@
 
 ## Obchodní podmínky a ochranu osobních údajů drž aktuální
 
-Provozovatel: Magnet Marketing s.r.o., IČO 21367647, Ponětovice 74, 664 51 Ponětovice (KS Brno, C 138420), plátce DPH. Kontakt podpora@ospalek.cz.
+Provozovatel: Magnet Marketing s.r.o., IČO 21367647, Ponětovice 74, 664 51 Ponětovice (KS Brno, C 138420), není plátce DPH (DIČ CZ21367647 má). Kontakt support@ospalek.cz.
 
 - Obchodní podmínky: `obchodni-podminky/index.html` (ospalek.cz/obchodni-podminky/)
 - Ochrana osobních údajů: `ochrana-osobnich-udaju/index.html` (ospalek.cz/ochrana-osobnich-udaju/)
@@ -29,6 +29,6 @@ Při každé úpravě:
 3. Přidej řádek do tabulky „Historie změn“.
 4. Ověř, že texty na landingu (FAQ, cena) a v aplikaci dokumentům neodporují.
 
-## Zámek před spuštěním
+## Zámek před spuštěním (zrušený)
 
-Landing (`index.html`) a aplikace (`app/index.html`) načítají jako první `gate.js`. Bez hesla přesměruje na stránku „Připravujeme“ (`brzy/`). Nové stránky, které mají být skryté, potřebují stejný `<script>` hned za `<meta charset>`. Obchodní podmínky, ochrana osobních údajů a `admin/` zůstávají mimo zámek. Administraci chrání přihlášení člena týmu do Supabase (e-mail, heslo s obnovou e-mailem a kód z Google Authenticatoru), společné heslo už nemá. Heslo nikdy nepiš do repa, jen otisk do `AUTH` v `gate.js` (`node admin/heslo.js "heslo"`).
+Od 11. 11. 2026 jsou landing i aplikace veřejné. `gate.js` už nic nezamyká, jen přesměruje staré odkazy z `brzy/` na původní cíl nebo na úvodní stránku. Nesmaž ho, aplikace ho má v mezipaměti service workeru (`app/sw.js`). Administraci chrání přihlášení člena týmu do Supabase (e-mail, heslo s obnovou e-mailem a kód z Google Authenticatoru). Hesla ani klíče nikdy nepiš do repa.
