@@ -81,7 +81,7 @@ textarea { width: 100%; box-sizing: border-box; min-height: 64px; font: 15px/1.5
 <script>
 (function () {
   const STORIES = window.STORIES_DRAFT;
-  const CATS = { noc: 'Na dobrou noc', auto: 'Do auta', dobro: 'Dobrodružství', zivot: 'Ze života', sranda: 'Srandovní', lidove: 'Klasické pohádky', hrdinove: 'Superhrdinové', zvirata: 'O zvířátkách' };
+  const CATS = { noc: 'Na dobrou noc', auto: 'Do auta', dobro: 'Dobrodružství', zivot: 'Ze života', sranda: 'Srandovní', lidove: 'Klasické pohádky', hrdinove: 'Superhrdinové', zvirata: 'O zvířátkách', svatky: 'Oslavy a svátky', zvidave: 'Zvídavé' };
   const PRO = { f: 'spíš pro holky', m: 'spíš pro kluky', vse: 'pro všechny' };
   const split = window.VOICE_LINES.splitLines;
   const listCz = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' a ' + a[a.length - 1]);
@@ -156,7 +156,7 @@ textarea { width: 100%; box-sizing: border-box; min-height: 64px; font: 15px/1.5
       <summary><div class="cov" style="background:linear-gradient(160deg,${s.cover.g1},${s.cover.g2})" aria-hidden="true">${s.cover.emoji || ''}</div>
         <div class="head"><h2>${esc(title)}</h2>
           <div class="meta"><b>${minutes(segs)} min</b><span>· ${s.ages[0]}–${s.ages[1]} let</span><span>· ${s.cats.map((k) => CATS[k] || k).join(', ')}</span><span>· ${PRO[s.pro] || ''}</span>${pill}</div>
-          <p class="pozn">${esc(s.pozn || '')}</p></div></summary>
+          <p class="pozn">${esc(s.pozn || '')}</p>${s.pouceni ? `<p class="pozn"><b>Poučení:</b> ${esc(s.pouceni)}</p>` : ''}</div></summary>
       <div class="body">
         <div class="meta">${words} slov · osobní věty ${all ? Math.round((100 * pers) / all) : 0} % textu · id ${esc(s.id)}</div>
         ${err ? `<p class="pill no">Chyba v šabloně: ${esc(err)}</p>` : ''}

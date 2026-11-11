@@ -66,7 +66,7 @@ const FAM = {
 const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
 const SFX = ['sparkle', 'magic', 'car', 'horn', 'birds', 'owl', 'paper', 'wind', 'ding'];
 const MOODS = ['lullaby', 'adventure', 'road'];
-const CATS = new Set((W.CATEGORIES || []).map((k) => k.id).concat(['sranda', 'lidove', 'hrdinove', 'zvirata']));
+const CATS = new Set((W.CATEGORIES || []).map((k) => k.id).concat(['sranda', 'lidove', 'hrdinove', 'zvirata', 'svatky', 'zvidave']));
 const BAD = /undefined|null|NaN|\[object|\$\{|\s[,.]|\s{2,}|„\s|\s“|,,|\.\.(?!\.)/;
 
 const stories = W.STORIES_DRAFT || [];
