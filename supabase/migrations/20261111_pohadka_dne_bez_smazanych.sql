@@ -1,7 +1,9 @@
 -- Pohádka dne bez smazaných pohádek, 11. 11. 2026.
 -- Když tým v administraci smaže pohádku, nesmí ji dál nabízet pohádka dne ani večerní upozornění.
 -- daily_pick přeskočí pohádky, které jsou mezi smazanými v poslední verzi katalogu (story_catalog).
--- Spusť jednou v Supabase → SQL Editor, po migraci 20261111_pohadky_v_databazi.sql.
+-- Jen pro databázi, kde už pohádka dne běží (existuje tabulka push_settings). Spusť jednou v Supabase → SQL Editor,
+-- po migraci 20261111_pohadky_v_databazi.sql. Kdo pohádku dne teprve zapojuje (celé supabase/schema.sql podle
+-- push-worker/README.md), má opravu už ve schématu a tuhle migraci nepotřebuje.
 
 begin;
 
