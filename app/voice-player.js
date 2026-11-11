@@ -2,15 +2,15 @@
 // takže mezi nahrávkami není žádné zadrhnutí. Hlas má vlastní stopu (uzel voice), hudba a efekty
 // zůstávají ve svých stopách v audio.js – nic se nemíchá do jednoho souboru.
 // Nahrávky vět: audio/hlas/jana/<klíč>.mp3 + index.json (vyrábí tools/hlas). Chybějící věty umí
-// dotáhnout přes tts-worker, pokud ho aplikace má nastavený.
+// dotáhnout přes tts-worker, pokud ho aplikace má nastavený. Kde věta leží (v aplikaci, v zařízení,
+// nebo se stáhne z ospalek.cz), rozhoduje remote.js.
 
 (function () {
   const BASE = '../audio/hlas/jana/';
   // mezera mezi větami v odstavci; nahrávky mají navíc na koncích ~0,13 s vlastního ticha
   const GAP = 0.3;
   let manifest = null;
-  const ready = fetch(BASE + 'index.json')
-    .then((r) => (r.ok ? r.json() : null))
+  const ready = REMOTE.index(BASE + 'index.json')
     .then((m) => (manifest = m))
     .catch(() => null);
   const buffers = new Map();
@@ -62,11 +62,17 @@
   function clip(line, fallback) {
     if (!buffers.has(line.key)) {
       const own = has(line);
-      const url = own ? Promise.resolve(BASE + line.key + '.mp3') : fallback ? fallback(line.t) : Promise.reject(new Error('Věta zatím není namluvená.'));
-      const p = timeout(url
-        .then((u) => fetch(u))
-        // v aplikaci pro iOS vrací Capacitor vlastní soubory .mp3 se stavem 0 (bez HTTP hlavičky), data ale dorazí
-        .then((r) => { if (!r.ok && !(own && r.status === 0)) throw new Error('Nahrávku se nepodařilo načíst.'); return r.arrayBuffer(); })
+      const src = own ? REMOTE.clip(line.key) : fallback ? fallback(line.t).then((url) => ({ url, local: false })) : Promise.reject(new Error('Věta zatím není namluvená.'));
+      const p = timeout(src
+        .then((s) => fetch(s.url).then((r) => {
+          // v aplikaci pro iOS vrací Capacitor vlastní soubory .mp3 se stavem 0 (bez HTTP hlavičky), data ale dorazí
+          if (!r.ok && !(s.local && r.status === 0)) throw new Error('Nahrávku se nepodařilo načíst.');
+          return r.arrayBuffer();
+        }).then((b) => {
+          // věta stažená z webu se uloží do zařízení, příště hraje i bez internetu (kopie: dekodér buffer vyprázdní)
+          if (s.store) REMOTE.save(line.key, b.slice(0)).catch(() => {});
+          return b;
+        }))
         .then((b) => ctx().decodeAudioData(b))
         .then((b) => (own ? b : tidy(b))), LOAD_LIMIT);
       p.catch(() => buffers.delete(line.key)); // chybu příště zkusit znovu
@@ -80,6 +86,7 @@
     // pro stahování na cestu (offline.js): má věta společnou nahrávku a kde leží
     has,
     url: (line) => BASE + line.key + '.mp3',
+    key: (url) => (url.startsWith(BASE) ? url.slice(BASE.length, -4) : null),
     // kolik vět pohádky ještě nemá nahrávku
     missing: (plan) => lines(plan).filter((l) => !has(l)).length,
     prefetch(para, fallback) { para && para.lines.forEach((l) => clip(l, fallback).catch(() => {})); },

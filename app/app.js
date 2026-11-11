@@ -1223,7 +1223,22 @@ document.addEventListener('click', (e) => {
 // připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
 ['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
 // tým v administraci zveřejnil novou verzi pohádek (catalog.js) → knihovna a historie se překreslí
-window.addEventListener('ospalek:stories', () => { if (ui.screen === 'lib' || ui.screen === 'history') render(); });
+// a když přibyly pohádky, které tu minule nebyly, krátce to oznámí (klepnutí otevře poličku Ještě neslyšené)
+window.addEventListener('ospalek:stories', (e) => {
+  if (ui.screen === 'lib' || ui.screen === 'history') render();
+  const n = (e.detail && e.detail.fresh || []).length;
+  if (!n || ui.screen === 'login' || ui.screen === 'onb') return;
+  document.querySelector('.fresh-toast')?.remove();
+  const t = document.createElement('button');
+  t.className = 'fresh-toast';
+  t.dataset.a = 'shelf';
+  t.dataset.id = 'unheard';
+  t.textContent = n === 1 ? 'Přibyla nová pohádka ›' : `Přibyl${n < 5 ? 'y' : 'o'} ${n} ${n < 5 ? 'nové pohádky' : 'nových pohádek'} ›`;
+  document.body.append(t);
+  setTimeout(() => t.classList.add('out'), 7000);
+  setTimeout(() => t.remove(), 7600);
+  t.addEventListener('click', () => t.remove());
+});
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;

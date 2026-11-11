@@ -2,7 +2,8 @@
 // - Věty se jmény rodiny (z tts-workeru) leží v IndexedDB „ospalek“ / „hlas“, klíč = nálada|text.
 //   Jednou stažená věta zůstane i po zavření aplikace; mažou se při změně rodiny (prune) a se všemi daty.
 // - Společné nahrávky, obálky, písmo a samotná aplikace leží na webu v Cache Storage (spravuje sw.js).
-//   V mobilní aplikaci (Capacitor) jsou tyhle soubory přibalené, service worker tam není potřeba.
+//   V mobilní aplikaci (Capacitor) je přibalená aplikace, obálky, kulisy a věty pohádek zdarma; ostatní
+//   společné věty se stahují z ospalek.cz do složky hlas/ v zařízení (remote.js). Service worker tam není.
 // Názvy cache musí sedět se sw.js. Po novém namluvení společných vět zvyš číslo v AUDIO (i v sw.js),
 // jinak by zařízení dál hrála staré nahrávky.
 
@@ -43,13 +44,23 @@ const OFFLINE = (() => {
     keys: () => tx('readonly', (s) => s.getAllKeys()).then((k) => new Set(k)).catch(() => new Set()),
     remove: (ids) => (ids.length ? tx('readwrite', (s) => { ids.forEach((id) => s.delete(id)); }).catch(() => {}) : Promise.resolve()),
     // soubory aplikace a společné nahrávky
+    // v mobilní aplikaci: věty, které nejsou přibalené, se stahují do zařízení (remote.js); obálky a kulisy
+    // jsou přibalené, obálky novějších pohádek (z webu) bez internetu nahradí barevná záloha
     async hasFile(u) {
-      if (NATIVE) return true;
+      if (NATIVE) {
+        const k = window.voiceLines && voiceLines.key(u);
+        return k ? REMOTE.hasClip(k) : true;
+      }
       if (!hasCaches) return false;
       return !!(await caches.match(abs(u)).catch(() => null));
     },
     async saveFile(u) {
-      if (NATIVE || !hasCaches) return;
+      if (NATIVE) {
+        const k = window.voiceLines && voiceLines.key(u);
+        if (k) await REMOTE.fetchClip(k);
+        return;
+      }
+      if (!hasCaches) return;
       const c = await caches.open(cacheFor(u));
       if (!(await c.match(abs(u)))) await c.add(abs(u));
     },
@@ -57,6 +68,7 @@ const OFFLINE = (() => {
     async clear() {
       await tx('readwrite', (s) => { s.clear(); }).catch(() => {});
       if (hasCaches) await caches.delete(AUDIO).catch(() => {});
+      await REMOTE.clear();
     },
   };
 })();
