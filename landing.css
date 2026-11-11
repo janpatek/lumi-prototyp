@@ -215,6 +215,17 @@ p { margin: 0; }
 .soon { display: none; }
 .store.is-soon { cursor: default; opacity: .9; }
 .store.is-soon .soon { display: block; position: absolute; top: -10px; right: -8px; background: #F6D98B; color: #2E3150; font-weight: 900; font-size: 11px; letter-spacing: .04em; padding: 3px 9px; border-radius: var(--radius-pill); }
+/* Obchody hned v hlavičce stránky, pod hlavním tlačítkem */
+.hero-stores { margin-top: 22px; padding-top: 18px; border-top: 2px dashed var(--line); text-align: center; }
+.hero-stores-t { color: var(--ink-muted); font-size: 15px; font-weight: 800; margin-bottom: 12px; }
+.hero-stores .store { min-width: 160px; height: 50px; }
+.hero-stores .store-txt b { font-size: 18px; }
+/* Malé odkazy do obchodů v horní liště (jen desktop) */
+.nav-stores { display: none; gap: 8px; }
+.store-sm { min-width: 0; height: 38px; gap: 7px; padding: 0 12px 0 10px; border-radius: 10px; font: 600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+.store-sm .store-logo { width: 18px; height: 18px; }
+/* na telefonu jen obchod pro jeho systém (když ho poznáme) */
+.store.is-other { display: none; }
 
 /* Patička */
 .foot { background: var(--night); color: var(--night-muted); border-top: 1px solid rgba(238, 235, 250, .08); padding: 28px 0 110px; font-size: 14px; }
@@ -258,6 +269,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, .btn:focus-visible
 @media (min-width: 960px) {
   .nav-links { display: flex; }
   .nav .btn { margin-left: 8px; }
+  .nav-stores { display: flex; margin-left: 12px; }
   .hero { padding: 56px 0 96px; }
   .hero-in { grid-template-columns: 1fr 1fr; align-items: center; gap: 48px; }
   .hero-copy { display: block; }
@@ -265,6 +277,9 @@ a:focus-visible, button:focus-visible, summary:focus-visible, .btn:focus-visible
   .book p { font-size: 17px; }
   .hero-cta .btn-xl { width: auto; }
   .hero-fine { text-align: left; }
+  .hero-stores { text-align: left; }
+  .hero-stores .stores { justify-content: flex-start; }
+  .store.is-other { display: inline-flex; }
   .hero-in { grid-template-columns: .95fr 1.05fr; }
   .shelf { grid-template-columns: repeat(3, 1fr); gap: 30px; align-items: start; padding-top: 24px; }
   .book-1 { transform: rotate(-4deg) translateY(28px); }

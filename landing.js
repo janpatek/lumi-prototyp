@@ -26,6 +26,18 @@ document.querySelectorAll('[data-store]').forEach((a) => {
   }
 });
 
+// Telefon: obchod pro jeho systém dáme dopředu, ten druhý na mobilu schováme (CSS .is-other).
+// iPad se hlásí jako Mac, proto ho nepoznáme a ukážeme oba.
+const PLATFORM = /iPhone|iPod/.test(navigator.userAgent) ? 'appStore' : /Android/.test(navigator.userAgent) ? 'googlePlay' : '';
+if (PLATFORM) {
+  document.querySelectorAll('.stores').forEach((box) => {
+    box.querySelectorAll('[data-store]').forEach((a) => {
+      if (a.dataset.store === PLATFORM) box.prepend(a);
+      else a.classList.add('is-other');
+    });
+  });
+}
+
 // ===== Pohádka na jméno: skloňování (zjednodušená verze z aplikace, app.js) =====
 const SOFT = 'žščřcjďťň';
 function decline(name, gender) {
@@ -129,6 +141,14 @@ render();
 
 // ===== Lepicí lišta s výzvou na mobilu: ukáže se, když hlavní tlačítko zmizí z obrazovky =====
 const sticky = document.getElementById('sticky-cta');
+const platformUrl = PLATFORM && LANDING[PLATFORM + 'Url'];
+if (sticky && platformUrl) {
+  // aplikace už je v obchodě: lišta nabídne rovnou stažení
+  const a = sticky.querySelector('a');
+  a.removeAttribute('data-try');
+  a.href = platformUrl;
+  a.textContent = PLATFORM === 'appStore' ? 'Stáhnout v App Store' : 'Stáhnout na Google Play';
+}
 const heroCta = document.getElementById('hero-cta');
 const endCta = document.getElementById('end');
 if (sticky && heroCta) {
