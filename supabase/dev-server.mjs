@@ -67,8 +67,8 @@ let chain = Promise.resolve();
 const serial = (fn) => (chain = chain.then(fn, fn));
 async function asUser(uid, sql, params, aal = 'aal1') {
   return serial(async () => {
-    await db.query(`select set_config('request.jwt.claim.sub', $1, false), set_config('request.jwt.claims', $2, false)`, [uid, JSON.stringify({ sub: uid, aal })]);
-    await db.exec('set role authenticated');
+    await db.query(`select set_config('request.jwt.claim.sub', $1, false), set_config('request.jwt.claims', $2, false)`, [uid || '', uid ? JSON.stringify({ sub: uid, aal }) : '']);
+    await db.exec(uid ? 'set role authenticated' : 'set role anon');
     try { return await db.query(sql, params); } finally { await db.exec('reset role'); }
   });
 }
@@ -193,7 +193,8 @@ http.createServer(async (req, res) => {
     }
     const m = url.pathname.match(/^\/rest\/v1\/rpc\/(\w+)$/);
     if (req.method === 'POST' && m) {
-      const t = tokenOf(req);
+      // bez přihlášení (jen anonymní klíč) jde volat jen to, co má právo role anon (katalog pohádek)
+      const t = tokenOf(req) || (req.headers.authorization ? null : { uid: null, aal: null });
       if (!t) return send(res, 401, { message: 'JWT expired' });
       const f = fns.get(m[1]);
       if (!f) return send(res, 404, { message: 'function not found' });
@@ -201,7 +202,7 @@ http.createServer(async (req, res) => {
       const names = f.argnames.filter((n) => n in body);
       const sql = `select * from public.${f.name}(${names.map((n, i) => `${n} => $${i + 1}::${f.argtypes[f.argnames.indexOf(n)]}`).join(', ')})`;
       const params = names.map((n) => (typeof body[n] === 'object' ? JSON.stringify(body[n]) : body[n]));
-      const r = await asUser(t.uid, sql, params, t.aal);
+      const r = await asUser(t.uid, sql, params, t.aal || undefined);
       if (f.ret === 'void') return send(res, 204);
       if (!f.set && r.fields.length === 1) return send(res, 200, r.rows[0] ? Object.values(r.rows[0])[0] : null);
       return send(res, 200, r.rows);

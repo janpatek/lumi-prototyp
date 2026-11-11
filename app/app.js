@@ -1031,6 +1031,8 @@ document.addEventListener('click', (e) => {
 });
 // připojení se změnilo → knihovna ukáže nebo schová upozornění a zešedlé pohádky
 ['online', 'offline'].forEach((ev) => window.addEventListener(ev, () => { if (ui.screen === 'lib') render(); }));
+// tým v administraci zveřejnil novou verzi pohádek (catalog.js) → knihovna a historie se překreslí
+window.addEventListener('ospalek:stories', () => { if (ui.screen === 'lib' || ui.screen === 'history') render(); });
 document.addEventListener('input', (e) => {
   if (e.target.id === 'town') { const i = document.getElementById('inTown'); if (!i.value || i.dataset.auto) { i.value = inTownGuess(e.target.value); i.dataset.auto = '1'; } }
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
