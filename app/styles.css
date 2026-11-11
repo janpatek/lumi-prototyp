@@ -285,3 +285,28 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .notif-demo b { display: block; font-size: 16px; }
 .notif-demo span { font-size: 15px; color: var(--ink-muted); }
 .notif-demo small { color: var(--ink-muted); font-size: 13px; }
+
+/* Knihovna: poličky podle kategorií, karta s hvězdičkou oblíbených */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.top h1.grow { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 24px; }
+.shelf { margin-top: 22px; }
+.shelf-h { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; margin-bottom: 6px; text-align: left; color: var(--ink); }
+.shelf-t { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 19px; }
+.shelf-all { font-size: 15px; font-weight: 700; color: var(--lavender-ink); white-space: nowrap; }
+.shelf-star { width: 30px; height: 30px; border-radius: 50%; background: var(--honey); color: var(--on-pastel); display: grid; place-items: center; }
+.shelf-star .ico { width: 18px; height: 18px; fill: currentColor; stroke-dasharray: none; }
+.shelf-row { display: flex; gap: 12px; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 8px; scroll-snap-type: x mandatory; scroll-padding: 0 16px; scrollbar-width: none; }
+.shelf-row::-webkit-scrollbar { display: none; }
+.shelf-row .card-w { flex: 0 0 42%; scroll-snap-align: start; }
+.shelf-row .card h3 { font-size: 15px; line-height: 19px; margin: 8px 10px 3px; }
+.shelf-row .card .meta { font-size: 12px; margin: 0 10px; }
+.shelf-row .badge { font-size: 10px; padding: 5px 7px; }
+.card-w { position: relative; display: flex; }
+.card-w .card { width: 100%; }
+.badge.lock { right: auto; left: 10px; }
+.fav { position: absolute; z-index: 2; top: 6px; right: 6px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-raised); color: var(--ink-muted); box-shadow: var(--shadow-soft); }
+.fav .ico, .pfav .ico { stroke-dasharray: none; }
+.fav.on, .pfav.on { background: var(--honey); color: var(--on-pastel); }
+.fav.on .ico, .pfav.on .ico { fill: currentColor; }
+.player .pbtns { display: flex; gap: 8px; }
+.all-btn { margin-top: 26px; }

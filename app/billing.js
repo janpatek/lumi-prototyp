@@ -9,6 +9,7 @@ const BILLING = (() => {
   const Cap = window.Capacitor;
   const native = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
   const P = native && Cap.Plugins ? Cap.Plugins.Purchases : null;
+  const LN = native && Cap.Plugins ? Cap.Plugins.LocalNotifications : null; // @capacitor/local-notifications
   const C = window.OSPALEK_CONFIG || {};
   const key = native ? (Cap.getPlatform() === 'ios' ? C.revenuecatIosKey : C.revenuecatAndroidKey) : '';
   const ENT = 'plus';
@@ -45,6 +46,34 @@ const BILLING = (() => {
       }
     },
     // Cena měsíčního předplatného tak, jak ji ukazuje obchod (např. „129,00 Kč“ nebo „4,99 €“). null = nevíme.
+    // Běží zkušební doba? { end: Date, renews } (renews = po jejím konci se začne platit), jinak null.
+    async trial() {
+      if (!on) return null;
+      try {
+        await init();
+        const e = (await P.getCustomerInfo()).customerInfo.entitlements.active[ENT];
+        return e && e.periodType === 'TRIAL' && e.expirationDateMillis ? { end: new Date(e.expirationDateMillis), renews: !!e.willRenew } : null;
+      } catch (er) { return null; }
+    },
+    // Připomínka konce zkušební doby: upozornění naplánované přímo v telefonu (nic nejde na server).
+    // Přijde 6 hodin před hranicí pro zrušení (obchody chtějí zrušit nejpozději 24 hodin před koncem).
+    // ask = smí se zeptat na povolení upozornění (jen hned po objednání, jinak se plánuje jen s už daným povolením).
+    async remind(t, price, ask) {
+      if (!LN) return;
+      const id = 3001;
+      try {
+        await LN.cancel({ notifications: [{ id }] });
+        if (!t || !t.renews) return;
+        const cutoff = new Date(t.end.getTime() - 24 * 3600e3);
+        const at = new Date(cutoff.getTime() - 6 * 3600e3);
+        if (at <= new Date()) return;
+        let perm = await LN.checkPermissions();
+        if (perm.display !== 'granted' && ask) perm = await LN.requestPermissions();
+        if (perm.display !== 'granted') return;
+        const when = `${cutoff.getDate()}. ${cutoff.getMonth() + 1}. v ${cutoff.getHours()}:${String(cutoff.getMinutes()).padStart(2, '0')}`;
+        await LN.schedule({ notifications: [{ id, title: 'Zítra končí zkušební doba Ospalka', body: `Pak se začne platit ${price} měsíčně. Když nechcete pokračovat, zrušte předplatné v nastavení obchodu nejpozději ${when}.`, schedule: { at, allowWhileIdle: true } }] });
+      } catch (e) { /* bez připomínky aplikace funguje dál, konec zkušební doby ukazuje i knihovna */ }
+    },
     async price() {
       if (!on) return null;
       try {
