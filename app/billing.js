@@ -29,7 +29,7 @@ const BILLING = (() => {
       if (!on) return null;
       try { await init(); const r = await P.getCustomerInfo(); return active(r.customerInfo); } catch (e) { return null; }
     },
-    // Koupě měsíčního předplatného (se zkušebním týdnem, pokud na něj má účet nárok). Vrací true/false, zrušení = false.
+    // Koupě měsíčního předplatného (se zkušební dobou 3 dny, pokud na ni má účet nárok). Vrací true/false, zrušení = false.
     async buy() {
       if (!on) throw new Error('Platby v této verzi nejsou zapnuté.');
       await init();
