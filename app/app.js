@@ -68,8 +68,8 @@ const MASCOT = { mark: '../brand/maskot-3d/web/ospalek-mark.webp', head: '../bra
 // každá kategorie má svou pastelovou barvu (brand manuál)
 const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)', sranda: 'var(--honey)', lidove: 'var(--peach)', hrdinove: 'var(--sky)', zvirata: 'var(--mint)' };
 const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
-// plyšové ikonky kategorií (brand/ikony) – nové kategorie zatím ikonku nemají
-const CAT_ICONS = new Set(['noc', 'auto', 'dobro', 'zivot']);
+// plyšové ikonky kategorií (brand/ikony)
+const CAT_ICONS = new Set(['noc', 'auto', 'dobro', 'zivot', 'sranda', 'lidove', 'hrdinove', 'zvirata']);
 const catIcon = (id, cls = 'cat-ico') => (CAT_ICONS.has(id) ? `<img class="${cls}" src="../brand/ikony/kat-${id}.webp" alt="">` : '');
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
 // avatar: první písmeno jména v pastelovém kolečku
