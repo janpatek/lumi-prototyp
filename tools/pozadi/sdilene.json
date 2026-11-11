@@ -1,24 +1,334 @@
 {
-  "_": "Pohádky bez vlastní kulisy si ji půjčují od podobné pohádky: id → { druh: id pohádky, jejíž smyčku hrají }.",
-  "jednorozec-duhanek": { "kulisa": "hvezdicka" },
-  "jednorozci-hvezdna-louka": { "kulisa": "hvezdicka" },
-  "utekle-ovecky": { "kulisa": "lednice" },
-  "zachrana-zviratka": { "kulisa": "vyprava" },
-  "kapitan-nocni-svetlo": { "kulisa": "hvezdicka" },
-  "super-uklid": { "kulisa": "zubar" },
-  "hrdinove-a-dest": { "kulisa": "bourka-nebojsa" },
-  "robot-na-namesti": { "kulisa": "tajna-superschopnost" },
-  "sul-nad-zlato": { "kulisa": "drak" },
-  "dlouhy-siroky-bystrozraky": { "kulisa": "drak" },
-  "zlatovlaska": { "kulisa": "vyprava" },
-  "hrnecku-var": { "kulisa": "zubar" },
-  "prvni-den-ve-skolce": { "kulisa": "zubar" },
-  "spani-u-babicky": { "kulisa": "lednice" },
-  "ponozkozrout": { "kulisa": "lednice" },
-  "den-naruby": { "kulisa": "zubar" },
-  "cesta-za-pokladem": { "kulisa": "hadanky" },
-  "zmrzlinovy-dest": { "kulisa": "tajna-superschopnost" },
-  "kdo-to-dela": { "kulisa": "hadanky" },
-  "noc-v-lese": { "kulisa": "drak" },
-  "dinosaurus-na-zahrade": { "kulisa": "vyprava" }
+  "_": "Pohádky bez vlastní smyčky si ji půjčují od podobné pohádky: id → { druh: id pohádky, jejíž smyčku hrají } (druh kulisa nebo hudba).",
+  "jednorozec-duhanek": {
+    "kulisa": "hvezdicka"
+  },
+  "jednorozci-hvezdna-louka": {
+    "kulisa": "hvezdicka"
+  },
+  "utekle-ovecky": {
+    "kulisa": "lednice"
+  },
+  "zachrana-zviratka": {
+    "kulisa": "vyprava"
+  },
+  "kapitan-nocni-svetlo": {
+    "kulisa": "hvezdicka"
+  },
+  "super-uklid": {
+    "kulisa": "zubar"
+  },
+  "hrdinove-a-dest": {
+    "kulisa": "bourka-nebojsa"
+  },
+  "robot-na-namesti": {
+    "kulisa": "tajna-superschopnost"
+  },
+  "sul-nad-zlato": {
+    "kulisa": "drak"
+  },
+  "dlouhy-siroky-bystrozraky": {
+    "kulisa": "drak"
+  },
+  "zlatovlaska": {
+    "kulisa": "vyprava"
+  },
+  "hrnecku-var": {
+    "kulisa": "zubar"
+  },
+  "prvni-den-ve-skolce": {
+    "kulisa": "zubar"
+  },
+  "spani-u-babicky": {
+    "kulisa": "lednice"
+  },
+  "ponozkozrout": {
+    "kulisa": "lednice"
+  },
+  "den-naruby": {
+    "kulisa": "zubar"
+  },
+  "cesta-za-pokladem": {
+    "kulisa": "hadanky"
+  },
+  "zmrzlinovy-dest": {
+    "kulisa": "tajna-superschopnost"
+  },
+  "kdo-to-dela": {
+    "kulisa": "hadanky"
+  },
+  "noc-v-lese": {
+    "kulisa": "drak"
+  },
+  "dinosaurus-na-zahrade": {
+    "kulisa": "vyprava"
+  },
+  "narozeninove-prani": {
+    "kulisa": "jednorozec-narozeniny",
+    "hudba": "jednorozec-narozeniny"
+  },
+  "jeziskova-posta": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "dvanact-mesicku"
+  },
+  "certik-bez-strachu": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "den-naruby"
+  },
+  "zajicek-malir": {
+    "kulisa": "vyprava",
+    "hudba": "jednorozec-duhanek"
+  },
+  "lampionovy-pruvod": {
+    "kulisa": "hvezdicka",
+    "hudba": "mesicni-lodka"
+  },
+  "karneval-masek": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "zmrzlinovy-dest"
+  },
+  "kartackovy-rytir": {
+    "kulisa": "zubar",
+    "hudba": "super-uklid"
+  },
+  "bublinka": {
+    "kulisa": "zubar",
+    "hudba": "zubar"
+  },
+  "nocnikova-vyprava": {
+    "kulisa": "zubar",
+    "hudba": "ponozkozrout"
+  },
+  "odvazny-ochutnavac": {
+    "kulisa": "lednice",
+    "hudba": "hrnecku-var"
+  },
+  "statecna-naplast": {
+    "kulisa": "zubar",
+    "hudba": "prvni-den-ve-skolce"
+  },
+  "proc-spime": {
+    "kulisa": "hvezdicka",
+    "hudba": "utekle-ovecky"
+  },
+  "ztraceny-v-obchode": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "prvni-den-ve-skolce"
+  },
+  "tablet-chtel-spat": {
+    "kulisa": "lednice",
+    "hudba": "den-naruby"
+  },
+  "miminko-u-nas": {
+    "kulisa": "lednice",
+    "hudba": "spani-u-babicky"
+  },
+  "vztekloun": {
+    "kulisa": "lednice",
+    "hudba": "bourka-nebojsa"
+  },
+  "kouzelne-promin": {
+    "kulisa": "vyprava",
+    "hudba": "prvni-den-ve-skolce"
+  },
+  "lez-ktera-rostla": {
+    "kulisa": "lednice",
+    "hudba": "ponozkozrout"
+  },
+  "kdo-prohraje-vyhraje": {
+    "kulisa": "vyprava",
+    "hudba": "tajna-superschopnost"
+  },
+  "jedna-lopatka": {
+    "kulisa": "vyprava",
+    "hudba": "kdo-to-dela"
+  },
+  "kamarad-pres-plot": {
+    "kulisa": "vyprava",
+    "hudba": "spani-u-babicky"
+  },
+  "pusa-vetrem": {
+    "kulisa": "hvezdicka",
+    "hudba": "jednorozci-hvezdna-louka"
+  },
+  "kapka-kapicka": {
+    "kulisa": "mesicni-lodka",
+    "hudba": "ponorka-pod-rybnikem"
+  },
+  "od-zrnicka-k-chlebu": {
+    "kulisa": "velika-repa",
+    "hudba": "velika-repa"
+  },
+  "vcelka-medunka": {
+    "kulisa": "vyprava",
+    "hudba": "jednorozec-duhanek"
+  },
+  "housenka-zmena": {
+    "kulisa": "vyprava",
+    "hudba": "noc-v-lese"
+  },
+  "strom-ctyri-kabaty": {
+    "kulisa": "hvezdicka",
+    "hudba": "dvanact-mesicku"
+  },
+  "seminko-nespechalo": {
+    "kulisa": "hvezdicka",
+    "hudba": "jednorozci-hvezdna-louka"
+  },
+  "tovarna-v-brisku": {
+    "kulisa": "lednice",
+    "hudba": "super-uklid"
+  },
+  "vylet-slunecni-soustavou": {
+    "kulisa": "raketou-na-mesic",
+    "hudba": "raketou-na-mesic"
+  },
+  "ztracene-souhvezdi": {
+    "kulisa": "hvezdicka",
+    "hudba": "kapitan-nocni-svetlo"
+  },
+  "nula-dulezita": {
+    "kulisa": "lednice",
+    "hudba": "den-naruby"
+  },
+  "utekla-pismenka": {
+    "kulisa": "lednice",
+    "hudba": "zmrzlinovy-dest"
+  },
+  "semafor-blikalek": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "hadanky"
+  },
+  "mali-hasici": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "robot-na-namesti"
+  },
+  "o-smolickovi": {
+    "kulisa": "vyprava",
+    "hudba": "zlatovlaska"
+  },
+  "kohoutek-a-slepicka": {
+    "kulisa": "velika-repa",
+    "hudba": "velika-repa"
+  },
+  "princezna-ktera-se-nesmala": {
+    "kulisa": "vyprava",
+    "hudba": "hrnecku-var"
+  },
+  "sipkova-ruzenka": {
+    "kulisa": "hvezdicka",
+    "hudba": "sul-nad-zlato"
+  },
+  "popelka": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "zlatovlaska"
+  },
+  "hvezdne-tolary": {
+    "kulisa": "hvezdicka",
+    "hudba": "jednorozci-hvezdna-louka"
+  },
+  "zlata-rybka": {
+    "kulisa": "mesicni-lodka",
+    "hudba": "sul-nad-zlato"
+  },
+  "tri-zlate-vlasy": {
+    "kulisa": "vyprava",
+    "hudba": "dlouhy-siroky-bystrozraky"
+  },
+  "chytra-horakyne": {
+    "kulisa": "velika-repa",
+    "hudba": "zlatovlaska"
+  },
+  "oskliva-kachna": {
+    "kulisa": "mesicni-lodka",
+    "hudba": "noc-v-lese"
+  },
+  "cisarovy-nove-saty": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "den-naruby"
+  },
+  "superhrdina-laskavec": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "tajna-superschopnost"
+  },
+  "strazci-snu": {
+    "kulisa": "hvezdicka",
+    "hudba": "kapitan-nocni-svetlo"
+  },
+  "zelena-hlidka": {
+    "kulisa": "mesicni-lodka",
+    "hudba": "zachrana-zviratka"
+  },
+  "mesto-bez-smichu": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "zmrzlinovy-dest"
+  },
+  "rytir-bez-mece": {
+    "kulisa": "vyprava",
+    "hudba": "dlouhy-siroky-bystrozraky"
+  },
+  "maly-jako-mravenec": {
+    "kulisa": "vyprava",
+    "hudba": "dinosaurus-na-zahrade"
+  },
+  "vila-rosicka": {
+    "kulisa": "hvezdicka",
+    "hudba": "jednorozec-duhanek"
+  },
+  "jezek-mazlik": {
+    "kulisa": "hvezdicka",
+    "hudba": "noc-v-lese"
+  },
+  "snek-postak": {
+    "kulisa": "vyprava",
+    "hudba": "kdo-to-dela"
+  },
+  "pejsek-z-utulku": {
+    "kulisa": "vyprava",
+    "hudba": "zachrana-zviratka"
+  },
+  "chameleon": {
+    "kulisa": "vyprava",
+    "hudba": "dinosaurus-na-zahrade"
+  },
+  "velryba-zpevacka": {
+    "kulisa": "ponorka-pod-rybnikem",
+    "hudba": "ponorka-pod-rybnikem"
+  },
+  "svetluska": {
+    "kulisa": "hvezdicka",
+    "hudba": "mesicni-lodka"
+  },
+  "mesto-usina": {
+    "kulisa": "hvezdicka",
+    "hudba": "utekle-ovecky"
+  },
+  "pyzamova-party": {
+    "kulisa": "hvezdicka",
+    "hudba": "utekle-ovecky"
+  },
+  "polstarova-zeme": {
+    "kulisa": "hvezdicka",
+    "hudba": "jednorozci-hvezdna-louka"
+  },
+  "uz-tam-budem": {
+    "kulisa": "hadanky",
+    "hudba": "cesta-za-pokladem"
+  },
+  "barevna-honicka": {
+    "kulisa": "hadanky",
+    "hudba": "hadanky"
+  },
+  "pirati-z-vany": {
+    "kulisa": "zubar",
+    "hudba": "cesta-za-pokladem"
+  },
+  "babicka-na-skateboardu": {
+    "kulisa": "tajna-superschopnost",
+    "hudba": "robot-na-namesti"
+  },
+  "kouzelnik-ucen": {
+    "kulisa": "lednice",
+    "hudba": "ponozkozrout"
+  }
 }
