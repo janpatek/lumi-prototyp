@@ -254,6 +254,7 @@ const screens = {
       ${S.family.children.length > 1 ? `
         <div class="section-t">Hlavní hrdinové <span class="hint">– vyberte jednoho nebo víc</span></div>
         <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
+      ${S.premium && ui.trial && ui.trial.renews ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Zkušební doba končí ${trialWhen(ui.trial.end)}</b><span>Pak ${PRICE.text} měsíčně. Když nechcete pokračovat, zrušte předplatné nejpozději ${trialWhen(new Date(ui.trial.end - 24 * 3600e3))}.</span></div><button class="btn small ghost" data-a="unsub">Spravovat</button></div>` : ''}
       ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkněte všechny pohádky</b><span>3 dny zdarma, pak ${PRICE.text} měsíčně</span></div></button>`}
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžete nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změnit to můžete kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       ${shelf('fav', 'Oblíbené', favs, `<span class="shelf-star">${I.star}</span>`)}
@@ -573,6 +574,15 @@ function savePerson() {
 const PRICE = { text: '129 Kč', store: false };
 const WEB_DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 BILLING.price().then((p) => { if (p) { PRICE.text = p; PRICE.store = true; render(); } });
+// zkušební doba 3 dny: v knihovně je vidět její konec a telefon den předem připomene, že se začne platit
+const trialWhen = (d) => `${d.getDate()}. ${d.getMonth() + 1}. v ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+async function checkTrial(ask) {
+  const t = await BILLING.trial();
+  const was = JSON.stringify(ui.trial || null);
+  ui.trial = t;
+  await BILLING.remind(t, PRICE.text, ask);
+  if (JSON.stringify(t) !== was && ui.screen === 'lib' && !document.getElementById('player')) render();
+}
 
 function paywall() {
   $modal.innerHTML = `
@@ -1157,7 +1167,7 @@ const actions = {
     if (!BILLING.native) { if (WEB_DEMO) { S.premium = true; save(); closeModal(); render(); } return; }
     el.disabled = true;
     try {
-      if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); } else el.disabled = false;
+      if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); checkTrial(true); } else el.disabled = false;
     } catch (e) { el.disabled = false; el.insertAdjacentHTML('afterend', `<p class="fine err" style="text-align:center">Nákup se nepovedl. ${esc(e && e.message || '')}</p>`); }
   },
   restore: async () => { const v = await BILLING.restore().catch(() => null); if (v !== null) { S.premium = v; save(); } closeModal(); render(); },
@@ -1235,11 +1245,12 @@ render();
 // Na webu se předplatné koupit nedá. Odemknutí naoko zůstává jen pro vývoj na localhostu; dřív odemčené pohádky na webu se zamknou.
 if (!BILLING.native && !WEB_DEMO && S.premium) { S.premium = false; store.set(S); }
 BILLING.status().then((v) => { if (v !== null && v !== S.premium) { S.premium = v; save(); render(); } });
+checkTrial(false);
 pruneOffline();
 const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });
 refreshDaily();
 // návrat do aplikace (třeba druhý den večer): nová pohádka dne
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshDaily(); if (ui.screen === 'lib' && !document.getElementById('player')) render(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshDaily(); if (S.premium) checkTrial(false); if (ui.screen === 'lib' && !document.getElementById('player')) render(); } });
 DAILY.check(S.notify === true);
 (() => {
   const q = new URLSearchParams(location.search);
