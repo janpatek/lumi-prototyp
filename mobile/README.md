@@ -73,3 +73,13 @@ Před každým dalším nahráním zvyšte `versionCode` v `android/app/build.gr
 4. Ikona Androidu je hotová (plyšový Ospalek, pozadí `#C9C3EC`, commit 5a3e0ec). Chybí úvodní obrazovka (splash) a ikona 512×512 pro záznam v Google Play.
 5. Smazání účtu: v aplikaci „Smazat účet a všechna data“, na webu návod https://ospalek.cz/smazani-uctu/ (adresa do Play Console → Bezpečnost údajů).
 6. Podepisovací klíč pro vydání (Play App Signing) a verze `versionCode`.
+
+## Co je v balíčku a co se stahuje
+
+`npm run web` (scripts/copy-web.mjs) přibalí aplikaci, obálky, kulisy a z hlasu jen věty pohádek zdarma
+(`node tools/hlas/plan.mjs klice`, seznam v `www/audio/hlas/jana/bundled.json`). Balíček má tak asi 65 MB místo 480 MB.
+
+Ostatní věty si aplikace stáhne z ospalek.cz při prvním poslechu nebo tlačítkem *Stáhnout na cestu* a uloží je
+přes `@capacitor/filesystem` do složky `hlas/` v datech aplikace (app/remote.js). Při startu a po návratu
+z pozadí si stáhne aktuální `app/stories.cs.js` z webu a přidá pohádky, které v balíčku ještě nejsou
+(app/catalog.js), takže nové pohádky nepotřebují novou verzi v obchodě – stačí je nasadit na web.

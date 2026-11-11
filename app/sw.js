@@ -13,7 +13,7 @@ const META = 'ospalek-meta';
 const SHELL = [
   './', 'index.html', 'styles.css', 'fonts/fonts.css',
   'fonts/fredoka-latin.woff2', 'fonts/fredoka-latin-ext.woff2', 'fonts/nunito-latin.woff2', 'fonts/nunito-latin-ext.woff2',
-  'stories.cs.js', 'recordings.js', 'audio.js', 'voice-lines.js', 'voice-player.js', 'offline.js', 'sync.js', 'daily.js', 'billing.js', 'app.js',
+  'stories.cs.js', 'remote.js', 'catalog.js', 'recordings.js', 'audio.js', 'voice-lines.js', 'voice-player.js', 'offline.js', 'sync.js', 'daily.js', 'billing.js', 'app.js',
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png', '../gate.js', '../config.js', '../audio/hlas/jana/index.json',
   '../brand/maskot-3d/web/ospalek-mark.webp', '../brand/maskot-3d/web/ospalek-hlava.webp', '../brand/maskot-3d/web/ospalek-spi.webp',
   '../brand/maskot-3d/web/ospalek-vyprava.webp', '../brand/maskot-3d/web/ospalek-mark-64.png', '../brand/maskot-3d/web/ospalek-mark.png',

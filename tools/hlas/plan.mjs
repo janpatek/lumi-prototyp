@@ -115,8 +115,19 @@ if (mode === 'spolecne') {
   console.log(per.join(', '));
   // ElevenLabs účtuje znaky (1 znak ≈ 1 kredit); cena podle business plánu 0,08 $ / 1000 znaků, 23 Kč/$
   console.log(`Odhad: asi ${total} kreditů ElevenLabs, tj. asi ${Math.round(total / 1000 * 0.08 * 23)} Kč.`);
+} else if (mode === 'klice') {
+  // klíče všech nahraných vět pohádek zdarma (společné i se jmény z jmena.json) – mobilní aplikace
+  // přibalí jen tyhle, ostatní stahuje z webu (mobile/scripts/copy-web.mjs, app/remote.js)
+  const names = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/hlas/jmena.json'), 'utf8')).jmena;
+  const keys = new Set();
+  const sets = [variants(null), ...names.flatMap((n) => ['hero', 'sib'].map((as) => variants({ ...n, as })))];
+  for (const st of app.stories.filter((s) => s.free)) {
+    for (const vs of sets) for (const v of vs) app.render(st, v.family, v.heroes).forEach((p) => p.lines.forEach((l) => { if (have[l.key]) keys.add(l.key); }));
+  }
+  process.stdout.write(JSON.stringify([...keys]));
+  process.exit(0);
 } else {
-  console.log('Použití: node tools/hlas/plan.mjs spolecne | rodina tools/hlas/rodiny/<rodina>.json | jmena [seznam.json]');
+  console.log('Použití: node tools/hlas/plan.mjs spolecne | rodina tools/hlas/rodiny/<rodina>.json | jmena [seznam.json] | klice');
   process.exit(1);
 }
 console.log(`Celkem ${total} znaků k namluvení.`);

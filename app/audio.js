@@ -13,7 +13,8 @@ const pref = (() => { try { return JSON.parse(localStorage.getItem(PREF)) || {};
 const savePref = () => { try { localStorage.setItem(PREF, JSON.stringify(pref)); } catch (e) {} };
 // v aplikaci pro iOS vrací Capacitor vlastní soubory se stavem 0 (bez HTTP hlavičky), data ale dorazí
 const okLocal = (r) => r.ok || r.status === 0;
-const bedIndex = fetch(BED + 'index.json').then((r) => (okLocal(r) ? r.json() : null)).catch(() => null);
+// rejstřík smyček; v mobilní aplikaci doplněný z ospalek.cz, aby kulisu měly i pohádky přidané po vydání
+const bedIndex = REMOTE.index(BED + 'index.json').catch(() => null);
 
 const MOODS = {
   // akordy jako MIDI noty, arp = kolik tónů hrací skříňky na takt
@@ -138,8 +139,10 @@ class Ambience {
   // --- zvuk v pozadí pohádky ---
   bedBuffer(file) {
     if (!this.bedBufs.has(file)) {
-      const p = fetch(BED + file)
-        .then((r) => { if (!okLocal(r)) throw new Error('Zvuk v pozadí se nenačetl.'); return r.arrayBuffer(); })
+      const get = (u) => fetch(u).then((r) => { if (!okLocal(r)) throw new Error('Zvuk v pozadí se nenačetl.'); return r.arrayBuffer(); });
+      // smyčka, která v mobilní aplikaci ještě není (pohádka přidaná po vydání), se vezme z webu
+      const p = get(BED + file)
+        .catch((e) => (REMOTE.NATIVE ? get(REMOTE.siteUrl(BED + file)) : Promise.reject(e)))
         .then((b) => this.ctx.decodeAudioData(b));
       p.catch(() => this.bedBufs.delete(file));
       this.bedBufs.set(file, p);

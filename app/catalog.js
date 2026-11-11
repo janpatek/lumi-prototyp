@@ -6,6 +6,9 @@
 // Pohádky v katalogu jsou šablony ve stejném tvaru jako ve stories.cs.js (titleSrc, textSrc = zdroj funkce).
 // Zapisovat do katalogu smí jen tým s ověřením kódem (role Vlastník nebo Obsah), hlídá to databáze.
 // Lokální zkouška: ?db=http://localhost:54321 (supabase/dev-server.mjs).
+// Nové pohádky z webu: aplikace si při startu (mobil) a po návratu z pozadí (web i mobil) stáhne aktuální
+// stories.cs.js z ospalek.cz a přidá pohádky, které ještě nezná – bez nové verze aplikace v obchodě.
+// O pohádkách, které tu minule nebyly, dá vědět událostí „ospalek:stories“ s detail.fresh (seznam id).
 
 const CATALOG = (() => {
   const C = window.OSPALEK_CONFIG || {};
@@ -15,7 +18,7 @@ const CATALOG = (() => {
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
   const CKEY = 'ospalek.catalog.v1' + (devOk ? '.dev' : '');
   const BUNDLED = window.STORIES.slice();
-  let version = 0, at = null;
+  let version = 0, at = null, lastCat = null;
 
   const compile = (src) => new Function('cap', 'listCz', `"use strict"; return (${src}\n);`)(cap, listCz);
   // jedna pohádka z katalogu → stejný tvar jako ve stories.cs.js; když se šablona nedá přeložit, vrátí null
@@ -44,12 +47,57 @@ const CATALOG = (() => {
     BUNDLED.forEach((s) => { if (!gone.has(s.id)) list.push(s); });
     if (!list.length) return false;
     window.STORIES = list;
-    version = cat.version || 0; at = cat.at || null;
+    version = cat.version || 0; at = cat.at || null; lastCat = cat;
     return true;
   }
+  const rebuild = () => { if (!lastCat || !apply(lastCat)) window.STORIES = BUNDLED.slice(); };
 
-  // 1) hned: uložená kopie z minula
+  // které pohádky už rodina v knihovně viděla; nové ohlásit (poprvé se jen zapamatují)
+  const KKEY = 'ospalek.known.v1';
+  function changed() {
+    let known = null;
+    try { known = JSON.parse(localStorage.getItem(KKEY)); } catch (e) {}
+    const ids = window.STORIES.map((s) => s.id);
+    const fresh = Array.isArray(known) ? ids.filter((id) => !known.includes(id)) : [];
+    try { localStorage.setItem(KKEY, JSON.stringify([...new Set([...(known || []), ...ids])])); } catch (e) {}
+    dispatchEvent(new CustomEvent('ospalek:stories', { detail: { fresh } }));
+  }
+
+  // pohádky ze stories.cs.js stažené z webu; přidají se jen ty, které aplikace nemá
+  const SKEY = 'ospalek.stories.v1';
+  const SRC = REMOTE.NATIVE ? REMOTE.SITE + 'app/stories.cs.js' : 'stories.cs.js';
+  function addFrom(src) {
+    const w = { CATEGORIES: [] };
+    new Function('window', '"use strict";\n' + src)(w);
+    if (!Array.isArray(w.STORIES)) return 0;
+    let n = 0;
+    w.STORIES.forEach((s) => {
+      if (!s || !s.id || typeof s.title !== 'function' || typeof s.text !== 'function' || BUNDLED.some((b) => b.id === s.id)) return;
+      // obálky pohádek přidaných po vydání nejsou v mobilní aplikaci, berou se z webu
+      if (REMOTE.NATIVE && s.cover) s.cover = { ...s.cover, ...(s.cover.img ? { img: REMOTE.siteUrl(s.cover.img) } : {}), ...(s.cover.imgF ? { imgF: REMOTE.siteUrl(s.cover.imgF) } : {}) };
+      BUNDLED.push(s);
+      n++;
+    });
+    w.CATEGORIES.forEach((k) => { if (k && k.id && !window.CATEGORIES.some((x) => x.id === k.id)) window.CATEGORIES.push(k); });
+    return n;
+  }
+  let checked = 0;
+  async function checkStories() {
+    if (!navigator.onLine || Date.now() - checked < 5 * 60 * 1000) return;
+    checked = Date.now();
+    try {
+      const r = await fetch(SRC, { cache: 'no-cache' });
+      if (!r.ok) return;
+      const src = await r.text();
+      if (REMOTE.NATIVE) try { localStorage.setItem(SKEY, src); } catch (e) {}
+      if (addFrom(src)) { rebuild(); changed(); }
+    } catch (e) { /* příště znovu */ }
+  }
+
+  // 1) hned: pohádky z webu stažené minule (mobil) a uložená kopie katalogu
+  if (REMOTE.NATIVE) try { const src = localStorage.getItem(SKEY); if (src) addFrom(src); } catch (e) {}
   try { apply(JSON.parse(localStorage.getItem(CKEY))); } catch (e) {}
+  if (!lastCat) window.STORIES = BUNDLED.slice();
 
   // 2) na pozadí: novější verze ze serveru
   async function refresh(full) {
@@ -62,23 +110,25 @@ const CATALOG = (() => {
         // v databázi žádný katalog není (zatím nic nezveřejněno) → pohádky z aplikace
         if (!version) return false;
         try { localStorage.removeItem(CKEY); } catch (e) {}
-        window.STORIES = BUNDLED.slice(); version = 0; at = null;
-        dispatchEvent(new Event('ospalek:stories'));
+        window.STORIES = BUNDLED.slice(); version = 0; at = null; lastCat = null;
+        changed();
         return true;
       }
       // stejné číslo, ale jiná verze (databáze založená znovu) → stáhnout celý katalog
       if (!cat.stories) return !full && version && cat.at !== at ? refresh(true) : false;
       if (!apply(cat)) return false;
       try { localStorage.setItem(CKEY, JSON.stringify(cat)); } catch (e) {}
-      dispatchEvent(new Event('ospalek:stories'));
+      changed();
       return true;
     } catch (e) {
       return false;
     }
   }
-  addEventListener('online', () => refresh());
+  addEventListener('online', () => { refresh(); checkStories(); });
   // aplikace vytažená z pozadí (telefon) se zeptá znovu
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refresh(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refresh(); checkStories(); } });
+  // po startu: ohlásit pohádky, které přibyly od minula (i z nové verze webu), a na mobilu zkusit web
+  addEventListener('load', () => { changed(); if (REMOTE.NATIVE) checkStories(); else checked = Date.now(); });
 
   return { refresh, get version() { return version; } };
 })();
