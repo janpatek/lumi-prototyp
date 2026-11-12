@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
@@ -18,6 +19,9 @@ import android.util.Base64;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.ServiceCompat;
+import androidx.media.AudioAttributesCompat;
+import androidx.media.AudioFocusRequestCompat;
+import androidx.media.AudioManagerCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
 
@@ -27,6 +31,9 @@ import androidx.media.session.MediaButtonReceiver;
  * systém aplikaci po zhasnutí displeje neuspí. Zároveň drží mediální relaci: na zamčené obrazovce
  * a v oznámení je obálka pohádky, název a tlačítka předchozí / přehrát-pozastavit / další.
  * Stisknutá tlačítka posílá zpátky do aplikace PrehravacPlugin (událost „action“).
+ * Když pohádka hraje, drží si „audio focus“: Spotify a jiné přehrávače se zastaví. Když si zvuk vezme
+ * jiná aplikace, pohádka se pozastaví; po hovoru nebo krátkém hlášení (navigace) zase pokračuje.
+ * WebView si focus samo neřekne, proto to dělá tahle služba.
  */
 public class PrehravacService extends Service {
     static final String ACTION_UPDATE = "cz.ospalek.app.PREHRAVAC_UPDATE";
@@ -41,6 +48,39 @@ public class PrehravacService extends Service {
     private boolean hasPrev;
     private boolean hasNext;
     private boolean foreground;
+
+    private AudioManager audio;
+    private AudioFocusRequestCompat focusRequest;
+    private boolean hasFocus;
+    private boolean pausedByFocus; // pozastavila to jiná aplikace na chvíli (hovor), po návratu pokračovat
+
+    private final AudioManager.OnAudioFocusChangeListener focusListener = change -> {
+        switch (change) {
+            case AudioManager.AUDIOFOCUS_LOSS:
+                // jiná aplikace začala hrát (Spotify, video): pohádka se pozastaví a sama už nepokračuje
+                hasFocus = false;
+                pausedByFocus = false;
+                if (playing) PrehravacPlugin.emit("pause");
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                // hovor, budík, hlasová zpráva: pozastavit a potom pokračovat
+                if (playing) {
+                    pausedByFocus = true;
+                    PrehravacPlugin.emit("pause");
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                hasFocus = true;
+                if (pausedByFocus) {
+                    pausedByFocus = false;
+                    PrehravacPlugin.emit("play");
+                }
+                break;
+            default:
+                // AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK (pokyn navigace): pohádka hraje dál
+                break;
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -62,6 +102,27 @@ public class PrehravacService extends Service {
         Intent open = new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         session.setSessionActivity(PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT));
         session.setActive(true);
+
+        audio = getSystemService(AudioManager.class);
+        focusRequest = new AudioFocusRequestCompat.Builder(AudioManagerCompat.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(new AudioAttributesCompat.Builder()
+                .setUsage(AudioAttributesCompat.USAGE_MEDIA)
+                .setContentType(AudioAttributesCompat.CONTENT_TYPE_SPEECH)
+                .build())
+            .setWillPauseWhenDucked(false)
+            .setOnAudioFocusChangeListener(focusListener)
+            .build();
+    }
+
+    private void requestFocus() {
+        if (hasFocus || audio == null) return;
+        hasFocus = AudioManagerCompat.requestAudioFocus(audio, focusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+    }
+
+    private void abandonFocus() {
+        if (!hasFocus || audio == null) return;
+        AudioManagerCompat.abandonAudioFocusRequest(audio, focusRequest);
+        hasFocus = false;
     }
 
     @Override
@@ -72,6 +133,11 @@ public class PrehravacService extends Service {
             playing = intent.getBooleanExtra("playing", false);
             hasPrev = intent.getBooleanExtra("hasPrev", false);
             hasNext = intent.getBooleanExtra("hasNext", false);
+            if (playing) {
+                // pohádka hraje (rodič klepl na Přehrát): ostatní přehrávače ztichnou
+                pausedByFocus = false;
+                requestFocus();
+            }
             String art = intent.getStringExtra("artwork");
             if (art != null) artwork = decode(art);
             refresh();
@@ -169,6 +235,7 @@ public class PrehravacService extends Service {
 
     @Override
     public void onDestroy() {
+        abandonFocus();
         if (foreground) ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
         session.setActive(false);
