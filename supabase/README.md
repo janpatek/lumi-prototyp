@@ -88,27 +88,26 @@ Ukázková data a lokální databáze (`?db=…`) berou katalog a soubory přím
 ### Zveřejňování na Instagram
 
 Reels a příspěvky jdou z detailu v Sociálních sítích zveřejnit tlačítkem *Zveřejnit na Instagramu* (popisek jde před
-odesláním upravit). Zveřejněný materiál se sám označí jako použitý, s odkazem na příspěvek. Používá se Instagram API
-s přihlášením přes Instagram (firemní účet, facebooková stránka není potřeba, zdarma). Přístupový token drží jen Edge
-Function `instagram` v tabulce `instagram_ucet`. Platí 60 dní a funkce ho při používání sama prodlužuje, po delší pauze
-stačí účet propojit znovu. Obrázky posílá jako JPG (`marketing/katalog.mjs` je vyrobí vedle PNG), Instagram PNG přes API nebere.
+odesláním upravit). Zveřejněný materiál se sám označí jako použitý, s odkazem na příspěvek. Používá se Instagram Graph API
+s přihlášením přes Facebook (firemní Instagram propojený s facebookovou stránkou, zdarma). Přístupový token stránky drží jen
+Edge Function `instagram` v tabulce `instagram_ucet`. Sám nevyprší, Meta ale po 90 dnech chce propojení obnovit
+(administrace ukáže datum). Obrázky posílá jako JPG (`marketing/katalog.mjs` je vyrobí vedle PNG), Instagram PNG přes API nebere.
 
 Zapojení (jednou):
 
-1. **Instagram:** účet Ospalek.cz přepnout na profesionální (aplikace Instagram → Nastavení → Typ účtu a nástroje → Firma).
+1. **Instagram:** účet Ospalek.cz přepnout na profesionální (Nastavení → Typ účtu a nástroje → Firma) a propojit ho
+   s facebookovou stránkou Ospalek.cz (Meta Business Suite nebo Nastavení stránky → Propojené účty → Instagram).
 2. **Databáze:** SQL Editor → spustit `migrations/20261113_instagram.sql`.
 3. **Edge Function:** Edge Functions → Deploy a new function → Via editor, název `instagram`, obsah `functions/instagram/index.ts`.
-   V nastavení funkce **vypnout „Verify JWT“** (Instagram vrací přihlášení přímo na funkci). Ostatní adresy si přihlášení ověřují samy.
-4. **Meta for Developers** (developers.facebook.com, přihlášení osobním Facebookem):
-   - Create app → typ Business (název třeba „Ospalek admin“) → přidat produkt **Instagram** → *API setup with Instagram login*.
-   - *Set up Instagram business login* → Business login settings → OAuth redirect URIs: `https://imiujppjewddeldjifkl.supabase.co/functions/v1/instagram/zpet`
-     (administrace ji ukáže i s tlačítkem Zkopírovat).
-   - Aplikace zůstává ve vývojovém režimu, App Review není potřeba, protože zveřejňuje jen na vlastní účet. Účet Ospalek.cz
-     ale musí mít v aplikaci roli: App roles → Roles → Instagram Testers → přidat `ospalek.cz` a pozvánku potvrdit
-     v aplikaci Instagram (Nastavení → Aplikace a weby → Pozvánky testerů). Kdo je administrátor aplikace, roli už má.
-5. **Secrets** (Edge Functions → Secrets): `IG_APP_ID` = *Instagram app ID* a `IG_APP_SECRET` = *Instagram app secret*
-   ze stránky API setup with Instagram login (jiné hodnoty než Facebook App ID nahoře v aplikaci). Secret nikam jinam nevkládej.
-6. **Propojení:** administrace → Sociální sítě → *Propojit Instagram*, přihlásit se účtem Ospalek.cz a povolit oprávnění.
+   V nastavení funkce **vypnout „Verify JWT“** (Facebook vrací přihlášení přímo na funkci). Ostatní adresy si přihlášení ověřují samy.
+4. **Meta for Developers:** aplikace *Ospalek.cz* (App ID 133331801088, přihlášení osobním Facebookem) má produkty
+   *Facebook Login* a *Instagram Graph API*. Facebook Login → Settings → Valid OAuth Redirect URIs:
+   `https://imiujppjewddeldjifkl.supabase.co/functions/v1/instagram/zpet` (administrace ji ukáže i s tlačítkem Zkopírovat).
+   Aplikace zůstává ve vývojovém režimu, App Review není potřeba, propojovat musí její administrátor (správce stránky).
+5. **Secrets** (Edge Functions → Secrets): `IG_APP_ID` = *App ID* a `IG_APP_SECRET` = *App secret* z App settings → Basic.
+   Secret nikam jinam nevkládej.
+6. **Propojení:** administrace → Sociální sítě → *Propojit Instagram*, přihlásit se Facebookem, vybrat stránku Ospalek.cz
+   i její Instagram a povolit všechna oprávnění.
 
 Omezení API: nejde přidat hudbu z knihovny Instagramu ani označit lidi, přes API jde za 24 hodin zveřejnit jen omezený počet příspěvků
 (desítky), popisek nejvýš 2200 znaků a 30 hashtagů. Příspěvky se zástupnými texty `[…]` administrace nepustí.

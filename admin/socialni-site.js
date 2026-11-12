@@ -158,8 +158,8 @@ function igBar() {
   if (IG.state === 'loading' || IG.state === 'idle') body = '<span class="muted">Instagram: zjišťuji propojení…</span>';
   else if (IG.state === 'err') body = `<b>Instagram</b><span class="muted">${esc(IG.err)}</span><button class="btn white sm" data-a="igReload">Zkusit znovu</button>`;
   else if (!d.nastaveno) body = `<b>Instagram</b><span class="muted">V Supabase → Edge Functions → Secrets chybí IG_APP_ID a IG_APP_SECRET.</span>${uri}`;
-  else if (!d.propojeno) body = `<b>Instagram</b><span class="muted">${d.vyprsel ? 'Propojení vypršelo (token platí 60 dní).' : 'Není propojený.'}</span><button class="btn sm" data-a="igConnect">Propojit Instagram</button>${uri}`;
-  else body = `<b>Instagram @${esc(d.username)}</b><span class="muted">propojený, přihlášení platí do ${new Date(d.expires_at).toLocaleDateString('cs-CZ')} a samo se prodlužuje</span><button class="btn white sm" data-a="igDisconnect">Odpojit</button>`;
+  else if (!d.propojeno) body = `<b>Instagram</b><span class="muted">${d.vyprsel ? 'Propojení vypršelo (Meta ho po 90 dnech chce obnovit).' : 'Není propojený.'}</span><button class="btn sm" data-a="igConnect">Propojit Instagram</button>${uri}`;
+  else body = `<b>Instagram @${esc(d.username)}</b><span class="muted">propojený, propojení obnovte do ${new Date(d.expires_at).toLocaleDateString('cs-CZ')}</span><button class="btn white sm" data-a="igDisconnect">Odpojit</button>`;
   return `<section class="panel soc-ig">${body}</section>`;
 }
 const IG_TYP = { REELS: 'Reel (video)', CAROUSEL: 'Karusel', IMAGE: 'Obrázek' };

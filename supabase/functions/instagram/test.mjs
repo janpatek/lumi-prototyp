@@ -1,6 +1,6 @@
 // Test funkce instagram bez Supabase a bez Instagramu: node supabase/functions/instagram/test.mjs
 // Databázi, úložiště, přihlášení i Instagram Graph API nahrazuje podvržený fetch, ověřuje se celý průběh
-// propojení (OAuth), zveřejnění reelu, karuselu a obrázku, obnova tokenu a odmítnutí cizích lidí.
+// propojení (OAuth), zveřejnění reelu, karuselu a obrázku, vypršení propojení a odmítnutí cizích lidí.
 import assert from 'node:assert/strict';
 
 const SB = 'https://test.supabase.co';
@@ -19,7 +19,7 @@ const KATALOG = { polozky: [
 const FILES = new Set(['reels/01-jmeno/reel.mp4', 'reels/01-jmeno/obalka.jpg', 'p/s1.jpg', 'p/s2.jpg', 'p/s3.jpg', 'a/s1.jpg']);
 const T = { oauth: [], ucet: [], prispevky: [], stav: null };
 const calls = [];
-let seq = 1000, polls = 0;
+let seq = 1000, polls = 0, PERM_OK = true, PAGE_IG = true;
 const res = (body, status = 200) => new Response(body === null ? null : JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 const eqv = (u, k) => (u.searchParams.get(k) || '').replace(/^eq\./, '');
 
@@ -48,13 +48,23 @@ globalThis.fetch = async (url, o = {}) => {
   if (u.pathname === '/storage/v1/object/marketing/stav.json') { T.stav = body; return res({ Key: 'x' }); }
   if (u.pathname === '/storage/v1/object/sign/marketing') return res(body.paths.map((p) => ({ path: p, signedURL: FILES.has(p) ? `/object/sign/marketing/${p}?token=t` : null, error: FILES.has(p) ? null : 'missing' })));
   // Instagram
-  if (url.startsWith('https://api.instagram.com/oauth/access_token')) {
-    assert.equal(body.client_secret, 'tajne'); assert.equal(body.redirect_uri, `${SB}/functions/v1/instagram/zpet`);
-    return body.code === 'dobry' ? res({ data: [{ access_token: 'short', user_id: '1784', permissions: 'instagram_business_basic,instagram_business_content_publish' }] }) : res({ error_type: 'OAuthException', code: 400, error_message: 'Invalid code' }, 400);
+  // Facebook Graph API
+  assert.equal(u.origin, 'https://graph.facebook.com');
+  if (u.pathname === '/v23.0/oauth/access_token') {
+    const q = Object.fromEntries(u.searchParams);
+    assert.equal(q.client_id, '123'); assert.equal(q.client_secret, 'tajne');
+    if (q.grant_type === 'fb_exchange_token') { assert.equal(q.fb_exchange_token, 'short'); return res({ access_token: 'long', token_type: 'bearer', expires_in: 5184000 }); }
+    assert.equal(q.redirect_uri, `${SB}/functions/v1/instagram/zpet`);
+    return q.code === 'dobry' ? res({ access_token: 'short', token_type: 'bearer', expires_in: 3600 }) : res({ error: { message: 'Invalid code', type: 'OAuthException', code: 100 } }, 400);
   }
-  if (u.origin + u.pathname === 'https://graph.instagram.com/access_token') return res({ access_token: 'long', token_type: 'bearer', expires_in: 5184000 });
-  if (u.origin + u.pathname === 'https://graph.instagram.com/refresh_access_token') return res({ access_token: 'long2', expires_in: 5184000 });
-  if (u.pathname === '/v23.0/me') return res({ user_id: '17841400', username: 'ospalek.cz' });
+  if (u.pathname === '/v23.0/me/permissions') {
+    assert.equal(u.searchParams.get('access_token'), 'long');
+    return res({ data: ['instagram_basic', 'instagram_content_publish', 'pages_show_list'].map((p) => ({ permission: p, status: PERM_OK || p !== 'instagram_content_publish' ? 'granted' : 'declined' })) });
+  }
+  if (u.pathname === '/v23.0/me/accounts') {
+    assert.equal(u.searchParams.get('access_token'), 'long');
+    return res({ data: [{ name: 'Jiná stránka', access_token: 'jina' }, ...(PAGE_IG ? [{ name: 'Ospalek.cz', access_token: 'stranka', instagram_business_account: { id: '17841400', username: 'ospalek.cz' } }] : [])] });
+  }
   if (u.pathname === '/v23.0/17841400/media') { assert.equal(body.access_token, T.ucet[0].token); return res({ id: String(++seq) }); }
   if (u.pathname === '/v23.0/17841400/media_publish') return res({ id: '999' });
   if (u.pathname === '/v23.0/999') return res({ permalink: 'https://www.instagram.com/reel/ABC/', id: '999' });
@@ -80,9 +90,10 @@ await assert.rejects(call('zverejnit', { id: 'reel-jmeno', popisek: 'Ahoj' }), (
 // 3) propojení: odkaz s náhodným state, návrat jen na administraci
 const p = await call('propojit', { navrat: 'http://localhost:5174/admin/' });
 const au = new URL(p.url);
-assert.equal(au.origin + au.pathname, 'https://www.instagram.com/oauth/authorize');
+assert.equal(au.origin + au.pathname, 'https://www.facebook.com/v23.0/dialog/oauth');
 assert.equal(au.searchParams.get('client_id'), '123');
-assert.equal(au.searchParams.get('scope'), 'instagram_business_basic,instagram_business_content_publish');
+assert.equal(au.searchParams.get('redirect_uri'), `${SB}/functions/v1/instagram/zpet`);
+assert.match(au.searchParams.get('scope'), /instagram_content_publish/);
 const state = au.searchParams.get('state');
 assert.match(state, /^[0-9a-f]{48}$/);
 assert.equal(T.oauth[0].navrat, 'http://localhost:5174/admin/');
@@ -99,14 +110,21 @@ assert.match(r.headers.get('Location'), /^http:\/\/localhost:5174\/admin\/\?ig=c
 assert.equal(T.ucet.length, 0);
 r = await zpet({ code: 'dobry', state }); // state už je spotřebovaný
 assert.match(r.headers.get('Location'), /ig=chyba/);
-const p2 = new URL((await call('propojit', { navrat: 'http://localhost:5174/admin/' })).url).searchParams.get('state');
-r = await zpet({ code: 'dobry#_', state: p2 });
+const newState = async () => new URL((await call('propojit', { navrat: 'http://localhost:5174/admin/' })).url).searchParams.get('state');
+PERM_OK = false;
+r = await zpet({ code: 'dobry', state: await newState() });
+assert.match(decodeURIComponent(r.headers.get('Location')), /nepovolil/); PERM_OK = true;
+PAGE_IG = false;
+r = await zpet({ code: 'dobry', state: await newState() });
+assert.match(decodeURIComponent(r.headers.get('Location').replace(/\+/g, ' ')), /facebookovou stránku/); PAGE_IG = true;
+assert.equal(T.ucet.length, 0);
+r = await zpet({ code: 'dobry#_', state: await newState() });
 assert.equal(r.headers.get('Location'), 'http://localhost:5174/admin/?ig=ok#socialni');
-assert.equal(T.ucet[0].ig_user_id, '17841400'); assert.equal(T.ucet[0].token, 'long'); assert.equal(T.ucet[0].propojil, 'jan');
-assert.ok(Date.parse(T.ucet[0].expires_at) - Date.now() > 59 * 864e5);
+assert.equal(T.ucet[0].ig_user_id, '17841400'); assert.equal(T.ucet[0].token, 'stranka'); assert.equal(T.ucet[0].propojil, 'jan');
+assert.ok(Date.parse(T.ucet[0].expires_at) - Date.now() > 89 * 864e5);
 const s = await call('stav');
 assert.equal(s.propojeno, true); assert.equal(s.username, 'ospalek.cz');
-assert.equal(JSON.stringify(s).includes('long'), false); // token se do administrace nedostane
+assert.equal(/long|stranka/.test(JSON.stringify(s)), false); // token se do administrace nedostane
 
 // 5) kontrola popisku
 await assert.rejects(call('zverejnit', { id: 'reel-jmeno', popisek: 'x'.repeat(2201) }), /2200/);
@@ -146,10 +164,7 @@ assert.equal(ki.typ, 'IMAGE'); assert.equal(lastMedia().at(-1).body.image_url, `
 FILES.delete('a/s1.jpg');
 await assert.rejects(call('zverejnit', { id: 'ig-ahoj', popisek: 'Ahoj' }), /chybí a\/s1\.jpg/);
 
-// 10) obnova tokenu, když zbývá méně než 20 dní, a vypršelý token
-T.ucet[0] = { ...T.ucet[0], expires_at: new Date(Date.now() + 10 * 864e5).toISOString(), token_at: new Date(Date.now() - 50 * 864e5).toISOString() };
-await call('stav');
-assert.equal(T.ucet[0].token, 'long2'); assert.ok(Date.parse(T.ucet[0].expires_at) - Date.now() > 59 * 864e5);
+// 10) vypršelé propojení (90 dní)
 T.ucet[0].expires_at = new Date(Date.now() - 1000).toISOString();
 assert.equal((await call('stav')).vyprsel, true);
 await assert.rejects(call('zverejnit', { id: 'reel-jmeno', popisek: 'a' }), /vypršelo/);

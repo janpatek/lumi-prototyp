@@ -1,31 +1,32 @@
 // Ospalek – zveřejňování na Instagram z administrace (Supabase Edge Function „instagram“).
-// Instagram API s přihlášením přes Instagram (firemní účet, bez facebookové stránky). Přístupový token žije jen tady
+// Instagram Graph API s přihlášením přes Facebook (firemní účet Instagramu propojený s facebookovou stránkou).
+// Přístupový token stránky žije jen tady
 // a v tabulce instagram_ucet (supabase/migrations/20261113_instagram.sql), do prohlížeče se nedostane.
 //
 // Adresy (https://<projekt>.supabase.co/functions/v1/instagram/…), všechny kromě /zpet chtějí člena týmu s rolí
 // Vlastník nebo Obsah přihlášeného i kódem z Google Authenticatoru (Authorization: Bearer <token z administrace>):
 //   POST /instagram/stav        – je účet propojený? (jméno účtu, platnost tokenu, adresa pro přesměrování)
-//   POST /instagram/propojit    { navrat } – vrátí odkaz na přihlášení do Instagramu
-//   GET  /instagram/zpet        – sem Instagram vrátí přihlášení (?code&state), funkce si vymění token a přesměruje zpět do administrace
+//   POST /instagram/propojit    { navrat } – vrátí odkaz na přihlášení přes Facebook
+//   GET  /instagram/zpet        – sem Facebook vrátí přihlášení (?code&state), funkce si vymění token a přesměruje zpět do administrace
 //   POST /instagram/odpojit     – zapomene propojený účet
 //   POST /instagram/zverejnit   { id, popisek } – připraví příspěvek z katalogu (katalog.json v úložišti marketing)
 //   POST /instagram/dokoncit    { kontejner, id, popisek } – zeptá se, jestli ho Instagram zpracoval, a pak ho zveřejní
 // Video Instagram zpracovává i minuty, proto zveřejnění běží na dva kroky a administrace se na /dokoncit ptá opakovaně.
 //
 // Nasazení: Supabase → Edge Functions → Deploy a new function → Via editor, název instagram, vložit tenhle soubor,
-// v nastavení funkce VYPNOUT „Verify JWT“ (na /zpet přichází prohlížeč z Instagramu bez tokenu; ostatní adresy si
-// přihlášení ověřují samy). Tajné hodnoty (Edge Functions → Secrets): IG_APP_ID a IG_APP_SECRET z Meta for Developers →
-// aplikace → Instagram → API setup with Instagram login (Instagram app ID a Instagram app secret, ne Facebook App ID).
+// v nastavení funkce VYPNOUT „Verify JWT“ (na /zpet přichází prohlížeč z Facebooku bez tokenu; ostatní adresy si
+// přihlášení ověřují samy). Tajné hodnoty (Edge Functions → Secrets): IG_APP_ID a IG_APP_SECRET = App ID a App secret
+// z Meta for Developers → aplikace Ospalek.cz → App settings → Basic.
 // Postup: supabase/README.md, sekce Zveřejňování na Instagram.
 //
 // Soubor nemá žádné importy, aby šel otestovat i v Node (supabase/functions/instagram/test.mjs).
 
-const GRAPH = 'https://graph.instagram.com/v23.0'; // verze Graph API, Meta ji podporuje zhruba dva roky od vydání
-const SCOPES = 'instagram_business_basic,instagram_business_content_publish';
+const GRAPH = 'https://graph.facebook.com/v23.0'; // verze Graph API, Meta ji podporuje zhruba dva roky od vydání
+const SCOPES = 'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement,business_management';
+const PLATNOST = 90 * 864e5; // Meta po 90 dnech bez přihlášení chce propojení obnovit (data access expiration)
 const ORIGINS = ['https://ospalek.cz', 'https://www.ospalek.cz'];
 const okOrigin = (o: string) => ORIGINS.includes(o) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
 const PLACEHOLDER = /\[[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ ]+\]/; // stejné jako v marketing/katalog.mjs
-const DAY = 864e5;
 
 // deno-lint-ignore no-explicit-any
 type J = any;
@@ -120,21 +121,12 @@ async function account(): Promise<J> {
   if (!a) return null;
   const left = Date.parse(a.expires_at) - Date.now();
   if (left <= 0) return { ...a, vyprsel: true };
-  // dlouhodobý token platí 60 dní; obnovit jde, až je starý aspoň den
-  if (left < 20 * DAY && Date.now() - Date.parse(a.token_at) > DAY) {
-    try {
-      const t = await graph('GET', 'https://graph.instagram.com/refresh_access_token', { grant_type: 'ig_refresh_token', access_token: a.token });
-      const upd = { token: t.access_token, expires_at: new Date(Date.now() + (t.expires_in || 60 * 86400) * 1000).toISOString(), token_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-      await db('PATCH', 'instagram_ucet?id=eq.1', upd);
-      return { ...a, ...upd };
-    } catch (e) { console.error('refresh', (e as Error).message); }
-  }
   return a;
 }
 async function needAccount(): Promise<J> {
   const a = await account();
   if (!a) throw fail(409, 'Instagram ještě není propojený. Klikněte na Propojit Instagram.');
-  if (a.vyprsel) throw fail(409, 'Propojení s Instagramem vypršelo (token platí 60 dní). Propojte účet znovu.');
+  if (a.vyprsel) throw fail(409, 'Propojení s Instagramem vypršelo (Meta ho po 90 dnech chce obnovit). Propojte účet znovu.');
   return a;
 }
 function checkCaption(t: string) {
@@ -154,19 +146,24 @@ export async function handle(req: Request, path: string): Promise<J> {
       return back(ORIGINS[0] + '/admin/', { ig: 'chyba', zprava: 'Přihlášení vypršelo nebo nepatří k administraci. Zkuste Propojit Instagram znovu.' });
     }
     if (u.searchParams.get('error') || !u.searchParams.get('code')) {
-      return back(row.navrat, { ig: 'chyba', zprava: u.searchParams.get('error_description') || 'Propojení jste na Instagramu nepotvrdili.' });
+      return back(row.navrat, { ig: 'chyba', zprava: u.searchParams.get('error_description') || 'Propojení jste na Facebooku nepotvrdili.' });
     }
     try {
       const code = u.searchParams.get('code')!.replace(/#_$/, '');
-      const s = await graph('POST', 'https://api.instagram.com/oauth/access_token', { client_id: env('IG_APP_ID'), client_secret: env('IG_APP_SECRET'), grant_type: 'authorization_code', redirect_uri: redirectUri(), code });
-      const short = (s.data && s.data[0]) || s;
-      if (!String(short.permissions || SCOPES).includes('instagram_business_content_publish')) throw fail(400, 'Instagram nepovolil zveřejňování. Při propojení nechte zaškrtnuté všechna oprávnění.');
-      const long = await graph('GET', 'https://graph.instagram.com/access_token', { grant_type: 'ig_exchange_token', client_secret: env('IG_APP_SECRET'), access_token: short.access_token });
-      const me = await graph('GET', `${GRAPH}/me`, { fields: 'user_id,username', access_token: long.access_token });
+      const app = { client_id: env('IG_APP_ID'), client_secret: env('IG_APP_SECRET') };
+      const short = await graph('GET', `${GRAPH}/oauth/access_token`, { ...app, redirect_uri: redirectUri(), code });
+      // dlouhodobý token uživatele, z něj token stránky, který nevyprší
+      const long = await graph('GET', `${GRAPH}/oauth/access_token`, { ...app, grant_type: 'fb_exchange_token', fb_exchange_token: short.access_token });
+      const perms = await graph('GET', `${GRAPH}/me/permissions`, { access_token: long.access_token });
+      const ok = new Set((perms.data || []).filter((x: J) => x.status === 'granted').map((x: J) => x.permission));
+      if (!ok.has('instagram_content_publish')) throw fail(400, 'Facebook nepovolil zveřejňování na Instagram. Při propojení nechte zaškrtnutá všechna oprávnění.');
+      const pages = await graph('GET', `${GRAPH}/me/accounts`, { fields: 'name,access_token,instagram_business_account{id,username}', limit: '100', access_token: long.access_token });
+      const page = (pages.data || []).find((x: J) => x.instagram_business_account && x.access_token);
+      if (!page) throw fail(400, 'Nenašli jsme facebookovou stránku s propojeným firemním Instagramem. Propojte Instagram Ospalek.cz se stránkou a při přihlášení ji vyberte.');
       const now = new Date().toISOString();
       await db('POST', 'instagram_ucet', {
-        id: 1, ig_user_id: String(me.user_id || short.user_id), username: me.username || '', token: long.access_token,
-        expires_at: new Date(Date.now() + (long.expires_in || 60 * 86400) * 1000).toISOString(), token_at: now, propojil: row.user_id, updated_at: now,
+        id: 1, ig_user_id: String(page.instagram_business_account.id), username: page.instagram_business_account.username || '', token: page.access_token,
+        expires_at: new Date(Date.now() + PLATNOST).toISOString(), token_at: now, propojil: row.user_id, updated_at: now,
       }, 'resolution=merge-duplicates,return=minimal');
       return back(row.navrat, { ig: 'ok' });
     } catch (e) {
@@ -192,8 +189,8 @@ export async function handle(req: Request, path: string): Promise<J> {
     const state = [...crypto.getRandomValues(new Uint8Array(24))].map((x) => x.toString(16).padStart(2, '0')).join('');
     await db('DELETE', `instagram_oauth?created_at=lt.${new Date(Date.now() - 15 * 60e3).toISOString()}`);
     await db('POST', 'instagram_oauth', { state, user_id: c.id, navrat }, 'return=minimal');
-    const q = new URLSearchParams({ enable_fb_login: '0', force_authentication: '1', client_id: env('IG_APP_ID'), redirect_uri: redirectUri(), response_type: 'code', scope: SCOPES, state });
-    return { url: `https://www.instagram.com/oauth/authorize?${q}` };
+    const q = new URLSearchParams({ client_id: env('IG_APP_ID'), redirect_uri: redirectUri(), response_type: 'code', scope: SCOPES, auth_type: 'rerequest', state });
+    return { url: `https://www.facebook.com/v23.0/dialog/oauth?${q}` };
   }
   if (path === 'odpojit') {
     await db('DELETE', 'instagram_ucet?id=eq.1');
