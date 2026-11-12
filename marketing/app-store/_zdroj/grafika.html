@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Ospalek – obrázky pro App Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@700;800;900&display=block" rel="stylesheet">
+<style>
+  /* App Store: kopie marketing/google-play/_zdroj/grafika.html v rozměru iPhonu 6,9" (1320×2868).
+     Tokeny z landing.css / brand manuálu. Každý <section data-out> je jeden výstupní soubor. */
+  :root {
+    --ink: #2E3150; --ink-muted: #5E6180; --lavender: #C9C3EC; --lavender-ink: #5B4FB0; --lavender-soft: #ECE9FA;
+    --honey: #F6D98B; --night: #1C1E33; --night-ink: #EEEBFA; --night-muted: #B4B2CF;
+    --felt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .18 0 0 0 0 .19 0 0 0 0 .31 .16 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+    --felt-night: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .92 0 0 0 0 .98 .1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+    --stitch: rgba(46, 49, 80, .22);
+    --shadow-pillow: inset 0 3px 0 rgba(255, 255, 255, .35), inset 0 -8px 16px rgba(0, 0, 0, .14), 0 10px 22px rgba(46, 49, 80, .2);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #8a87a6; font-family: "Nunito", system-ui, sans-serif; color: var(--ink); display: flex; flex-wrap: wrap; gap: 30px; padding: 30px; }
+  section { position: relative; overflow: hidden; flex: none; --bg: #E9E5FA; --accent: var(--lavender-ink); --muted: var(--ink-muted); --kid: var(--lavender-ink); --kid-bg: rgba(255, 255, 255, .8);
+    background: var(--felt), radial-gradient(110% 70% at 20% 0%, rgba(255, 255, 255, .6), transparent 60%), var(--bg); }
+  .stitched::before { content: ""; position: absolute; inset: 24px; border: 4px dashed var(--stitch); border-radius: 54px; z-index: 6; pointer-events: none; }
+  .t-mint { --bg: #DDF1E7; --accent: #2F7A5C; } .t-peach { --bg: #FFE4D4; --accent: #B4583A; } .t-sky { --bg: #DDEBF7; --accent: #2F6A97; }
+  .t-honey { --bg: #FBEBC3; --accent: #9A6A12; }
+  .t-night { --bg: var(--night); --accent: var(--honey); --muted: var(--night-muted); --kid: var(--honey); --kid-bg: rgba(246, 217, 139, .16); --stitch: rgba(238, 235, 250, .2); color: var(--night-ink);
+    background: var(--felt-night), radial-gradient(90% 55% at 80% 0%, rgba(143, 134, 209, .4), transparent 65%), radial-gradient(70% 50% at 0% 100%, rgba(91, 79, 176, .35), transparent 70%), var(--bg); }
+  .kid { color: var(--kid); background: var(--kid-bg); border-radius: 18px; padding: 0 .1em; white-space: nowrap; }
+  .stars i { position: absolute; border-radius: 50%; background: var(--honey); box-shadow: 0 0 14px 3px rgba(246, 217, 139, .5); }
+
+  /* ---------- screenshot 1320×2868 (iPhone 6,9") ---------- */
+  .shot { width: 1320px; height: 2868px; }
+  .stitched::before { inset: 30px; border-width: 5px; border-radius: 70px; }
+  .shot .head { position: absolute; left: 100px; right: 100px; top: 170px; z-index: 4; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .patch { display: inline-flex; font-size: 38px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #fff; padding: 22px 40px; border-radius: 999px; background: var(--felt), var(--accent); box-shadow: var(--shadow-pillow); outline: 3px dashed rgba(255, 255, 255, .6); outline-offset: -11px; margin-bottom: 42px; }
+  .t-night .patch { color: var(--night); }
+  .shot h1 { font-size: 116px; font-weight: 900; line-height: 1.04; letter-spacing: -.02em; }
+  .shot .sub { margin-top: 28px; font-size: 52px; font-weight: 800; line-height: 1.3; color: var(--muted); max-width: 20em; }
+  .phone { position: absolute; left: 50%; width: 1000px; margin-left: -500px; top: 800px; padding: 24px; border-radius: 120px; background: linear-gradient(160deg, #3a3d5c, #1f2136); box-shadow: inset 0 2px 0 rgba(255, 255, 255, .15), 0 50px 100px rgba(28, 30, 51, .35), 0 0 0 7px rgba(255, 255, 255, .5); z-index: 3; }
+  .t-night .phone { box-shadow: inset 0 2px 0 rgba(255, 255, 255, .15), 0 50px 110px rgba(0, 0, 0, .55), 0 0 0 7px rgba(201, 195, 236, .25); }
+  .phone img { display: block; width: 100%; border-radius: 96px; }
+  /* bez výřezu kamery: obrazovky aplikace nemají stavový řádek, výřez by zakryl horní tlačítka */
+  .shot .mascot { position: absolute; z-index: 5; filter: drop-shadow(0 30px 34px rgba(46, 49, 80, .28)); }
+  .t-night .mascot { filter: drop-shadow(0 30px 46px rgba(0, 0, 0, .5)) drop-shadow(0 0 70px rgba(246, 217, 139, .2)); }
+  .m-left { left: -30px; bottom: 60px; height: 480px; }
+  .m-right { right: -30px; bottom: 50px; height: 440px; }
+  .m-sleep { right: -20px; bottom: 60px; height: 420px; }
+  .bubble { position: absolute; z-index: 5; right: 50px; top: 1120px; width: 400px; padding: 44px 46px; border-radius: 54px; background: var(--felt), #fff; font-size: 46px; font-weight: 900; line-height: 1.25; color: var(--ink); box-shadow: 0 24px 48px rgba(46, 49, 80, .25); outline: 3px dashed var(--stitch); outline-offset: -14px; }
+</style>
+</head>
+<body>
+<script>
+  const R = '../../../';
+  const M = R + 'brand/maskot-3d/';
+  const shot = (o) => o;
+  const SHOTS = [
+    { t: '', patch: 'Pohádky na dobrou noc', h: 'Hlavním hrdinou je <span class="kid">vaše dítě</span>', sub: 'S jeho jménem, ve vašem městě', img: 'knihovna' },
+    { t: 'night', patch: 'Čte teta Terezka', h: 'Zhasněte a poslouchejte', sub: 'Klidný hlas vypravěčky a tichá hudba. Text se zvýrazňuje.', img: 'prehravac', mascot: ['web/ospalek-spi.webp', 'm-sleep'] },
+    { t: 'mint', patch: 'Známá místa', h: 'Odehrává se <span class="kid">u vás</span>', sub: 'Stačí obec. Hrady, rozhledny a zoo v okolí najdeme sami.', img: 'bydliste' },
+    { t: 'peach', patch: 'Česky a správně', h: 'Jméno zní pokaždé správně', sub: '<span class="kid">Toník</span>, bez <span class="kid">Toníka</span>, pomůžeš mi, <span class="kid">Toníku</span>?', img: 'dite' },
+    { t: '', patch: 'Celá rodina', h: 'Sourozenci, maminka i&nbsp;táta', sub: 'Každý dostane v pohádce svou roli', img: 'rodina', mascot: ['web/ospalek-hlava.webp', 'm-right'] },
+    { t: 'honey', patch: 'Ze života', h: 'Zítra k&nbsp;zubaři? Dnes pohádka', sub: 'Příběhy, které dodají kousek odvahy', img: 'prehravac-den', bubble: '„Otevři pusu jako krokodýl!“' },
+    { t: 'sky', patch: 'Do auta', h: 'Hádanky na cesty', sub: 'S pauzou na odpověď. Cesta k babičce uteče.', img: 'knihovna-auto' },
+    { t: 'night', patch: 'Rychlé nastavení', h: 'Tři minuty nastavení. Pak už jen večery.', sub: '', img: 'deti' },
+  ];
+  // Slovenská verze (grafika.html?lang=sk): stejné obrazovky, jiné nadpisy. Aplikace je zatím česky, říká to poslední obrázek.
+  const SK = [
+    { patch: 'Rozprávky na dobrú noc', h: 'Hlavným hrdinom je <span class="kid">vaše dieťa</span>', sub: 'S jeho menom, vo vašom meste' },
+    { patch: 'Číta teta Terezka', h: 'Zhasnite a počúvajte', sub: 'Pokojný hlas rozprávačky a tichá hudba. Text sa zvýrazňuje.' },
+    { patch: 'Známe miesta', h: 'Odohráva sa <span class="kid">u vás</span>', sub: 'Stačí obec. Hrady, rozhľadne a zoo v okolí nájdeme sami.' },
+    { patch: 'Vždy správne', h: 'Meno znie zakaždým správne', sub: 'Všetky pády navrhne aplikácia, vy ich len skontrolujete.' },
+    { patch: 'Celá rodina', h: 'Súrodenci, mama aj&nbsp;otec', sub: 'Každý dostane v rozprávke svoju rolu' },
+    { patch: 'Zo života', h: 'Zajtra k&nbsp;zubárovi? Dnes rozprávka', sub: 'Príbehy, ktoré dodajú kúsok odvahy', bubble: '„Otvor ústa ako krokodíl!“' },
+    { patch: 'Do auta', h: 'Hádanky na cesty', sub: 'S pauzou na odpoveď. Cesta k babke ubehne.' },
+    { patch: 'Rýchle nastavenie', h: 'Nastavenie zaberie tri minúty', sub: 'Rozprávky sú zatiaľ v češtine.' },
+  ];
+  const LANG = new URLSearchParams(location.search).get('lang') === 'sk' ? 'sk' : 'cs';
+  if (LANG === 'sk') SHOTS.forEach((s, i) => Object.assign(s, SK[i]));
+  const stars = (seed, n, w, h) => { let s = seed * 9301 + 49297; const r = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+    return `<div class="stars">${Array.from({ length: n }, () => { const z = 4 + r() * 8; return `<i style="left:${r() * w}px;top:${r() * h}px;width:${z}px;height:${z}px;opacity:${(0.35 + r() * 0.6).toFixed(2)}"></i>`; }).join('')}</div>`; };
+  let html = SHOTS.map((s, i) => `
+    <section class="shot stitched ${s.t ? 't-' + s.t : ''}" data-out="screenshot-${String(i + 1).padStart(2, '0')}.png">
+      ${s.t === 'night' ? stars(i + 3, 40, 1320, 820) : ''}
+      <div class="head">${s.patch ? `<div class="patch">${s.patch}</div>` : ''}<h1>${s.h}</h1>${s.sub ? `<p class="sub">${s.sub}</p>` : ''}</div>
+      <div class="phone"><img src="obrazovky/${s.img}.png" alt=""></div>
+      ${s.mascot ? `<img class="mascot ${s.mascot[1]}" src="${M + s.mascot[0]}" alt="">` : ''}
+      ${s.bubble ? `<div class="bubble">${s.bubble}</div>` : ''}
+    </section>`).join('');
+  document.body.innerHTML = html;
+</script>
+</body>
+</html>
