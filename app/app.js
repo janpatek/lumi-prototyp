@@ -896,6 +896,7 @@ async function prepareStory() {
   } catch (e) {
     if (!live()) return;
     p.loadErr = true;
+    syncMedia(); // přehrávač v oznámení už neukazuje, že hraje
     if (w()) w().textContent = navigator.onLine ? 'Pohádku se nepodařilo načíst celou. Klepněte na tlačítko a zkusíme to znovu.' : 'Bez internetu se pohádka nenačte. Připojte se a klepněte na tlačítko.';
     highlight();
   }
@@ -958,7 +959,8 @@ function syncMedia() {
     title: P.st.title(ctx(hs)),
     subtitle: `Ospalek · čte ${NARRATOR}`,
     cover: P.st.cover.img ? coverImg(P.st, hs) : null,
-    playing: P.playing,
+    // během přípravy po klepnutí na Přehrát se tváří jako hrající (služba v popředí, viz playPause)
+    playing: P.playing || (!!P.autoplay && !P.loadErr),
     hasPrev: !!neighbour(-1),
     hasNext: !!neighbour(1),
   });
@@ -977,6 +979,7 @@ MEDIA.onAction((a) => {
   if (!P) return;
   if (a === 'play' && !P.playing) playPause();
   else if (a === 'pause' && P.playing) playPause();
+  else if ((a === 'pause' || a === 'toggle') && P.autoplay && !P.playing) { P.autoplay = false; syncMedia(); } // pozastaveno ještě během přípravy
   else if (a === 'toggle') playPause();
   else if (a === 'next' || a === 'prev') switchStory(a === 'next' ? 1 : -1);
   else if (a === 'stop') closePlayer();
@@ -1128,6 +1131,12 @@ function playPause() {
   if (!P.ready && !P.playing) {
     // po chybě klepnutí zkusí načíst znovu; jinak (zamčená obrazovka, další pohádka) se spustí po načtení
     if (P.loadErr) { P.autoplay = true; prepareStory(); } else P.autoplay = true;
+    // Android: služba přehrávání se spustí hned po klepnutí, ne až po načtení. Rodič často zhasne
+    // displej dřív, než se pohádka připraví; bez služby by Android aplikaci na pozadí omezil
+    // (příprava stála) a službu by pak už spustit nedovolil (pohádka by nehrála, chyběl by přehrávač
+    // na zamčené obrazovce).
+    P.started = true;
+    syncMedia();
     return;
   }
   if (P.playing) {
