@@ -158,8 +158,14 @@ export async function handle(req: Request, path: string): Promise<J> {
       const ok = new Set((perms.data || []).filter((x: J) => x.status === 'granted').map((x: J) => x.permission));
       if (!ok.has('instagram_content_publish')) throw fail(400, 'Facebook nepovolil zveřejňování na Instagram. Při propojení nechte zaškrtnutá všechna oprávnění.');
       const pages = await graph('GET', `${GRAPH}/me/accounts`, { fields: 'name,access_token,instagram_business_account{id,username}', limit: '100', access_token: long.access_token });
-      const page = (pages.data || []).find((x: J) => x.instagram_business_account && x.access_token);
-      if (!page) throw fail(400, 'Nenašli jsme facebookovou stránku s propojeným firemním Instagramem. Propojte Instagram Ospalek.cz se stránkou a při přihlášení ji vyberte.');
+      // správce může mít víc stránek s Instagramem, bereme jen účet Ospalek (jméno jde změnit v Secrets: IG_UCET)
+      const want = (env('IG_UCET') || 'ospalek.cz').toLowerCase().replace(/^@/, '');
+      const withIg = (pages.data || []).filter((x: J) => x.instagram_business_account && x.access_token);
+      const page = withIg.find((x: J) => String(x.instagram_business_account.username || '').toLowerCase() === want);
+      if (!page) {
+        const found = withIg.map((x: J) => '@' + x.instagram_business_account.username).join(', ');
+        throw fail(400, `Nenašli jsme Instagram @${want} propojený s facebookovou stránkou${found ? ` (přihlášení vrátilo jen ${found})` : ''}. Propojte ho se stránkou Ospalek.cz a při přihlášení v Upravit přístup zaškrtněte tu stránku i Instagram.`);
+      }
       const now = new Date().toISOString();
       await db('POST', 'instagram_ucet', {
         id: 1, ig_user_id: String(page.instagram_business_account.id), username: page.instagram_business_account.username || '', token: page.access_token,

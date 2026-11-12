@@ -63,7 +63,7 @@ globalThis.fetch = async (url, o = {}) => {
   }
   if (u.pathname === '/v23.0/me/accounts') {
     assert.equal(u.searchParams.get('access_token'), 'long');
-    return res({ data: [{ name: 'Jiná stránka', access_token: 'jina' }, ...(PAGE_IG ? [{ name: 'Ospalek.cz', access_token: 'stranka', instagram_business_account: { id: '17841400', username: 'ospalek.cz' } }] : [])] });
+    return res({ data: [{ name: 'Jiná stránka', access_token: 'jina' }, { name: 'Cizí', access_token: 'cizi', instagram_business_account: { id: '555', username: 'quority_' } }, ...(PAGE_IG ? [{ name: 'Ospalek.cz', access_token: 'stranka', instagram_business_account: { id: '17841400', username: 'ospalek.cz' } }] : [])] });
   }
   if (u.pathname === '/v23.0/17841400/media') { assert.equal(body.access_token, T.ucet[0].token); return res({ id: String(++seq) }); }
   if (u.pathname === '/v23.0/17841400/media_publish') return res({ id: '999' });
@@ -116,7 +116,7 @@ r = await zpet({ code: 'dobry', state: await newState() });
 assert.match(decodeURIComponent(r.headers.get('Location')), /nepovolil/); PERM_OK = true;
 PAGE_IG = false;
 r = await zpet({ code: 'dobry', state: await newState() });
-assert.match(decodeURIComponent(r.headers.get('Location').replace(/\+/g, ' ')), /facebookovou stránku/); PAGE_IG = true;
+assert.match(decodeURIComponent(r.headers.get('Location').replace(/\+/g, ' ')), /Nenašli jsme Instagram @ospalek\.cz.*jen @quority_/); PAGE_IG = true;
 assert.equal(T.ucet.length, 0);
 r = await zpet({ code: 'dobry#_', state: await newState() });
 assert.equal(r.headers.get('Location'), 'http://localhost:5174/admin/?ig=ok#socialni');
