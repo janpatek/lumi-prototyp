@@ -114,6 +114,19 @@ Omezení API: nejde přidat hudbu z knihovny Instagramu ani označit lidi, přes
 
 Test funkce bez Supabase a bez Instagramu (podvržené odpovědi, Node 24): `node supabase/functions/instagram/test.mjs`
 
+### Kalendář sociálních sítí
+
+Sociální sítě → záložka *Kalendář*: materiál z knihovny se naplánuje na den a čas a zaškrtnou se sítě. *Naplánovat podle
+doporučení* vyplní kalendář podle doporučeného plánu z katalogu (Týden 1 · Po 20:00 …) od zvoleného pondělí. Plán je v tabulce
+`socialni_plan`. Každou minutu ho zkontroluje pg_cron a když je něco na řadě, zavolá funkci `instagram` (`/instagram/cron`).
+Ta zveřejní na Instagram a na facebookovou stránku, se kterou je Instagram propojený, výsledek a odkazy zapíše k příspěvku
+a materiál označí jako použitý. TikTok veřejné API pro zveřejňování nemá, u něj se v daný čas objeví „TikTok nahrát ručně“.
+
+Zapojení (jednou): SQL Editor → spustit `migrations/20261114_socialni_kalendar.sql` (tabulka, pravidla, pg_cron a pg_net),
+nasadit novou verzi `functions/instagram/index.ts` a v administraci jednou znovu *Propojit Instagram*, aby Facebook povolil
+i zveřejňování na stránce (`pages_manage_posts`). Plánovač jde zkontrolovat v Integrations → Cron (úloha `ospalek-socialni-plan`).
+
+
 ## Zapojení (jednou, asi 15 minut)
 
 1. Na [supabase.com](https://supabase.com) založ projekt. **Region: EU (náš projekt běží v West EU – Irsko, eu-west-1; Frankfurt by šel také).** Tarif Free na začátek stačí.

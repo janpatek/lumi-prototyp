@@ -12,7 +12,7 @@
 
 const SOC_LOCAL = '../marketing/';
 const SOC_TTL = 6 * 3600;
-const SOC = { state: 'idle', err: '', k: null, f: 'vse', urls: null, at: 0, used: {}, skryt: false };
+const SOC = { state: 'idle', err: '', k: null, f: 'vse', urls: null, at: 0, used: {}, skryt: false, view: 'materialy' };
 const SOC_USED_KEY = 'ospalek.admin.social.used.v1';
 const SOC_KANAL = { reels: 'Reels', instagram: 'Instagram', profil: 'Profil', 'google-play': 'Google Play' };
 const SOC_SITE = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', 'google-play': 'Google Play' };
@@ -305,6 +305,9 @@ function pageSoc() {
   const top = (sub = '') => head('Sociální sítě', sub || 'Reels, příspěvky, profil a podklady pro Google Play ke stažení');
   if (SOC.state === 'loading' || SOC.state === 'idle') return `${top()}<section class="panel"><p class="muted">Načítám katalog…</p></section>`;
   if (SOC.state === 'err') return `${top()}<section class="panel"><h2>Katalog se nenačetl</h2><p class="err">${esc(SOC.err)}</p><button class="btn white sm" data-a="socReload">Zkusit znovu</button>${socUpBtn()}</section>`;
+  // záložky Materiály / Kalendář (kalendář je v socialni-kalendar.js)
+  const tabs = PAGES.socialniKalendar ? `<div class="seg" style="margin-top:4px">${[['materialy', 'Materiály'], ['kalendar', 'Kalendář']].map(([v, l]) => `<button data-a="socView" data-v="${v}" class="${SOC.view === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : '';
+  if (SOC.view === 'kalendar' && PAGES.socialniKalendar) return PAGES.socialniKalendar(top, tabs);
   const K = SOC.k, all = K.polozky;
   const total = all.reduce((a, it) => a + it.soubory.reduce((b, f) => b + f.velikost, 0), 0);
   const usedN = all.filter((it) => SOC.used[it.id]).length;
@@ -322,11 +325,12 @@ function pageSoc() {
       <label class="soc-check" title="Zaškrtněte, až materiál zveřejníte"><input type="checkbox" data-soc-used="${esc(it.id)}"${SOC.used[it.id] ? ' checked' : ''}>${esc(socUsedLabel(SOC.used[it.id]))}</label>
     </article>`;
   return `${top(`${all.length} materiálů · použito ${usedN} · ${socMB(total)} · katalog z ${new Date(K.vygenerovano).toLocaleDateString('cs-CZ')}`)}
+    ${tabs}
     <div class="head-actions soc-filter">${seg}<label><input type="checkbox" data-soc-skryt${SOC.skryt ? ' checked' : ''}>Skrýt použité</label></div>
     ${igBar()}
     ${profile}
     <div class="soc-grid">${list.map(card).join('')}</div>
-    <p class="muted" style="margin-top:18px;font-size:13px">${socStorage() ? 'Reels a příspěvky jde zveřejnit na Instagram tlačítkem v detailu. Na Facebook a TikTok' : 'Zveřejnění na Instagram tlačítkem funguje jen v ostré administraci. Jinak'} se zveřejňuje ručně: stáhněte soubor, zkopírujte popisek a nahrajte ho v aplikaci sítě. ${socStorage() ? 'Soubory jsou v soukromém úložišti Supabase, odkazy platí 6 hodin. Nové materiály se tu objeví po <code>node marketing/katalog.mjs</code> a nahrání (tlačítko v administraci spuštěné z localhost, nebo <code>node marketing/nahrat.mjs</code>).' : 'Ukázková data: soubory jsou z místní složky marketing/ (v gitu nejsou). Nové materiály se tu objeví po <code>node marketing/katalog.mjs</code>.'}</p>${socUpBtn()}`;
+    <p class="muted" style="margin-top:18px;font-size:13px">${socStorage() ? 'Reels a příspěvky jde zveřejnit na Instagram tlačítkem v detailu, nebo je v Kalendáři naplánovat na Instagram a Facebook. Na TikTok' : 'Zveřejnění na Instagram tlačítkem funguje jen v ostré administraci. Jinak'} se zveřejňuje ručně: stáhněte soubor, zkopírujte popisek a nahrajte ho v aplikaci sítě. ${socStorage() ? 'Soubory jsou v soukromém úložišti Supabase, odkazy platí 6 hodin. Nové materiály se tu objeví po <code>node marketing/katalog.mjs</code> a nahrání (tlačítko v administraci spuštěné z localhost, nebo <code>node marketing/nahrat.mjs</code>).' : 'Ukázková data: soubory jsou z místní složky marketing/ (v gitu nejsou). Nové materiály se tu objeví po <code>node marketing/katalog.mjs</code>.'}</p>${socUpBtn()}`;
 }
 
 function socOpen(id) {
@@ -349,15 +353,16 @@ function socOpen(id) {
         <div class="soc-files">${it.soubory.map((f) => `<a href="${socDl(f)}" download="${esc(f.nazev)}">${esc(f.nazev)}<span>${socMB(f.velikost)}</span></a>`).join('')}</div>
       </div>
     </div></div>
-    <div class="dialog-foot"><label class="soc-check" style="border:0;padding:0"><input type="checkbox" data-soc-used="${esc(it.id)}"${SOC.used[it.id] ? ' checked' : ''}>${esc(socUsedLabel(SOC.used[it.id]))}</label>${igLink(it.id, 'link')}<div class="r"><button class="btn white" data-a="close">Zavřít</button>${it.ig && socStorage() ? `<button class="btn" data-a="igCompose" data-v="${esc(it.id)}"${IG.d && IG.d.propojeno ? '' : ' disabled title="Nejdřív propojte Instagram (nad seznamem materiálů)"'}>Zveřejnit na Instagramu</button>` : ''}</div></div>
+    <div class="dialog-foot"><label class="soc-check" style="border:0;padding:0"><input type="checkbox" data-soc-used="${esc(it.id)}"${SOC.used[it.id] ? ' checked' : ''}>${esc(socUsedLabel(SOC.used[it.id]))}</label>${igLink(it.id, 'link')}<div class="r"><button class="btn white" data-a="close">Zavřít</button>${it.ig && PAGES.socialniKalendar ? `<button class="btn white" data-a="calSchedule" data-v="${esc(it.id)}">Naplánovat</button>` : ''}${it.ig && socStorage() ? `<button class="btn" data-a="igCompose" data-v="${esc(it.id)}"${IG.d && IG.d.propojeno ? '' : ' disabled title="Nejdřív propojte Instagram (nad seznamem materiálů)"'}>Zveřejnit na Instagramu</button>` : ''}</div></div>
   </div>`);
 }
 
 PAGES.socialni = pageSoc;
 Object.assign(ACTIONS, {
   socFilter: (v) => { SOC.f = v; render(); },
+  socView: (v) => { SOC.view = v; render(); },
   socUpload: () => socUpload(),
-  socReload: () => { SOC.state = 'idle'; SOC.urls = null; IG.state = 'idle'; render(); },
+  socReload: () => { SOC.state = 'idle'; SOC.urls = null; IG.state = 'idle'; if (typeof CAL !== 'undefined') CAL.state = 'idle'; render(); },
   igReload: () => { IG.state = 'idle'; render(); },
   igCopyUri: () => copy(IG.d.presmerovani, 'Adresa pro přesměrování: zkopírováno'),
   igConnect: async () => {

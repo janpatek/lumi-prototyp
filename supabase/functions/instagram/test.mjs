@@ -17,7 +17,8 @@ const KATALOG = { polozky: [
   { id: 'profil-x', ig: null },
 ] };
 const FILES = new Set(['reels/01-jmeno/reel.mp4', 'reels/01-jmeno/obalka.jpg', 'p/s1.jpg', 'p/s2.jpg', 'p/s3.jpg', 'a/s1.jpg']);
-const T = { oauth: [], ucet: [], prispevky: [], stav: null };
+const T = { oauth: [], ucet: [], prispevky: [], stav: null, plan: [] };
+const FB = [];
 const calls = [];
 let seq = 1000, polls = 0, PERM_OK = true, PAGE_IG = true;
 const res = (body, status = 200) => new Response(body === null ? null : JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -42,6 +43,18 @@ globalThis.fetch = async (url, o = {}) => {
     if (m === 'PATCH') { T.ucet = [{ ...T.ucet[0], ...body }]; return res(null, 204); }
     if (m === 'DELETE') { T.ucet = []; return res(null, 204); }
   }
+  if (u.pathname === '/rest/v1/socialni_plan') {
+    const now = Date.now();
+    const free = (r) => !r.zamek || Date.parse(r.zamek) < now;
+    const live = (r) => ['naplanovano', 'zpracovava'].includes(r.stav);
+    if (m === 'GET') return res(T.plan.filter((r) => live(r) && Date.parse(r.kdy) <= now && free(r)).map((r) => ({ id: r.id })));
+    if (m === 'PATCH') {
+      const id = Number(eqv(u, 'id')), r = T.plan.find((x) => x.id === id);
+      if (!r) return res([]);
+      if (u.searchParams.get('stav') && !(live(r) && free(r))) return res([]);
+      Object.assign(r, body); return res([{ ...r }]);
+    }
+  }
   if (u.pathname === '/rest/v1/instagram_prispevky') { T.prispevky.push(body); return res(null, 201); }
   if (u.pathname === '/storage/v1/object/authenticated/marketing/katalog.json') return res(KATALOG);
   if (u.pathname === '/storage/v1/object/authenticated/marketing/stav.json') return T.stav ? res(T.stav) : res({ error: 'not found' }, 400);
@@ -59,11 +72,14 @@ globalThis.fetch = async (url, o = {}) => {
   }
   if (u.pathname === '/v23.0/me/permissions') {
     assert.equal(u.searchParams.get('access_token'), 'long');
-    return res({ data: ['instagram_basic', 'instagram_content_publish', 'pages_show_list'].map((p) => ({ permission: p, status: PERM_OK || p !== 'instagram_content_publish' ? 'granted' : 'declined' })) });
+    return res({ data: ['instagram_basic', 'instagram_content_publish', 'pages_show_list', 'pages_manage_posts'].map((p) => ({ permission: p, status: PERM_OK || p !== 'instagram_content_publish' ? 'granted' : 'declined' })) });
   }
+  if (u.pathname === '/v23.0/777/videos') { assert.equal(body.access_token, 'stranka'); assert.match(body.file_url, /reel\.mp4/); return res({ id: 'v1' }); }
+  if (u.pathname === '/v23.0/777/photos') { FB.push(body); return res(body.published === 'false' ? { id: 'f' + FB.length } : { id: 'f1', post_id: '777_p1' }); }
+  if (u.pathname === '/v23.0/777/feed') { FB.push(body); return res({ id: '777_p2' }); }
   if (u.pathname === '/v23.0/me/accounts') {
     assert.equal(u.searchParams.get('access_token'), 'long');
-    return res({ data: [{ name: 'Jiná stránka', access_token: 'jina' }, { name: 'Cizí', access_token: 'cizi', instagram_business_account: { id: '555', username: 'quority_' } }, ...(PAGE_IG ? [{ name: 'Ospalek.cz', access_token: 'stranka', instagram_business_account: { id: '17841400', username: 'ospalek.cz' } }] : [])] });
+    return res({ data: [{ name: 'Jiná stránka', access_token: 'jina' }, { name: 'Cizí', access_token: 'cizi', instagram_business_account: { id: '555', username: 'quority_' } }, ...(PAGE_IG ? [{ id: '777', name: 'Ospalek.cz', access_token: 'stranka', instagram_business_account: { id: '17841400', username: 'ospalek.cz' } }] : [])] });
   }
   if (u.pathname === '/v23.0/17841400/media') { assert.equal(body.access_token, T.ucet[0].token); return res({ id: String(++seq) }); }
   if (u.pathname === '/v23.0/17841400/media_publish') return res({ id: '999' });
@@ -84,7 +100,7 @@ await assert.rejects(call('stav', {}, jwt('jan', 'aal1')), (e) => e.status === 4
 await assert.rejects(call('stav', {}, jwt('podpora')), (e) => e.status === 403);
 
 // 2) stav před propojením, zveřejnění bez propojení
-assert.deepEqual(await call('stav'), { nastaveno: true, presmerovani: `${SB}/functions/v1/instagram/zpet`, propojeno: false, vyprsel: false, username: '', expires_at: null });
+assert.deepEqual(await call('stav'), { nastaveno: true, presmerovani: `${SB}/functions/v1/instagram/zpet`, propojeno: false, vyprsel: false, username: '', expires_at: null, facebook: null });
 await assert.rejects(call('zverejnit', { id: 'reel-jmeno', popisek: 'Ahoj' }), (e) => e.status === 409);
 
 // 3) propojení: odkaz s náhodným state, návrat jen na administraci
@@ -124,7 +140,7 @@ assert.equal(T.ucet[0].ig_user_id, '17841400'); assert.equal(T.ucet[0].token, 's
 assert.ok(Date.parse(T.ucet[0].expires_at) - Date.now() > 89 * 864e5);
 const s = await call('stav');
 assert.equal(s.propojeno, true); assert.equal(s.username, 'ospalek.cz');
-assert.equal(/long|stranka/.test(JSON.stringify(s)), false); // token se do administrace nedostane
+assert.equal(/:"(long|stranka)"/.test(JSON.stringify(s)), false); // token se do administrace nedostane
 
 // 5) kontrola popisku
 await assert.rejects(call('zverejnit', { id: 'reel-jmeno', popisek: 'x'.repeat(2201) }), /2200/);
@@ -164,12 +180,50 @@ assert.equal(ki.typ, 'IMAGE'); assert.equal(lastMedia().at(-1).body.image_url, `
 FILES.delete('a/s1.jpg');
 await assert.rejects(call('zverejnit', { id: 'ig-ahoj', popisek: 'Ahoj' }), /chybí a\/s1\.jpg/);
 
-// 10) vypršelé propojení (90 dní)
+// 10) kalendář: cron bez přihlášení zveřejní jen to, co je na řadě
+assert.equal(T.ucet[0].fb_page_id, '777'); assert.equal(T.ucet[0].fb_muze, true);
+assert.deepEqual((await call('stav')).facebook, { stranka: 'Ospalek.cz', muze: true });
+FILES.add('a/s1.jpg');
+const cron = () => handle(new Request(`${SB}/functions/v1/instagram/cron`, { method: 'POST' }), 'cron');
+const past = new Date(Date.now() - 60e3).toISOString(), future = new Date(Date.now() + 3600e3).toISOString();
+T.plan = [
+  { id: 1, polozka: 'reel-jmeno', kdy: past, site: ['instagram', 'facebook', 'tiktok'], popisek: 'Reel z kalendáře', stav: 'naplanovano', vysledky: {}, autor: 'Jan', vytvoril: 'jan' },
+  { id: 2, polozka: 'ig-pred-a-po', kdy: past, site: ['facebook'], popisek: 'Karusel na FB', stav: 'naplanovano', vysledky: {}, autor: 'Jan' },
+  { id: 3, polozka: 'ig-ahoj', kdy: future, site: ['instagram'], popisek: 'Později', stav: 'naplanovano', vysledky: {}, autor: 'Jan' },
+  { id: 4, polozka: 'neni', kdy: past, site: ['instagram'], popisek: 'x', stav: 'naplanovano', vysledky: {}, autor: 'Jan' },
+  { id: 5, polozka: 'ig-ahoj', kdy: past, site: ['instagram'], popisek: 'Zamčený', stav: 'zpracovava', vysledky: {}, autor: 'Jan', zamek: future },
+];
+polls = 0;
+let cr = await cron();
+assert.equal(cr.zpracovano, 3);
+const P = (id) => T.plan.find((r) => r.id === id);
+assert.equal(P(1).stav, 'zpracovava'); assert.equal(P(1).vysledky.instagram.stav, 'zpracovava'); // video se zpracovává
+assert.equal(P(1).vysledky.facebook.stav, 'hotovo'); assert.equal(P(1).vysledky.facebook.odkaz, 'https://www.facebook.com/777/videos/v1');
+assert.equal(P(1).vysledky.tiktok.stav, 'rucne'); assert.equal(P(1).zamek, null);
+assert.equal(P(2).stav, 'hotovo'); assert.equal(P(2).vysledky.facebook.odkaz, 'https://www.facebook.com/777_p2');
+assert.equal(FB.filter((x) => x.published === 'false').length, 3); assert.equal(FB.at(-1).message, 'Karusel na FB'); assert.ok(FB.at(-1)['attached_media[2]']);
+assert.equal(P(3).stav, 'naplanovano'); // ještě není čas
+assert.equal(P(4).stav, 'chyba'); assert.match(P(4).vysledky.instagram.chyba, /v katalogu/);
+assert.equal(P(5).stav, 'zpracovava'); assert.deepEqual(P(5).vysledky, {}); // zamčený jiným během
+assert.equal(T.stav.used['ig-pred-a-po'].fb, 'https://www.facebook.com/777_p2'); assert.equal(T.stav.used['ig-pred-a-po'].by, 'Jan');
+cr = await cron(); // druhý běh dokončí Instagram, Facebook už znovu neposílá
+assert.equal(P(1).stav, 'hotovo'); assert.equal(P(1).vysledky.instagram.odkaz, 'https://www.instagram.com/reel/ABC/');
+assert.equal(calls.filter((x) => x.url.endsWith('/777/videos')).length, 1);
+assert.equal(T.stav.used['reel-jmeno'].ig, 'https://www.instagram.com/reel/ABC/'); assert.equal(T.stav.used['reel-jmeno'].fb, 'https://www.facebook.com/777/videos/v1');
+assert.deepEqual(await cron(), { zpracovano: 0 }); // nic dalšího na řadě (5 je zamčený)
+// Facebook bez oprávnění
+T.ucet[0].fb_muze = false;
+T.plan.push({ id: 6, polozka: 'ig-ahoj', kdy: past, site: ['facebook'], popisek: 'a', stav: 'naplanovano', vysledky: {}, autor: 'Jan' });
+await cron();
+assert.equal(P(6).stav, 'chyba'); assert.match(P(6).vysledky.facebook.chyba, /oprávnění/);
+T.ucet[0].fb_muze = true;
+
+// 11) vypršelé propojení (90 dní)
 T.ucet[0].expires_at = new Date(Date.now() - 1000).toISOString();
 assert.equal((await call('stav')).vyprsel, true);
 await assert.rejects(call('zverejnit', { id: 'reel-jmeno', popisek: 'a' }), /vypršelo/);
 
-// 11) odpojení
+// 12) odpojení
 await call('odpojit');
 assert.equal((await call('stav')).propojeno, false);
 
