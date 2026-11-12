@@ -181,10 +181,6 @@ No login, no ads, no third-party analytics. Stories are in Czech; the app is ava
 - [ ] Předplatné založené a ve stavu *Ready to Submit*, přiložené k první verzi aplikace.
 - [ ] Build nahraný z Xcode (Archive → Distribute → App Store Connect), otestovaný v TestFlightu na skutečném iPhonu:
       nákup v sandboxu, obnovení nákupu, hraní se zamčeným displejem, stažení pohádky, smazání dat.
-- [ ] **Rozhodnout „Mám kód“ na iPhonu** (viz níže).
-
-### Riziko: odkaz „Mám kód“ na paywallu
-
-Pravidlo 3.1.1 nedovoluje odemykat obsah vlastním mechanismem mimo nákup v aplikaci (výslovně jmenuje „license keys“ a kódy).
-Kód pro recenzenty Google Play je na iPhonu zbytečný (Apple testuje nákup v sandboxu) a mohl by vést k zamítnutí.
-Doporučení: na iOS odkaz „Mám kód“ skrýt; dárky a slevy na iPhonu dělat přes nabídkové kódy Applu (Offer Codes).
+- [x] Odkaz „Mám kód“ je v aplikaci pro iPhone skrytý (pravidlo 3.1.1 nedovoluje odemykat obsah vlastním kódem mimo
+      nákup v aplikaci). Recenzent Applu testuje nákup v sandboxu; dárky a slevy na iPhonu přes nabídkové kódy App Storu
+      (Offer Codes). Obchodní podmínky 1.19.

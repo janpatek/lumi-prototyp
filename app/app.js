@@ -190,6 +190,9 @@ const coverImg = (st, ks) => (ks.every((k) => k.gender === 'f') && st.cover.imgF
 const unlocked = (st) => st.free || S.premium;
 // Plus odemčený kódem (recenzenti obchodů, dárky): do kdy platí, ověřuje server (app_redeem_code)
 const codeOn = () => !!(S.codeUntil && S.codeUntil > Date.now());
+// Aplikace pro iPhone: kód „Mám kód“ tu není. App Store nedovoluje odemykat obsah vlastním kódem mimo nákup v aplikaci
+// (pravidlo 3.1.1); kupóny pro iPhone jsou nabídkové kódy App Storu, které se uplatňují v App Storu.
+const IOS_APP = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios');
 const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
 // ---------- Obrazovky ----------
@@ -621,7 +624,7 @@ function paywall() {
       ${BILLING.native || WEB_DEMO ? `<button class="btn cta2" data-a="subscribe"><span>Vyzkoušet 3 dny zdarma,</span><span>pak ${PRICE.text} měsíčně</span></button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
       <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se předplatné koupit nedá. Kupuje se v mobilní aplikaci Ospalek pro iPhone a Android přes App Store nebo Google Play. Tady si zatím pustíte 3 pohádky zdarma.</p>'}
-      ${SYNC.on ? '<p class="fine" style="text-align:center"><a href="#" data-a="codeSheet">Mám kód</a></p>' : ''}
+      ${SYNC.on && !IOS_APP ? '<p class="fine" style="text-align:center"><a href="#" data-a="codeSheet">Mám kód</a></p>' : ''}
     </div></div>`;
 }
 
