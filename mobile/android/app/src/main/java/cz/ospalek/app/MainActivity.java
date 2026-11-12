@@ -8,6 +8,8 @@ import android.util.Log;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebView;
 
+import androidx.activity.OnBackPressedCallback;
+
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.WebViewListener;
 
@@ -25,6 +27,27 @@ public class MainActivity extends BridgeActivity {
         // Capacitor to sám neošetří a Android pak zavře celou aplikaci („Render process's crash wasn't
         // handled“). Tady se výpadek převezme: zastaví se oznámení přehrávače a aktivita se vytvoří znovu
         // s novým WebView. Aplikace se načte zpátky a přehrávač nabídne pokračovat (app.js, resume).
+        // Systémové Zpět (gesto i tlačítko): nejdřív ho dostane aplikace (zavře okno, přehrávač, poličku).
+        // Bez toho Android aktivitu ukončil a celá aplikace se zavřela i uprostřed pohádky.
+        // Na hlavní obrazovce se aplikace jen odsune do pozadí, pohádka může dohrát.
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+                if (wv == null) {
+                    moveTaskToBack(true);
+                    return;
+                }
+                try {
+                    wv.evaluateJavascript("(window.ospalekBack && window.ospalekBack()) ? '1' : '0'", result -> {
+                        if (!"\"1\"".equals(result)) moveTaskToBack(true);
+                    });
+                } catch (Exception e) {
+                    moveTaskToBack(true);
+                }
+            }
+        });
+
         if (getBridge() != null) {
             getBridge().addWebViewListener(new WebViewListener() {
                 @Override

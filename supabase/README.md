@@ -179,3 +179,12 @@ Pod napodobeninou Supabase běží skutečné `schema.sql` v PGlite (Postgres ve
 - Helpdesk (příjem e-mailů do tabulky `tickets`), návštěvy webu (Plausible), uplatnění kuponů v aplikaci.
 - Úklid opuštěných anonymních účtů bez rodiny (pg_cron, např. jednou týdně).
 - Při desítkách tisíc rodin stránkovat `admin_families` na serveru místo načtení celého souhrnu najednou.
+
+## Hodnocení pohádek
+
+Po dohrání se aplikace zeptá „Jak se vám pohádka líbila?“ (mráček „Nic moc“ 1, hvězdička „Líbila“ 2, srdíčko „Skvělá“ 3). Hodnocení se ukládá
+do `plays.rating` u stejného záznamu poslechu, takže platí souhlas se statistikami (bez něj anonymně).
+Souhrn po pohádkách pro administraci vrací `admin_story_ratings()` (počet, průměr 1–3, počty odpovědí).
+
+Do existující databáze: SQL Editor → spustit `migrations/20261112_hodnoceni_pohadek.sql`. Dokud neproběhne,
+aplikace hodnocení posílá a server ho jen ignoruje (nic nespadne).

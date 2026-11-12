@@ -14,7 +14,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..', '..');
 const out = join(here, '..', 'www');
 
-const COPY = ['app', 'config.js', 'covers', 'audio', 'brand/maskot-3d/web', 'brand/ikony'];
+const COPY = ['app', 'config.js', 'covers', 'audio', 'brand/maskot-3d/web', 'brand/ikony', 'brand/hodnoceni'];
 
 // věty pohádek zdarma (tools/hlas/plan.mjs klice)
 const env = { ...process.env };

@@ -18,6 +18,7 @@ const SHELL = [
   '../brand/maskot-3d/web/ospalek-mark.webp', '../brand/maskot-3d/web/ospalek-hlava.webp', '../brand/maskot-3d/web/ospalek-spi.webp',
   '../brand/maskot-3d/web/ospalek-vyprava.webp', '../brand/maskot-3d/web/ospalek-mark-64.png', '../brand/maskot-3d/web/ospalek-mark.png',
   '../brand/ikony/kat-auto.webp', '../brand/ikony/kat-dobro.webp', '../brand/ikony/kat-noc.webp', '../brand/ikony/kat-zivot.webp',
+  '../brand/hodnoceni/srdce.webp', '../brand/hodnoceni/hvezda.webp', '../brand/hodnoceni/mracek.webp',
   '../covers/drak.jpg', '../covers/hadanky.jpg', '../covers/hvezdicka.jpg', '../covers/hvezdicka-f.jpg', '../covers/lednice.jpg',
   '../covers/vyprava.jpg', '../covers/vyprava-f.jpg', '../covers/zubar.jpg', '../covers/zubar-f.jpg',
 ];

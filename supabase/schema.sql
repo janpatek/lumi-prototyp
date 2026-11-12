@@ -55,8 +55,11 @@ create table if not exists public.plays (
   progress real not null default 0 check (progress between 0 and 1),
   completed boolean not null default false,
   heroes smallint not null default 1 check (heroes between 1 and 10),
-  voice text check (char_length(voice) <= 20)
+  voice text check (char_length(voice) <= 20),
+  rating smallint check (rating between 1 and 3)               -- hodnocení po dohrání: 3 skvělá, 2 líbila, 1 nic moc
 );
+alter table public.plays add column if not exists rating smallint check (rating between 1 and 3);
+create index if not exists plays_rating_idx on public.plays (story_id) where rating is not null;
 alter table public.plays alter column family_id drop not null;
 create index if not exists plays_family_idx on public.plays (family_id, started_at desc);
 create index if not exists plays_started_idx on public.plays (started_at);
@@ -191,7 +194,7 @@ end $$;
 -- Zapíše nebo doplní jeden poslech (začátek i konec posílá aplikace pod stejným id).
 -- O tom, jestli se poslech přiřadí k rodině, rozhoduje souhlas uložený v databázi, ne aplikace.
 create or replace function public.app_play(p jsonb) returns void language plpgsql security definer set search_path = public as $$
-declare uid uuid := auth.uid(); consent boolean; fid uuid; at timestamptz;
+declare uid uuid := auth.uid(); consent boolean; fid uuid; at timestamptz; r smallint;
 begin
   if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
   select f.analytics into consent from families f where f.id = uid;
@@ -199,14 +202,16 @@ begin
   fid := case when consent then uid end;
   at := least(coalesce((p->>'started_at')::timestamptz, now()), now());
   if not consent then at := date_trunc('hour', at); end if;
-  insert into plays (id, family_id, story_id, category, started_at, listened_sec, progress, completed, heroes, voice)
+  r := case when (p->>'rating') ~ '^[1-3]$' then (p->>'rating')::smallint end;
+  insert into plays (id, family_id, story_id, category, started_at, listened_sec, progress, completed, heroes, voice, rating)
   values ((p->>'id')::uuid, fid, p->>'story', p->>'category', at,
           least(greatest(coalesce((p->>'sec')::int, 0), 0), 7200), least(greatest(coalesce((p->>'progress')::real, 0), 0), 1),
-          coalesce((p->>'completed')::boolean, false), least(greatest(coalesce((p->>'heroes')::int, 1), 1), 10), p->>'voice')
+          coalesce((p->>'completed')::boolean, false), least(greatest(coalesce((p->>'heroes')::int, 1), 1), 10), p->>'voice', r)
   on conflict (id) do update set
     listened_sec = greatest(plays.listened_sec, excluded.listened_sec),
     progress = greatest(plays.progress, excluded.progress),
-    completed = plays.completed or excluded.completed
+    completed = plays.completed or excluded.completed,
+    rating = coalesce(excluded.rating, plays.rating)
   where plays.family_id is not distinct from fid;
   update families set last_seen_at = now() where id = uid;
 end $$;
@@ -332,6 +337,15 @@ create or replace function public.admin_stories() returns table (story_id text, 
 begin
   perform require_staff();
   return query select p.story_id, count(*), count(*) filter (where p.completed), sum(p.listened_sec)::bigint, count(distinct p.family_id) from plays p group by 1;
+end $$;
+
+-- Hodnocení po pohádkách pro administraci (průměr 1–3 a počty jednotlivých odpovědí).
+create or replace function public.admin_story_ratings() returns table (story_id text, ratings bigint, avg_rating numeric, loved bigint, liked bigint, meh bigint) language plpgsql stable security definer set search_path = public as $$
+begin
+  perform require_staff();
+  return query select p.story_id, count(*), round(avg(p.rating)::numeric, 2),
+    count(*) filter (where p.rating = 3), count(*) filter (where p.rating = 2), count(*) filter (where p.rating = 1)
+  from plays p where p.rating is not null group by 1;
 end $$;
 
 -- Poslechy jedné rodiny (detail v administraci).

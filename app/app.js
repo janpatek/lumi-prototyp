@@ -1142,6 +1142,7 @@ function playPause() {
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
     ambience.startBackground(P.st);
     document.querySelector('.the-end')?.remove();
+    document.querySelector('.end-rate')?.remove();
     recVoice() ? playRec() : playSeg();
   }
 }
@@ -1164,6 +1165,8 @@ function theEnd() {
   ambience.stopBackground(false); // pomalé ztlumení
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
+  // hodnocení pod textem (ne v něm: text má nahoře a dole průhledný přechod a posouvá se)
+  document.getElementById('ptext').insertAdjacentHTML('afterend', rateHtml(P.st).replace('class="rate"', 'class="rate end-rate"'));
   scrollInText(document.querySelector('.the-end'), false);
   document.getElementById('playBtn').innerHTML = I.replay;
   syncMedia();
@@ -1188,7 +1191,34 @@ function setReadSelf(on) {
 function selfReadEnd(e) {
   if (!P || !P.self || P.logged) return;
   const box = e.target;
-  if (box.scrollTop + box.clientHeight >= box.scrollHeight - 40) { P.i = P.segs.length; logListen(true); }
+  if (box.scrollTop + box.clientHeight >= box.scrollHeight - 40) {
+    P.i = P.segs.length; logListen(true);
+    const end = box.querySelector('.self-end');
+    if (end && !end.querySelector('.rate')) end.insertAdjacentHTML('beforeend', rateHtml(P.st));
+  }
+}
+
+// ---------- hodnocení po dohrání ----------
+// Odpověď se uloží v zařízení (S.ratings) a odešle ke stejnému záznamu poslechu (sync.js → plays.rating).
+// Průměr po čase ukážeme u pohádek a v administraci (admin_story_ratings).
+const RATES = [
+  { v: 1, img: '../brand/hodnoceni/mracek.webp', label: 'Nic moc' },
+  { v: 2, img: '../brand/hodnoceni/hvezda.webp', label: 'Líbila' },
+  { v: 3, img: '../brand/hodnoceni/srdce.webp', label: 'Skvělá' },
+];
+function rateHtml(st) {
+  const mine = (S.ratings || {})[st.id];
+  return `<div class="rate" data-story="${esc(st.id)}"><p class="rate-q">Jak se vám pohádka líbila?</p><div class="rate-opts">${RATES.map((r) => `<button class="rate-btn${mine === r.v ? ' on' : ''}" data-a="rate" data-v="${r.v}" aria-pressed="${mine === r.v}"><img src="${r.img}" alt=""><span>${r.label}</span></button>`).join('')}</div><p class="rate-thanks"${mine ? '' : ' hidden'}>Děkujeme! Pomůžete nám vybírat další pohádky.</p></div>`;
+}
+function rate(el) {
+  if (!P) return;
+  const v = +el.dataset.v;
+  S.ratings = { ...(S.ratings || {}), [P.st.id]: v };
+  store.set(S);
+  SYNC.rate(P.sync, v);
+  const box = el.closest('.rate');
+  box.querySelectorAll('.rate-btn').forEach((b) => { const on = b === el; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  box.querySelector('.rate-thanks').hidden = false;
 }
 
 // „Se zvukem“ / „Bez hudby“: volbu si pamatuje audio.js (localStorage)
@@ -1374,6 +1404,7 @@ const actions = {
   saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
   reset: () => { if (confirm(`Smazat účet a všechna data rodiny v tomto zařízení i na našem serveru? Nejde to vrátit.${S.premium && BILLING.native ? '\n\nPředplatné se tím nezruší. Zrušte ho v nastavení předplatných App Store nebo Google Play.' : ''}`)) { DAILY.disable(); SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
   playPause: () => playPause(),
+  rate: (el) => rate(el),
   prevSeg: () => jump(-1),
   nextSeg: () => jump(1),
   toggleText: () => document.getElementById('ptext').classList.toggle('hide'),
@@ -1439,6 +1470,20 @@ document.addEventListener('input', (e) => {
   if (e.target.id === 'inTown') delete e.target.dataset.auto;
 });
 
+
+// ---------- systémové Zpět (Android: gesto nebo tlačítko) ----------
+// MainActivity se zeptá window.ospalekBack(): true = aplikace krok zpět obsloužila (zavřela okno,
+// přehrávač, poličku…), false = jsme na hlavní obrazovce a Android aplikaci odsune do pozadí.
+window.ospalekBack = () => {
+  try {
+    if ($modal.innerHTML) { closeModal(); return true; }
+    if (document.getElementById('player')) { closePlayer(); return true; }
+    if (ui.screen === 'lib' && ui.shelf) { actions.shelfBack(); return true; }
+    if (ui.screen === 'settings' || ui.screen === 'history') { ui.shelf = null; go('lib'); return true; }
+    if (ui.screen === 'onb' && ui.step > 0) { actions.prev(); return true; }
+  } catch (e) { /* zpět nesmí aplikaci shodit */ }
+  return false;
+};
 
 // Klepnutí na upozornění otevře aplikaci s ?pohadka=<id> (nebo pošle zprávu už otevřenému oknu)
 function openFromNotice(id) {

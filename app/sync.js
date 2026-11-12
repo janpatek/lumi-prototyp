@@ -14,7 +14,7 @@ const SYNC = (() => {
   const devOk = dev && /^http:\/\/localhost(:\d+)?$/.test(dev);
   const URL_ = devOk ? dev : C.supabaseUrl;
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
-  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, call: async () => null, forget: async () => {} };
+  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, rate() {}, call: async () => null, forget: async () => {} };
   if (!URL_ || !KEY_) return noop;
 
   const SKEY = 'ospalek.sb.v1', QKEY = 'ospalek.sbq.v1', SRC = 'ospalek.src.v1';
@@ -120,6 +120,11 @@ const SYNC = (() => {
       p.done = !!completed;
       const sec = Math.min(7200, Math.round((Date.now() - p.t0) / 1000));
       push({ fn: 'app_play', volatile: p.volatile, args: { p: { id: p.id, story: p.story, sec, progress: completed ? 1 : Math.max(0, Math.min(1, progress || 0)), completed: !!completed } } }, true);
+    },
+    // hodnocení po dohrání (3 skvělá, 2 líbila, 1 nic moc) – uloží se ke stejnému záznamu poslechu
+    rate(p, rating) {
+      if (!p || ![1, 2, 3].includes(rating)) return;
+      push({ fn: 'app_play', volatile: p.volatile, args: { p: { id: p.id, story: p.story, rating } } }, true);
     },
     // přímé volání s odpovědí (pohádka dne, odběr upozornění v app/daily.js); bez připojení vyhodí chybu
     call: (fn, args = {}) => rpc(fn, args),
