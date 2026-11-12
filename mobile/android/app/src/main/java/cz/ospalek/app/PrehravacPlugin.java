@@ -43,6 +43,7 @@ public class PrehravacPlugin extends Plugin {
         String art = call.getString("artwork");
         if (art != null) i.putExtra("artwork", art);
         try {
+            PrehravacService.running = true; // stop() hned potom musí službu zastavit, i když ještě nevznikla
             if (Boolean.TRUE.equals(call.getBoolean("playing", false))) ContextCompat.startForegroundService(getContext(), i);
             else getContext().startService(i);
             call.resolve();
@@ -53,7 +54,15 @@ public class PrehravacPlugin extends Plugin {
 
     @PluginMethod
     public void stop(PluginCall call) {
-        getContext().stopService(new Intent(getContext(), PrehravacService.class));
+        // Ne stopService: kdyby služba ještě nestihla zpracovat startForegroundService (rychlé zavření
+        // hned po Přehrát), Android by aplikaci shodil. ACTION_STOP se zpracuje až po předchozích příkazech.
+        if (PrehravacService.running) {
+            try {
+                getContext().startService(new Intent(getContext(), PrehravacService.class).setAction(PrehravacService.ACTION_STOP));
+            } catch (Exception e) {
+                getContext().stopService(new Intent(getContext(), PrehravacService.class));
+            }
+        }
         call.resolve();
     }
 }

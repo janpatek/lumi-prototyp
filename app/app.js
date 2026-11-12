@@ -920,11 +920,38 @@ MEDIA.onAction((a) => {
   else if (a === 'stop') closePlayer();
 });
 
+// ---------- pokračování po pádu ----------
+// Když Android ukončí WebView (nejčastěji kvůli paměti), MainActivity aplikaci načte znovu (jen mobil).
+// Rozehraná pohádka si proto pamatuje odstavec; po znovunačtení se otevře na stejném místě.
+const RESUME_KEY = 'ospalek.resume';
+const NATIVE_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+function resumeMark() {
+  if (!NATIVE_APP || !P) return;
+  try { localStorage.setItem(RESUME_KEY, JSON.stringify({ id: P.st.id, i: P.i, at: Date.now() })); } catch (e) { /* plné úložiště */ }
+}
+function resumeClear() { try { localStorage.removeItem(RESUME_KEY); } catch (e) { /* nic */ } }
+function resumeAfterReload() {
+  if (!NATIVE_APP) return;
+  let r = null;
+  try { r = JSON.parse(localStorage.getItem(RESUME_KEY)); } catch (e) { /* nic */ }
+  resumeClear();
+  // jen čerstvě přerušená pohádka (pár minut); jinak by se otevírala i druhý den
+  if (!r || !r.id || Date.now() - r.at > 10 * 60 * 1000 || !S.onboarded || !S.family.children.length) return;
+  const st = STORIES.find((s) => s.id === r.id);
+  if (!st || !unlocked(st)) return;
+  openPlayer(st);
+  if (!P) return;
+  P.i = Math.max(0, Math.min(+r.i || 0, P.segs.length - 1));
+  highlight();
+  document.getElementById('waiting').textContent = 'Aplikace se musela znovu načíst. Klepněte na Přehrát a pokračujeme.';
+}
+
 function playSeg() {
   if (!P) return;
   P.stop && P.stop();
   document.getElementById('waiting').textContent = '';
   if (P.i >= P.segs.length) return theEnd();
+  resumeMark();
   highlight();
   const seg = P.segs[P.i];
   if (seg.sfx) ambience.sfx(seg.sfx);
@@ -1059,6 +1086,7 @@ function jump(d) {
 }
 
 function theEnd() {
+  resumeClear();
   P.playing = false;
   logListen(true);
   // dohraná pohádka je teď celá v zařízení (věty i soubory se uložily při přehrávání)
@@ -1110,6 +1138,7 @@ function setBackground(on) {
 
 // keepMedia: přepnutí na další pohádku – oznámení na zamčené obrazovce nezmizí, jen se přepíše
 function closePlayer(keepMedia) {
+  resumeClear();
   if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
   if (keepMedia !== true) MEDIA.stop();
   if (ui.screen === 'lib' || ui.screen === 'history') render();
@@ -1299,7 +1328,11 @@ function go(screen) { ui.screen = screen; render(); window.scrollTo(0, 0); }
 function render() {
   if ((ui.screen === 'lib' || ui.screen === 'settings' || ui.screen === 'history') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
   const keep = [...document.querySelectorAll('.shelf-row[data-k]')].map((r) => [r.dataset.k, r.scrollLeft]);
+  // otevřený přehrávač je uvnitř $app: překreslení obrazovky pod ním (cena, stav předplatného, pohádka dne)
+  // ho nesmí smazat, jinak pohádka hraje dál bez ovládání
+  const player = document.getElementById('player');
   $app.innerHTML = screens[ui.screen]();
+  if (player) $app.appendChild(player);
   keep.forEach(([k, x]) => { const r = $app.querySelector(`.shelf-row[data-k="${k}"]`); if (r) r.scrollLeft = x; });
   if (ui.screen === 'lib') { markOffline(); saveTitles(); }
   if (ui.screen === 'settings') offlineStats();
@@ -1354,7 +1387,7 @@ render();
 // Na webu se předplatné koupit nedá. Odemknutí naoko zůstává jen pro vývoj na localhostu; dřív odemčené pohádky na webu se zamknou.
 if (!BILLING.native && !WEB_DEMO && S.premium && !codeOn()) { S.premium = false; store.set(S); }
 // odemčení kódem platí vedle předplatného z obchodu; po vypršení kódu rozhoduje jen obchod
-BILLING.status().then((v) => { if (v === null) return; const p = v || codeOn(); if (p !== S.premium) { S.premium = p; save(); render(); } });
+const billingChecked = BILLING.status().then((v) => { if (v === null) return; const p = v || codeOn(); if (p !== S.premium) { S.premium = p; save(); render(); } }).catch(() => {});
 checkTrial(false);
 pruneOffline();
 const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });
@@ -1370,3 +1403,5 @@ DAILY.check(S.notify === true);
   history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash);
   openFromNotice(id);
 })();
+// až po ověření předplatného: to může knihovnu překreslit a otevřený přehrávač by zmizel
+Promise.race([billingChecked, new Promise((r) => setTimeout(r, 4000))]).then(() => { if (!document.getElementById('player')) resumeAfterReload(); });

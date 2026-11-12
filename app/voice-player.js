@@ -13,7 +13,8 @@
   const ready = REMOTE.index(BASE + 'index.json')
     .then((m) => (manifest = m))
     .catch(() => null);
-  const buffers = new Map();
+  const buffers = new Map(); // klíč věty → Promise<AudioBuffer>, nejstarší první
+  const MAX_CLIPS = 40;
 
   const has = (line) => !!(manifest && manifest.clips[line.key]);
   const lines = (plan) => plan.flatMap((p) => p.lines);
@@ -76,6 +77,15 @@
         .then((b) => ctx().decodeAudioData(b))
         .then((b) => (own ? b : tidy(b))), LOAD_LIMIT);
       p.catch(() => buffers.delete(line.key)); // chybu příště zkusit znovu
+      buffers.set(line.key, p);
+      // Dekódovaná věta zabírá ~0,2 MB za sekundu. Bez limitu by dlouhá pohádka (nebo několik za sebou)
+      // nafoukla paměť WebView na stovky MB a Android by ji na slabším telefonu zabil – aplikace spadla.
+      // Drží se jen posledních MAX_CLIPS vět (aktuální a příští odstavec se vejdou vždycky).
+      while (buffers.size > MAX_CLIPS) buffers.delete(buffers.keys().next().value);
+    } else {
+      // znovu použitá věta je zase „nejčerstvější“
+      const p = buffers.get(line.key);
+      buffers.delete(line.key);
       buffers.set(line.key, p);
     }
     return buffers.get(line.key);

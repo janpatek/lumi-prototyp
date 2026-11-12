@@ -146,6 +146,9 @@ class Ambience {
         .then((b) => this.ctx.decodeAudioData(b));
       p.catch(() => this.bedBufs.delete(file));
       this.bedBufs.set(file, p);
+      // smyčka v paměti má desítky MB (dekódované stereo): drží se jen poslední 4 (2 pohádky),
+      // jinak by po několika pohádkách Android kvůli paměti zabil WebView a aplikace spadla
+      while (this.bedBufs.size > 4) this.bedBufs.delete(this.bedBufs.keys().next().value);
     }
     return this.bedBufs.get(file);
   }

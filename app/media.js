@@ -16,6 +16,7 @@ const MEDIA = (() => {
   let handler = () => {};
   let sentArt = null; // obálka, kterou už Android má
   let last = '';
+  let gen = 0; // stop() zneplatní aktualizace, které ještě čekají na obálku
   const arts = new Map();
 
   // obálka jako data URL (Android ani WebKit ji nenačtou samy z adresy uvnitř aplikace)
@@ -37,8 +38,10 @@ const MEDIA = (() => {
     const key = JSON.stringify([title, subtitle, cover, playing, hasPrev, hasNext]);
     if (key === last) return;
     last = key;
+    const my = gen;
     if (plugin) {
       const art = cover ? await artwork(cover) : null;
+      if (my !== gen || key !== last) return; // pohádka se mezitím zavřela nebo přišel novější stav
       const msg = { title, subtitle, playing: !!playing, hasPrev: !!hasPrev, hasNext: !!hasNext };
       if (art && art !== sentArt) { msg.artwork = art; sentArt = art; }
       plugin.update(msg).catch(() => {});
@@ -57,6 +60,7 @@ const MEDIA = (() => {
   }
 
   function stop() {
+    gen++;
     last = '';
     sentArt = null;
     if (plugin) plugin.stop().catch(() => {});

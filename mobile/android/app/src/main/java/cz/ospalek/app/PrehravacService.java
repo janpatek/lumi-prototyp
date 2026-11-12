@@ -16,6 +16,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.ServiceCompat;
@@ -37,6 +38,9 @@ import androidx.media.session.MediaButtonReceiver;
  */
 public class PrehravacService extends Service {
     static final String ACTION_UPDATE = "cz.ospalek.app.PREHRAVAC_UPDATE";
+    static final String ACTION_STOP = "cz.ospalek.app.PREHRAVAC_STOP";
+    /** služba běží (PrehravacPlugin.stop() jí pak pošle ACTION_STOP, ne stopService) */
+    static volatile boolean running;
     private static final String CHANNEL = "prehravani";
     private static final int NOTIFICATION_ID = 7;
 
@@ -85,6 +89,7 @@ public class PrehravacService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        running = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel ch = new NotificationChannel(CHANNEL, "Přehrávání pohádky", NotificationManager.IMPORTANCE_LOW);
             ch.setDescription("Ovládání pohádky, která právě hraje");
@@ -127,7 +132,20 @@ public class PrehravacService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && ACTION_UPDATE.equals(intent.getAction())) {
+        try {
+            handle(intent);
+        } catch (Exception e) {
+            // oznámení nebo mediální relace se nepovedly: pohádka hraje dál, aplikace nesmí spadnout
+            Log.w("Ospalek", "PrehravacService: " + e);
+        }
+        return START_NOT_STICKY;
+    }
+
+    private void handle(Intent intent) {
+        if (intent != null && ACTION_STOP.equals(intent.getAction())) {
+            // zavřená pohádka; přichází po případném startForegroundService, takže startForeground už proběhlo
+            stopSelf();
+        } else if (intent != null && ACTION_UPDATE.equals(intent.getAction())) {
             title = intent.getStringExtra("title") != null ? intent.getStringExtra("title") : title;
             subtitle = intent.getStringExtra("subtitle") != null ? intent.getStringExtra("subtitle") : subtitle;
             playing = intent.getBooleanExtra("playing", false);
@@ -140,13 +158,24 @@ public class PrehravacService extends Service {
             }
             String art = intent.getStringExtra("artwork");
             if (art != null) artwork = decode(art);
-            refresh();
+            refresh(false);
         } else {
             // tlačítko ze sluchátek nebo z oznámení (MediaButtonReceiver)
             MediaButtonReceiver.handleIntent(session, intent);
-            if (!foreground) refresh();
+            // MediaButtonReceiver službu spouští přes startForegroundService: startForeground musí
+            // proběhnout vždy, jinak by Android aplikaci shodil (i když pohádka nehraje)
+            if (!foreground) refresh(true);
+            // žádná pohádka není otevřená (aplikace ji zavřela): služba nemá co ovládat
+            if (title.isEmpty() && !playing) {
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
+                getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
+                stopSelf();
+                // systém prázdné oznámení služby někdy odebere až po chvíli; pro jistotu ještě jednou
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (!running) ((NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
+                }, 1500);
+            }
         }
-        return START_NOT_STICKY;
     }
 
     private static Bitmap decode(String dataUrl) {
@@ -159,7 +188,7 @@ public class PrehravacService extends Service {
         }
     }
 
-    private void refresh() {
+    private void refresh(boolean mustStartForeground) {
         MediaMetadataCompat.Builder meta = new MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subtitle)
@@ -214,11 +243,23 @@ public class PrehravacService extends Service {
         b.setStyle(new MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(shown));
         Notification notification = b.build();
 
-        if (playing) {
+        if (playing || mustStartForeground) {
             // hraje: služba v popředí, systém aplikaci po zhasnutí displeje neuspí
-            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
-            foreground = true;
+            try {
+                ServiceCompat.startForeground(this, NOTIFICATION_ID, notification,
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
+                foreground = true;
+                if (!playing) {
+                    // jen splněný start z tlačítka sluchátek: hned zpátky mimo popředí
+                    ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
+                    foreground = false;
+                }
+            } catch (Exception e) {
+                // Android 12+ nedovolí službu v popředí spustit z pozadí (např. Přehrát ze zamčené obrazovky
+                // po delší pauze). Pohádka hraje dál, jen oznámení zůstane obyčejné.
+                Log.w("Ospalek", "startForeground: " + e);
+                getSystemService(NotificationManager.class).notify(NOTIFICATION_ID, notification);
+            }
         } else {
             // pozastaveno: oznámení s tlačítkem Přehrát zůstane (jde odsunout), služba už nemusí být v popředí
             if (foreground) ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
@@ -235,9 +276,13 @@ public class PrehravacService extends Service {
 
     @Override
     public void onDestroy() {
+        running = false;
         abandonFocus();
         if (foreground) ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);
+        // po zavření pohádky už tlačítka sluchátek / auta nemají aplikaci budit (systém by jinak
+        // službu znovu spouštěl přes MediaButtonReceiver a musela by ukázat oznámení)
+        session.setMediaButtonReceiver(null);
         session.setActive(false);
         session.release();
         super.onDestroy();
