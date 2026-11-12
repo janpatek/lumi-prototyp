@@ -68,7 +68,7 @@ const LIVE = (() => {
     if (!s) throw Object.assign(new Error('Nejsi přihlášený do databáze'), { status: 401 });
     const r = await fetch(`${URL_}/functions/v1/${name}`, { method: 'POST', headers: headers(s.access_token), body: JSON.stringify(body) });
     const j = await r.json().catch(() => null);
-    if (!r.ok) throw Object.assign(new Error((j && (j.message || j.msg)) || `${name}: ${r.status}`), { status: r.status });
+    if (!r.ok) throw Object.assign(new Error((j && (j.message || j.msg)) || `${name}: ${r.status}`), { status: r.status, code: (j && j.code) || '' });
     return j;
   }
 
@@ -357,5 +357,5 @@ const LIVE = (() => {
   window.adminLogout = () => { set(SKEY, null); if (configured) set(MKEY, null); location.reload(); };
   // pozůstatek zrušeného společného hesla k administraci
   try { localStorage.removeItem('ospalek.admin.auth'); sessionStorage.removeItem('ospalek.admin.auth'); } catch (e) {}
-  return { configured, url: URL_, dev: devOk, mode, setMode, ensureStaff, load, rpc, signOut: () => set(SKEY, null) };
+  return { configured, url: URL_, dev: devOk, mode, setMode, ensureStaff, load, rpc, fn, signOut: () => set(SKEY, null) };
 })();

@@ -107,6 +107,8 @@ const ROUTES = [
   { id: 'kupony', label: 'Kupony a partneři', ico: I.gift, perm: 'billing.read' },
   { grp: 'Obsah' },
   { id: 'pohadky', label: 'Pohádky', ico: I.book, perm: 'content.edit' },
+  { id: 'generator', label: 'Generátor pohádek', ico: I.wand, perm: 'content.edit' },
+  { id: 'zasobnik', label: 'Zásobník pohádek', ico: I.list, perm: 'content.edit', badge: () => (typeof DR !== 'undefined' && DR.list ? DR.list.filter((d) => d.status === 'vyroba').length : 0) },
   { id: 'upozorneni', label: 'Pohádka dne', ico: I.bell, perm: 'push.manage' },
   { id: 'hlas', label: 'Hlas a náklady', ico: I.wave, perm: 'ops.read' },
   { grp: 'Systém' },

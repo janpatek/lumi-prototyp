@@ -9,6 +9,8 @@
 // Aplikace: http://localhost:5174/app/?db=http://localhost:54321
 // Administrace: http://localhost:5174/admin/?db=http://localhost:54321  (přihlášení admin@example.cz / ospalek-test)
 // Kód pro odemčení Plus: OSPALEK-TEST (Odemknout → Mám kód)
+// Generátor pohádek v administraci: bez klíče nabídne simulaci; se skutečným textem `ANTHROPIC_API_KEY=… node dev-server.mjs`
+// (klíč jen v proměnné prostředí, nikdy do souboru v repozitáři).
 
 import http from 'node:http';
 import fs from 'node:fs';
@@ -175,6 +177,27 @@ http.createServer(async (req, res) => {
       }
       return send(res, 404, { msg: 'not found' });
     }
+    // Edge Function story-gen (supabase/functions/story-gen): stejné zadání pro model ze sdíleného pohadka.js.
+    // Bez ANTHROPIC_API_KEY v prostředí vrátí 503 no_key jako ostrá funkce bez klíče, administrace pak nabídne simulaci.
+    if (req.method === 'POST' && url.pathname === '/functions/v1/story-gen') {
+      const t = tokenOf(req), body = await read(req), q = (sql, a) => serial(() => db.query(sql, a));
+      if (!t) return send(res, 401, { message: 'Nejsi přihlášený.' });
+      const me = (await q(`select role from public.staff where user_id = $1`, [t.uid])).rows[0];
+      if (t.aal !== 'aal2' || !me) return send(res, 403, { message: 'Generovat pohádky smí jen tým s ověřením kódem.' });
+      if (!['owner', 'content'].includes(me.role)) return send(res, 403, { message: 'Generovat pohádky smí jen role Vlastník nebo Obsah.' });
+      if (!process.env.ANTHROPIC_API_KEY) return send(res, 503, { code: 'no_key', message: 'Lokální server nemá ANTHROPIC_API_KEY. Spusť ho s klíčem v proměnné prostředí, nebo použij simulaci.' });
+      const gen = await import('./functions/story-gen/pohadka.js');
+      const { default: Anthropic } = await import('@anthropic-ai/sdk');
+      try {
+        const input = gen.readInput(body);
+        const out = await gen.generate(new Anthropic({ timeout: 380_000, maxRetries: 1 }), input);
+        await q(`insert into public.audit_log (actor, action, target, detail) values ($1, 'content.generate', $2, $3)`, [t.uid, out.story.id, `${input.length} min · ${out.brief.model} · ${out.brief.usage.input} + ${out.brief.usage.output} tokenů`]);
+        return send(res, 200, out);
+      } catch (e) {
+        console.error(e);
+        return send(res, e.status && e.status < 500 ? e.status : 502, { message: e.message });
+      }
+    }
     // napodobenina Edge Function staff-admin (supabase/functions/staff-admin): stejná pravidla, místo admin API přímo tabulky
     if (req.method === 'POST' && url.pathname === '/functions/v1/staff-admin') {
       const t = tokenOf(req), body = await read(req), q = (sql, a) => serial(() => db.query(sql, a));
@@ -224,7 +247,7 @@ http.createServer(async (req, res) => {
       const body = await read(req);
       const names = f.argnames.filter((n) => n in body);
       const sql = `select * from public.${f.name}(${names.map((n, i) => `${n} => $${i + 1}::${f.argtypes[f.argnames.indexOf(n)]}`).join(', ')})`;
-      const params = names.map((n) => (Array.isArray(body[n]) && /\[\]$/.test(f.argtypes[f.argnames.indexOf(n)]) ? body[n] : typeof body[n] === 'object' ? JSON.stringify(body[n]) : body[n]));
+      const params = names.map((n) => (body[n] === null ? null : Array.isArray(body[n]) && /\[\]$/.test(f.argtypes[f.argnames.indexOf(n)]) ? body[n] : typeof body[n] === 'object' ? JSON.stringify(body[n]) : body[n]));
       const r = service ? await asService(sql, params) : await asUser(t ? t.uid : null, sql, params, t ? t.aal : undefined);
       if (f.ret === 'void') return send(res, 204);
       if (!f.set && r.fields.length === 1) return send(res, 200, r.rows[0] ? Object.values(r.rows[0])[0] : null);
