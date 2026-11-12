@@ -93,6 +93,14 @@ JS strana je `app/media.js`, doplněk `PrehravacPlugin` (registrovaný v MainAct
 přepíná pohádky v pořadí poličky, ze které se pohádka otevřela, a přeskočí zamčené.
 Když pohádka hraje, služba drží audio focus (WebView si o něj samo neřekne): Spotify a jiné přehrávače se zastaví,
 a když začne hrát jiná aplikace, pohádka se pozastaví. Po hovoru nebo budíku pokračuje sama.
+Služba se spouští hned po klepnutí na Přehrát, i když se pohádka teprve připravuje (rodič často hned zhasne
+displej; bez služby Android přípravu na pozadí zastaví a službu později spustit nedovolí).
+Pozor na velikost dat v Intentu: obálka jde do služby jako zmenšená bitmapa přes sdílené pole
+(`PrehravacService.nextArtwork`), ne jako data URL v Intentu. Intent nad ~500 kB Android nedoručí
+(TransactionTooLargeException), služba nezavolá `startForeground` a systém aplikaci za pár sekund shodí
+(ForegroundServiceDidNotStartInTimeException). `onStartCommand` proto `startForeground` volá vždy, v nouzi
+s jednoduchým oznámením. Testovat release sestavení (`assembleRelease`, podepsat ladicím klíčem přes apksigner),
+a s pohádkou s velkou obálkou (např. Sůl nad zlato).
 Ladění: `adb shell cmd media_session dispatch next`, stav `adb shell dumpsys media_session`.
 Focus: `adb shell dumpsys audio` (Audio Focus stack), hovor v emulátoru `adb emu gsm call 777123456` / `adb emu gsm cancel 777123456`.
 

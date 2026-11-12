@@ -40,8 +40,15 @@ public class PrehravacPlugin extends Plugin {
         i.putExtra("playing", Boolean.TRUE.equals(call.getBoolean("playing", false)));
         i.putExtra("hasPrev", Boolean.TRUE.equals(call.getBoolean("hasPrev", false)));
         i.putExtra("hasNext", Boolean.TRUE.equals(call.getBoolean("hasNext", false)));
+        // Obálka nejde službě v Intentu: data URL větší obálky má přes 500 kB, Android takový Intent
+        // nedoručí (TransactionTooLargeException), služba se pak nespustí v popředí a systém aplikaci
+        // po pár sekundách shodí (ForegroundServiceDidNotStartInTimeException). Proto se obálka
+        // dekóduje a zmenší tady a služba si ji vezme ze sdíleného pole (stejný proces).
         String art = call.getString("artwork");
-        if (art != null) i.putExtra("artwork", art);
+        if (art != null) {
+            PrehravacService.nextArtwork = PrehravacService.decode(art);
+            i.putExtra("newArtwork", true);
+        }
         try {
             PrehravacService.running = true; // stop() hned potom musí službu zastavit, i když ještě nevznikla
             if (Boolean.TRUE.equals(call.getBoolean("playing", false))) ContextCompat.startForegroundService(getContext(), i);

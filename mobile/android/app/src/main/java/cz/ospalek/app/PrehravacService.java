@@ -41,6 +41,10 @@ public class PrehravacService extends Service {
     static final String ACTION_STOP = "cz.ospalek.app.PREHRAVAC_STOP";
     /** služba běží (PrehravacPlugin.stop() jí pak pošle ACTION_STOP, ne stopService) */
     static volatile boolean running;
+    /** zmenšená obálka od PrehravacPlugin (Intent by byl pro Android moc velký) */
+    static volatile Bitmap nextArtwork;
+    /** delší strana obálky v oznámení a na zamčené obrazovce */
+    private static final int ARTWORK_MAX = 512;
     private static final String CHANNEL = "prehravani";
     private static final int NOTIFICATION_ID = 7;
 
@@ -138,7 +142,37 @@ public class PrehravacService extends Service {
             // oznámení nebo mediální relace se nepovedly: pohádka hraje dál, aplikace nesmí spadnout
             Log.w("Ospalek", "PrehravacService: " + e);
         }
+        // Spuštění přes startForegroundService (Přehrát, tlačítko sluchátek) musí VŽDY skončit voláním
+        // startForeground, jinak Android aplikaci za pár sekund shodí. Když se plné oznámení nepovedlo,
+        // stačí jednoduché bez obálky.
+        if (!foreground && (playing || (intent != null && !ACTION_UPDATE.equals(intent.getAction()) && !ACTION_STOP.equals(intent.getAction())))) {
+            fallbackForeground();
+        }
         return START_NOT_STICKY;
+    }
+
+    private void fallbackForeground() {
+        try {
+            Notification n = new NotificationCompat.Builder(this, CHANNEL)
+                .setSmallIcon(R.drawable.ic_stat_ospalek)
+                .setContentTitle(title.isEmpty() ? "Ospalek" : title)
+                .setContentText(subtitle)
+                .setContentIntent(PendingIntent.getActivity(this, 0,
+                    new Intent(this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT))
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setOnlyAlertOnce(true)
+                .build();
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, n,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
+            foreground = true;
+            if (!playing) {
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
+                foreground = false;
+            }
+        } catch (Exception e) {
+            Log.w("Ospalek", "fallbackForeground: " + e);
+        }
     }
 
     private void handle(Intent intent) {
@@ -156,8 +190,7 @@ public class PrehravacService extends Service {
                 pausedByFocus = false;
                 requestFocus();
             }
-            String art = intent.getStringExtra("artwork");
-            if (art != null) artwork = decode(art);
+            if (intent.getBooleanExtra("newArtwork", false)) artwork = nextArtwork;
             refresh(false);
         } else {
             // tlačítko ze sluchátek nebo z oznámení (MediaButtonReceiver)
@@ -178,12 +211,18 @@ public class PrehravacService extends Service {
         }
     }
 
-    private static Bitmap decode(String dataUrl) {
+    /** data URL obálky → bitmapa zmenšená na ARTWORK_MAX (velká bitmapa by se do oznámení a relace nevešla) */
+    static Bitmap decode(String dataUrl) {
         try {
             String b64 = dataUrl.contains(",") ? dataUrl.substring(dataUrl.indexOf(',') + 1) : dataUrl;
             byte[] bytes = Base64.decode(b64, Base64.DEFAULT);
-            return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        } catch (Exception e) {
+            Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (b == null) return null;
+            int w = b.getWidth(), h = b.getHeight(), max = Math.max(w, h);
+            if (max <= ARTWORK_MAX) return b;
+            float k = (float) ARTWORK_MAX / max;
+            return Bitmap.createScaledBitmap(b, Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k)), true);
+        } catch (Throwable e) {
             return null;
         }
     }
