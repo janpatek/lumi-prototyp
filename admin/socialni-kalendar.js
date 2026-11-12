@@ -105,6 +105,27 @@ function calStyle() {
     .cal-nets label { display: flex; gap: 8px; align-items: baseline; font-size: 14px; }
     .cal-nets small { color: var(--ink-muted); }
     #calText { min-height: 160px; resize: vertical; }
+    .cal-pf { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .cal-pf input[type=search] { width: auto; flex: 1; min-width: 160px; padding: 7px 12px; }
+    .cal-pf label { display: flex; gap: 6px; align-items: center; font-size: 13px; white-space: nowrap; }
+    .cal-pf label input { width: auto; }
+    .cal-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; max-height: 340px; overflow-y: auto; padding: 4px; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 2px var(--line); }
+    .cal-card { display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 0; border-radius: var(--radius-sm); background: var(--surface); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .cal-card:hover { box-shadow: 0 0 0 2px var(--lavender); }
+    .cal-card.on { box-shadow: 0 0 0 3px var(--lavender-ink, var(--lavender)); background: var(--lavender-soft, var(--surface)); }
+    .cal-card[hidden] { display: none; }
+    .cal-card .th { position: relative; display: block; aspect-ratio: 4 / 5; border-radius: 8px; overflow: hidden; background: var(--line); }
+    .cal-card .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cal-card .play { position: absolute; left: 6px; bottom: 6px; width: 26px; height: 26px; border-radius: 50%; background: rgba(20, 20, 40, .6); display: grid; place-items: center; }
+    .cal-card .play::after { content: ""; border-left: 9px solid #fff; border-top: 5px solid transparent; border-bottom: 5px solid transparent; margin-left: 2px; }
+    .cal-card .stack { position: absolute; right: 6px; top: 6px; width: 18px; height: 18px; border-radius: 4px; border: 2px solid #fff; box-shadow: 3px -3px 0 -1px rgba(255,255,255,.85); }
+    .cal-card .tx { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .cal-card .tg { display: flex; gap: 4px; flex-wrap: wrap; }
+    .cal-card .tg .tag { font-size: 9.5px; padding: 3px 6px; }
+    .cal-card .nm { font-size: 12.5px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .cal-sel { margin-bottom: 12px; }
+    .cal-card.big { flex-direction: row; align-items: center; cursor: default; max-width: 420px; }
+    .cal-card.big .th { width: 72px; flex: none; }
     .cal-res { margin: 10px 0; display: flex; flex-direction: column; gap: 6px; }
     .cal-res div { font-size: 14px; }
     @media (max-width: 760px) { .cal-grid { display: none; } }
@@ -159,15 +180,28 @@ function pageCal(top, tabs) {
 }
 
 // ---------- naplánovat / upravit ----------
+const CAL_PF = { vse: 'Vše', REELS: 'Reels', CAROUSEL: 'Karusely', IMAGE: 'Obrázky' };
+const CAL_TYP = { REELS: ['Reel', 'honey'], CAROUSEL: ['Karusel', 'sky'], IMAGE: ['Obrázek', 'mint'] };
+const calCount = (id) => CAL.rows.filter((x) => x.polozka === id && x.stav !== 'chyba').length;
+// karta materiálu s náhledem: typ (reel, karusel se počtem snímků, obrázek), název a stav
+function calCard(it, on, big) {
+  const [typ, cls] = CAL_TYP[it.ig.typ] || ['', 'line'], n = calCount(it.id);
+  const tags = [
+    `<span class="tag ${cls}">${typ}${it.ig.typ === 'CAROUSEL' ? ` · ${it.ig.obrazky.length}` : ''}</span>`,
+    SOC.used[it.id] ? '<span class="tag line">použito</span>' : '',
+    n ? `<span class="tag line">v kalendáři ${n}×</span>` : '',
+    it.pozor ? '<span class="tag peach">doplnit</span>' : '',
+  ].join('');
+  const inner = `<span class="th"><img src="${socUrl(it.nahled)}" alt="" loading="lazy">${it.video ? '<span class="play"></span>' : ''}${it.ig.typ === 'CAROUSEL' ? '<span class="stack"></span>' : ''}</span>
+    <span class="tx"><span class="tg">${tags}</span><span class="nm">${esc(calTitle(it))}</span></span>`;
+  return big ? `<div class="cal-card big">${inner}</div>` : `<button type="button" class="cal-card${on ? ' on' : ''}" data-pick="${esc(it.id)}" aria-pressed="${!!on}">${inner}</button>`;
+}
 function calForm(r, day) {
   const nets = calNets(), items = calItems();
   const edit = !!r, editable = !r || r.stav === 'naplanovano';
   const it0 = r ? socItem(r.polozka) : null;
   const d = r ? new Date(r.kdy) : null;
-  const opts = items.map((it) => {
-    const n = CAL.rows.filter((x) => x.polozka === it.id && x.stav !== 'chyba').length;
-    return `<option value="${esc(it.id)}"${r && r.polozka === it.id ? ' selected' : ''}>${esc(calTitle(it))} · ${esc(it.format)}${SOC.used[it.id] ? ' · použito' : ''}${n ? ` · v kalendáři ${n}×` : ''}</option>`;
-  }).join('');
+  const cards = items.map((it) => calCard(it, r && r.polozka === it.id)).join('');
   const site = r ? r.site : null;
   const net = (k) => {
     const on = site ? site.includes(k) : false;
@@ -183,10 +217,17 @@ function calForm(r, day) {
   modal(`<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="calT">
     <div class="dialog-head"><h2 id="calT">${edit ? (editable ? 'Upravit naplánovaný příspěvek' : calTitle(it0)) : 'Naplánovat příspěvek'}</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body cal-form">
+      ${r && !editable && it0 ? `<div class="cal-sel">${calCard(it0, false, true)}</div>` : ''}
       ${r && !editable ? `<p><span class="tag ${CAL_STAV[r.stav][1]}">${CAL_STAV[r.stav][0]}</span> <span class="muted">${esc(calWhen(r.kdy))} · ${r.site.map((s) => CAL_SITE[s]).join(', ')}</span></p>${res}` : ''}
       <div${editable ? '' : ' hidden'}>
-        <label class="f" for="calItem">Materiál</label>
-        <select id="calItem">${r ? '' : '<option value="">Vyberte z knihovny…</option>'}${opts}</select>
+        <label class="f">Materiál z knihovny</label>
+        <input type="hidden" id="calItem" value="${r ? esc(r.polozka) : ''}">
+        <div class="cal-pf">
+          <div class="seg">${Object.entries(CAL_PF).map(([k, l]) => `<button type="button" data-pf="${k}" class="${k === 'vse' ? 'on' : ''}">${l}</button>`).join('')}</div>
+          <input type="search" id="calQ" placeholder="Hledat podle názvu">
+          <label><input type="checkbox" id="calFree"> Jen nepoužité a nenaplánované</label>
+        </div>
+        <div class="cal-pick" id="calPick">${cards}<p class="muted cal-none" hidden>Nic neodpovídá filtru.</p></div>
         <label class="f">Kdy</label>
         <div class="cal-when"><input type="date" id="calDate" value="${d ? calDay(d) : day || calDay(new Date(Date.now() + 864e5))}"><input type="time" id="calTime" value="${d ? calTime(d) : '20:00'}" step="300"></div>
         <label class="f">Sítě</label>
@@ -220,7 +261,29 @@ function calForm(r, day) {
     $('#calProb').textContent = pr[0] || '';
     $('#calGo').disabled = !!pr.length || CAL.busy;
   };
-  sel.addEventListener('change', fill);
+  sel.addEventListener('change', () => { markPick(); fill(); });
+  // mřížka náhledů: klik vybere, filtr typu, hledání a skrytí použitých
+  const pick = $('#calPick');
+  const markPick = () => pick.querySelectorAll('[data-pick]').forEach((b) => { const on = b.dataset.pick === sel.value; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+  let pf = 'vse';
+  const filt = () => {
+    const q = $('#calQ').value.trim().toLowerCase(), free = $('#calFree').checked;
+    let shown = 0;
+    pick.querySelectorAll('[data-pick]').forEach((b) => {
+      const it = socItem(b.dataset.pick);
+      const ok = (pf === 'vse' || it.ig.typ === pf) && (!q || calTitle(it).toLowerCase().includes(q))
+        && (!free || b.dataset.pick === sel.value || !(SOC.used[it.id] || calCount(it.id)));
+      b.hidden = !ok; if (ok) shown++;
+    });
+    pick.querySelector('.cal-none').hidden = !!shown;
+  };
+  pick.addEventListener('click', (ev) => { const b = ev.target.closest('[data-pick]'); if (b) { sel.value = b.dataset.pick; sel.dispatchEvent(new Event('change')); } });
+  document.querySelectorAll('[data-pf]').forEach((b) => b.addEventListener('click', () => {
+    pf = b.dataset.pf; document.querySelectorAll('[data-pf]').forEach((x) => x.classList.toggle('on', x === b)); filt();
+  }));
+  $('#calQ').addEventListener('input', filt); $('#calFree').addEventListener('change', filt);
+  markPick();
+  const cur = pick.querySelector('.on'); if (cur) cur.scrollIntoView({ block: 'nearest' });
   ta.addEventListener('input', () => { touched = true; upd(); });
   document.querySelectorAll('[name=calSite]').forEach((c) => c.addEventListener('change', upd));
   if (sel.value) fill(); else upd();
