@@ -43,6 +43,20 @@ public class PrehravacService extends Service {
     static volatile boolean running;
     /** zmenšená obálka od PrehravacPlugin (Intent by byl pro Android moc velký) */
     static volatile Bitmap nextArtwork;
+    /** služba je teď v popředí: další příkazy jdou přes startService (startForegroundService by z pozadí Android zakázal) */
+    static volatile boolean foregroundNow;
+    /** jak dlouho drží pozastavená pohádka službu v popředí (pak už jen obyčejné oznámení) */
+    private static final long PAUSE_KEEP_FOREGROUND_MS = 30 * 60 * 1000L;
+    private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable pauseExpired = () -> {
+        // pohádka stojí dlouho: služba už nemusí držet aplikaci naživu
+        if (!this.playing && this.foreground) {
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
+            this.foreground = false;
+            foregroundNow = false;
+            try { refresh(false); } catch (Exception e) { Log.w("Ospalek", "pauseExpired: " + e); }
+        }
+    };
     /** delší strana obálky v oznámení a na zamčené obrazovce */
     private static final int ARTWORK_MAX = 512;
     private static final String CHANNEL = "prehravani";
@@ -282,17 +296,24 @@ public class PrehravacService extends Service {
         b.setStyle(new MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(shown));
         Notification notification = b.build();
 
-        if (playing || mustStartForeground) {
-            // hraje: služba v popředí, systém aplikaci po zhasnutí displeje neuspí
+        handler.removeCallbacks(pauseExpired);
+        if (playing || mustStartForeground || foreground) {
+            // Hraje, nebo je pozastavená a služba už v popředí je: zůstává v popředí. Kdyby při pauze
+            // (hovor, zvuk oznámení, video v jiné aplikaci) z popředí odešla, Android by ji po návratu zvuku
+            // z pozadí znovu spustit nedovolil: pohádka by nepokračovala, aplikaci by systém uspal
+            // a přehrávač na zamčené obrazovce by zmizel.
             try {
                 ServiceCompat.startForeground(this, NOTIFICATION_ID, notification,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0);
                 foreground = true;
-                if (!playing) {
-                    // jen splněný start z tlačítka sluchátek: hned zpátky mimo popředí
+                if (!playing && mustStartForeground && title.isEmpty()) {
+                    // jen splněný start z tlačítka sluchátek bez otevřené pohádky: hned zpátky mimo popředí
                     ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
                     foreground = false;
+                } else if (!playing) {
+                    handler.postDelayed(pauseExpired, PAUSE_KEEP_FOREGROUND_MS);
                 }
+                foregroundNow = foreground;
             } catch (Exception e) {
                 // Android 12+ nedovolí službu v popředí spustit z pozadí (např. Přehrát ze zamčené obrazovky
                 // po delší pauze). Pohádka hraje dál, jen oznámení zůstane obyčejné.
@@ -300,9 +321,9 @@ public class PrehravacService extends Service {
                 getSystemService(NotificationManager.class).notify(NOTIFICATION_ID, notification);
             }
         } else {
-            // pozastaveno: oznámení s tlačítkem Přehrát zůstane (jde odsunout), služba už nemusí být v popředí
-            if (foreground) ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH);
+            // pozastaveno dlouho (nebo služba v popředí nikdy nebyla): obyčejné oznámení s tlačítkem Přehrát
             foreground = false;
+            foregroundNow = false;
             getSystemService(NotificationManager.class).notify(NOTIFICATION_ID, notification);
         }
     }
@@ -316,6 +337,8 @@ public class PrehravacService extends Service {
     @Override
     public void onDestroy() {
         running = false;
+        foregroundNow = false;
+        handler.removeCallbacks(pauseExpired);
         abandonFocus();
         if (foreground) ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
         getSystemService(NotificationManager.class).cancel(NOTIFICATION_ID);

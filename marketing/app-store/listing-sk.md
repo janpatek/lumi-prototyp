@@ -28,7 +28,7 @@ Zhasnete. Dieťa počúva o sebe. A vy máte chvíľu pre seba.
 
 AKO TO FUNGUJE
 1. Pridáte dieťa: meno, vek, obľúbené jedlo a zviera. Súrodenci môžu byť v účte dvaja.
-2. Napíšete obec. Ospalek nájde obce, hrady, rozhľadne a zoo v okolí. Presnú adresu nechceme.
+2. Napíšete obec, alebo ju Ospalek nájde podľa polohy. Pridáte obľúbené miesta z výletov. Presnú adresu nechceme.
 3. Vyberiete rozprávku a pustíte ju. Nastavenie zaberie asi tri minúty.
 
 PREČO SI OSPALKA OBĽÚBITE
@@ -37,7 +37,7 @@ PREČO SI OSPALKA OBĽÚBITE
 • Známe miesta. Rozprávka sa odohráva vo vašom okolí, pri rybníku za dedinou aj na hrade z nedeľného výletu.
 • Celá rodina v príbehu. Súrodenci môžu byť hrdinami spolu, mama, otec aj babka dostanú svoju rolu.
 • Pokojný hlas a hudba. Číta teta Terezka, text sa pri čítaní zvýrazňuje, hlasitosť hudby si nastavíte.
-• Rozprávky na cestu. Odomknuté rozprávky si stiahnete do telefónu a pustíte aj bez internetu, napríklad v aute alebo na chate.
+• Rozprávky na cestu. Každá otvorená rozprávka sa uloží do telefónu, takže ju pustíte aj bez internetu, napríklad v aute alebo na chate.
 • Rozprávka dňa. Každý deň vám jednu odporučíme. Ak chcete, pripomenieme vám ju večer upozornením.
 • Nočný režim. Večer sa aplikácia sama stlmí do tmavých farieb, aby v izbe neoslňovala.
 

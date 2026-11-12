@@ -59,4 +59,9 @@
     <!-- pohádka hraje i se zhasnutým displejem -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- obec podle polohy při zadávání bydliště (jen přibližná poloha, jen na klepnutí) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- poloha je jen pohodlnější zadání obce: bez ní se aplikace musí dát nainstalovat i na tablety bez GPS -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
 </manifest>

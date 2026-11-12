@@ -46,7 +46,7 @@ Zhasnete. Dítě poslouchá o sobě. A vy máte chvíli pro sebe.
 
 JAK TO FUNGUJE
 1. Přidáte dítě: jméno, věk, oblíbené jídlo a zvíře. Sourozenci můžou být v účtu dva.
-2. Napíšete obec. Ospalek najde obce, hrady, rozhledny a zoo v okolí. Přesnou adresu nechceme.
+2. Napíšete obec, nebo ji Ospalek najde podle polohy. Přidáte oblíbená místa z výletů. Přesnou adresu nechceme.
 3. Vyberete pohádku a pustíte ji. Nastavení zabere asi tři minuty.
 
 PROČ SI OSPALKA OBLÍBÍTE
@@ -55,7 +55,7 @@ PROČ SI OSPALKA OBLÍBÍTE
 • Známá místa. Benešov, Konopiště, rybník za vsí: pohádka se odehrává ve vašem okolí.
 • Celá rodina v příběhu. Sourozenci můžou být hrdiny spolu, maminka, táta i babička dostanou svou roli.
 • Klidný hlas a hudba. Čte teta Terezka, text se při čtení zvýrazňuje, hlasitost hudby si nastavíte.
-• Pohádky na cestu. Odemčené pohádky si stáhnete do telefonu a pustíte i bez internetu, třeba v autě nebo na chalupě.
+• Pohádky na cestu. Každá otevřená pohádka se uloží do telefonu, takže ji pustíte i bez internetu, třeba v autě nebo na chalupě.
 • Pohádka dne. Každý den vám jednu doporučíme. Když chcete, připomeneme ji večer upozorněním.
 • Noční režim. Večer se aplikace sama ztlumí do tmavých barev, aby v pokoji neoslňovala.
 
@@ -126,7 +126,7 @@ Odpovídá zásadám 2.9. Tracking (sledování napříč aplikacemi, ATT): **ne
 | Typ údajů (Apple) | Co to je u nás | Účel | Spojeno s uživatelem |
 |---|---|---|---|
 | Kontaktní údaje → Jméno | křestní jména dětí (na serveru účet rodiny) | Funkce aplikace | ano |
-| Poloha → Přibližná poloha | obec, kterou rodič napíše (GPS nečteme) | Funkce aplikace | ano |
+| Poloha → Přibližná poloha | obec, kterou rodič napíše nebo nechá najít podle polohy (jen na klepnutí, zaokrouhleno na ~100 m, souřadnice neukládáme) | Funkce aplikace | ano |
 | Obsah od uživatele → Jiný obsah | věk a pohlaví dětí | Funkce aplikace | ano |
 | Identifikátory → ID uživatele | anonymní účet rodiny (Supabase) | Funkce aplikace | ano |
 | Nákupy → Historie nákupů | stav předplatného a transakce z App Store | Funkce aplikace | ano |
@@ -168,7 +168,7 @@ How to test:
 2. Three stories marked "Zdarma" (Free) can be played without purchase.
 3. Other stories are unlocked by the auto-renewable subscription "Ospalek Plus" (ospalek_plus_mesicne, 3-day free trial). Tap any locked story or the banner "Odemkněte všechny pohádky" to see the paywall; "Obnovit nákupy" restores purchases. Please use a sandbox account.
 4. Background audio: start a story and lock the phone; playback continues and the lock screen shows Now Playing controls.
-5. Offline: "Stáhnout na cestu" in the player downloads the story for listening without internet.
+5. Offline: every story opened in the player is fully downloaded before it starts, so it also plays without internet afterwards.
 6. Settings (gear icon) → "Smazat účet a všechna data" deletes the account and all data on our server.
 
 No login, no ads, no third-party analytics. Stories are in Czech; the app is available in Czechia and Slovakia.
