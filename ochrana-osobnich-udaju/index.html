@@ -43,7 +43,7 @@
   <main class="terms">
     <div class="wrap wrap-narrow">
       <h1>Ochrana osobních údajů</h1>
-      <p class="meta">Verze 2.9 · účinné od 11. 11. 2026</p>
+      <p class="meta">Verze 3.0 · účinné od 12. 11. 2026</p>
 
       <section class="summary" aria-labelledby="kratce">
         <h2 id="kratce">Krátce a lidsky</h2>
@@ -55,6 +55,7 @@
           <li>Předplatné platíte jen přes App Store nebo Google Play. Číslo karty ani jiné platební údaje nevidíme, od obchodu dostáváme přímo (bez dalších prostředníků) jen informace o nákupu a stavu předplatného.</li>
           <li>Když v aplikaci uplatníte kód od nás (volba <i>Mám kód</i>), zapíšeme si k anonymnímu účtu, který kód to byl a do kdy vám Plus odemkl. Smaže se spolu s účtem.</li>
           <li>Přihlašovat se nemusíte a e-mail po vás nechceme. Aplikace si sama založí anonymní účet. Předplatné patří k vašemu účtu Apple nebo Google v obchodě s aplikacemi.</li>
+          <li>Při psaní nových pohádek nám pomáhá umělá inteligence Claude od společnosti Anthropic. Dostane jen zadání od našeho týmu (kategorie, o čem má pohádka být, délka). Údaje o vaší rodině jí neposíláme: jména se do pohádky dosazují až ve vaší aplikaci.</li>
           <li>Údaje neprodáváme a nepoužíváme je k reklamě. Nemáme reklamní ani analytické cookies.</li>
           <li>Pohádky stažené na cestu (nahrávky vět i se jménem dítěte), přehled toho, co jste už slyšeli, a oblíbené pohádky leží jen ve vašem zařízení. Na server je neposíláme. Mobilní aplikace si z našeho webu stahuje nahrávky pohádek a seznam nových pohádek; nic o vaší rodině přitom neposílá.</li>
           <li>Připomínku konce zkušební doby plánuje váš telefon sám, nic kvůli ní neposíláme na server.</li>
@@ -132,6 +133,7 @@
             <tr><td>GitHub (GitHub Pages)</td><td>Technické údaje, například IP adresu</td><td>Hosting webu a aplikace; mobilní aplikace odtud stahuje nahrávky pohádek a aktuální seznam pohádek</td></tr>
             <tr><td>OpenStreetMap (Nominatim, Overpass)</td><td>Název obce, kterou zadáte při hledání míst v okolí</td><td>Nalezení okolních obcí a zajímavých míst</td></tr>
             <tr><td>Supabase (databáze, server v EU – Irsko)</td><td>Křestní jména, pohlaví a věk dětí, obec, údaje o poslechu a zařízení. Při stažení aktuálního seznamu pohádek jen technické údaje, například IP adresu.</td><td>Uložení údajů na serveru a anonymní účet. Aktuální seznam pohádek pro aplikaci.</td></tr>
+            <tr><td>Anthropic (Claude, generování textu)</td><td>Jen zadání nové pohádky od našeho týmu (kategorie, o čem má být, délka, případně poznámky k úpravám) a názvy existujících pohádek. Žádné údaje o rodinách ani dětech.</td><td>Návrh textu nových pohádek. Tým každý text před zveřejněním přečte, upraví a schválí.</td></tr>
             <tr><td>Google Fonts</td><td>Technické údaje, například IP adresu</td><td>Načtení písma webu ospalek.cz. Aplikace má písmo vlastní a Google Fonts nenačítá.</td></tr>
             <tr><td>Apple (App Store; prodávající Apple Distribution International Ltd., Irsko) a Google (Google Play; prodávající Google Commerce Limited, Irsko)</td><td>Při nákupu anonymní identifikátor vašeho účtu u nás (bez jména a e-mailu). Od obchodu dostáváme údaje o nákupu: identifikátor transakce, data a částky plateb, zemi obchodu a stav předplatného. Obchod je přitom samostatným správcem údajů ze svého účtu (jméno, e-mail, platební údaje) podle svých zásad.</td><td>Prodej, vyúčtování a obnovování předplatného v mobilní aplikaci. Nákup ověřujeme přímo u obchodu, abychom vám mohli odemknout pohádky.</td></tr>
           </tbody>
@@ -140,7 +142,7 @@
       <p>Údaje můžeme předat i úřadům, když nám to ukládá zákon.</p>
 
       <h2 id="mimo-eu">6. Předání mimo EU</h2>
-      <p>Někteří zpracovatelé (například ElevenLabs, GitHub, Cloudflare, Google, Apple, Mozilla, Microsoft a Supabase, i když data drží na serveru v EU) sídlí nebo zpracovávají data v USA. Předání probíhá na základě rozhodnutí Evropské komise o odpovídající ochraně (EU–US Data Privacy Framework), pokud je u příjemce k dispozici, jinak na základě standardních smluvních doložek schválených Evropskou komisí.</p>
+      <p>Někteří zpracovatelé (například ElevenLabs, Anthropic, GitHub, Cloudflare, Google, Apple, Mozilla, Microsoft a Supabase, i když data drží na serveru v EU) sídlí nebo zpracovávají data v USA. Předání probíhá na základě rozhodnutí Evropské komise o odpovídající ochraně (EU–US Data Privacy Framework), pokud je u příjemce k dispozici, jinak na základě standardních smluvních doložek schválených Evropskou komisí.</p>
 
       <h2 id="doba">7. Jak dlouho údaje držíme</h2>
       <ul>
@@ -185,6 +187,7 @@
         <table class="tbl">
           <thead><tr><th>Verze</th><th>Datum</th><th>Co se změnilo</th></tr></thead>
           <tbody>
+            <tr><td>3.0</td><td>12. 11. 2026</td><td>Nové pohádky pomáhá psát Claude (Anthropic) přes náš server. Posíláme mu jen zadání od týmu, žádné údaje o rodinách; jména dětí se dosazují až v aplikaci. Anthropic přibyl mezi příjemce a do předání mimo EU.</td></tr>
             <tr><td>2.9</td><td>11. 11. 2026</td><td>Kódy pro odemčení Ospalek Plus bez platby (volba <i>Mám kód</i>): k anonymnímu účtu ukládáme, který kód jste uplatnili a do kdy platí, a kvůli ochraně proti hádání počet neúspěšných pokusů za hodinu. Smaže se s účtem.</td></tr>
             <tr><td>2.8</td><td>11. 11. 2026</td><td>Bez služby RevenueCat: nákupy ověřujeme přímo u App Store a Google Play a obchody nám samy posílají oznámení o platbách, zrušení a vrácení peněz. RevenueCat vypadá ze seznamu příjemců. Upřesnění, jaké údaje o předplatném ukládáme na serveru a jak dlouho (po smazání účtu bez vazby na rodinu jako evidence tržeb).</td></tr>
             <tr><td>2.7</td><td>11. 11. 2026</td><td>Přehrávání na pozadí (Android i iPhone): pohádka hraje i se zhasnutým displejem a na zamčené obrazovce je vidět její obálka a název se jménem dítěte, s tlačítky pro ovládání. Nic se kvůli tomu neposílá na server.</td></tr>

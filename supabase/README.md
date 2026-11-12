@@ -13,6 +13,7 @@ Dokud je `config.js` v kořeni webu prázdný, nic se neodesílá a administrace
 | `family_day`, `daily_cat` | denní souhrny, plní je trigger při zápisu poslechu | databáze |
 | `staff`, `audit_log` | tým administrace a záznam jeho akcí | ručně / administrace |
 | `story_catalog` | katalog pohádek (šablony názvu a textu, kategorie, věk, obálka, smazané) ve verzích | administrace přes `admin_publish_stories` (role Vlastník a Obsah) |
+| `story_drafts` | zásobník pohádek z generátoru: šablona, zadání, stav (koncept, ve výrobě, zveřejněno, vyřazeno) a kroky publikace; žádné údaje rodin | administrace přes `admin_story_draft_save` a `admin_story_draft_delete` (role Vlastník a Obsah) |
 | `push_subs` | odběr večerního upozornění: adresa u push služby prohlížeče a klíče k zašifrování, platforma, kdy naposledy doručeno; jen rodiny, které připomínku zapnuly | aplikace přes `app_push_subscribe`, mazání `app_push_unsubscribe` a push-worker |
 | `push_settings`, `daily_story`, `push_log` | nastavení upozornění (hodina, texty, střídání), ručně vybrané pohádky dne, historie rozesílání | administrace (`admin_push_save`, `admin_daily_set`), push-worker |
 
@@ -33,6 +34,41 @@ Pohádky ze `app/stories.cs.js` jsou záloha: platí, dokud se nic nezveřejní.
 mezi smazanými nejsou, aplikace přidá na konec. Když se v repozitáři upraví text pohádky, která už je v katalogu, platí verze
 z katalogu, dokud ji administrace nevrátí tlačítkem *Vrátit na app/stories.cs.js*. Obálky a hudba nových pohádek musí být v repozitáři.
 Do existující databáze přidá tabulku a funkce `migrations/20261111_pohadky_v_databazi.sql`.
+
+### Generátor pohádek a zásobník
+
+V administraci (*Obsah → Generátor pohádek*) se zvolí kategorie, o čem má pohádka být a délka (5, 10 nebo 15 minut).
+Text napíše Claude (Anthropic, model `claude-opus-5-5`) v Edge Function `story-gen`, ve stejném tvaru jako pohádky
+v `app/stories.cs.js` (šablona s `${c.H}`, `c.g(…)`, `c.p1`, `c.inTown`…). Pravidla pro model jsou v
+`functions/story-gen/pohadka.js` a vycházejí z `tools/pohadky/ZADANI.md`. Náhled dosazuje jména kódem z `app/app.js`,
+kontrola pro testovací rodiny odpovídá `tools/pohadky/over.mjs`. Jména zadaná v náhledu zůstávají jen v prohlížeči.
+
+Hotový text se uloží do *Zásobníku pohádek* (`story_drafts`). Tlačítko **Publikovat** zjistí stav výroby a zveřejní pohádku
+v katalogu (`admin_publish_stories`), jakmile je hotová obálka i hlas:
+
+| Krok | Jak se pozná, že je hotový | Co zatím chybí |
+|---|---|---|
+| Obálka | existuje `covers/<id>.jpg` (případně `-f.jpg`) na webu | Generování obrázků z administrace není napojené (stojí peníze, žádný poskytovatel zatím není vybraný). Administrace dá prompt ve stylu ostatních obálek, obrázek se vyrobí mimo ni a nahraje do repozitáře. |
+| Namluvení | všechny společné věty pohádky (všechny tvary rodu a čísla) jsou v `audio/hlas/jana/index.json` | Namlouvá se lokálně přes `tools/hlas` (příkazy ukáže administrace u konceptu): stáhnout koncept do `koncepty/pohadky/<id>.js`, `tools/pohadky/prenest.mjs`, `tools/hlas/plan.mjs spolecne`, `namluvit.mjs nahrat`, nasadit web. Bez toho jde krok vynechat: věty pak aplikace dotáhne přes tts-worker při prvním poslechu. |
+| Kulisa a hudba | pohádka je v `audio/pozadi/index.json` | Nepovinné, jinak hraje hudba podle nálady. Postup v `tools/pozadi/README.md`. |
+| Zveřejnění | automaticky, když jsou obálka a hlas hotové nebo vynechané | – |
+
+Do existující databáze přidá tabulku a funkce `migrations/20261112_zasobnik_pohadek.sql`.
+
+#### Klíč pro generátor (jednou, dělá vlastník)
+
+Klíč k Anthropic API patří **jen** do Secrets v Supabase, nikdy do repozitáře, do `config.js` ani do administrace.
+
+1. [console.anthropic.com](https://console.anthropic.com) → API Keys → Create Key (účet na jan.patek@gmail.com, nastav si měsíční limit útraty).
+2. Supabase → Edge Functions → Secrets → Add new secret: název `ANTHROPIC_API_KEY`, hodnota klíč.
+3. Supabase → Edge Functions → Deploy a new function → Via editor, název `story-gen`, vložit `functions/story-gen/index.ts`
+   a jako druhý soubor `pohadka.js` (nebo `supabase functions deploy story-gen` z CLI). „Verify JWT“ může zůstat zapnuté.
+4. V SQL Editoru spustit `migrations/20261112_zasobnik_pohadek.sql`.
+
+Bez klíče funkce vrátí „Generátor zatím nemá klíč“ a administrace nabídne simulovaný text, aby šel vyzkoušet zbytek.
+Jedna pohádka stojí asi 3–10 Kč (Opus 5.5: 4 $ / 20 $ za milion tokenů; vstup ~5 000 tokenů, výstup s přemýšlením ~5–20 000 tokenů);
+spotřeba každého generování se zapisuje do auditu (`content.generate`). Generování trvá obvykle 1–2 minuty, Edge Function
+má na bezplatném tarifu limit 150 s, na placeném 400 s; u 15minutových pohádek na bezplatném tarifu může vypršet.
 
 ## Zapojení (jednou, asi 15 minut)
 
@@ -131,8 +167,12 @@ cd supabase && npm install && node dev-server.mjs --seed 60
 Pod napodobeninou Supabase běží skutečné `schema.sql` v PGlite (Postgres ve WebAssembly), data jsou jen v paměti.
 - Aplikace: http://localhost:5174/app/?db=http://localhost:54321
 - Administrace: http://localhost:5174/admin/?db=http://localhost:54321 (admin@example.cz / ospalek-test; klíč pro Authenticator a odkaz z obnovy hesla vypíše server do konzole)
+- Generátor pohádek: bez klíče nabídne simulaci. Se skutečným textem `ANTHROPIC_API_KEY=… node dev-server.mjs` (klíč jen v proměnné prostředí).
+  `node test-story-gen.mjs` vyzkouší volání modelu proti atrapě API, bez klíče a bez internetu.
 
 ## Co zatím chybí
+
+- Generátor pohádek: generování obálky a namlouvání přímo z administrace (teď lokálně přes `tools/`, viz *Generátor pohádek a zásobník*).
 
 - Skutečné přihlášení rodičů (Google, Apple, e-mail) místo simulovaného; anonymní účet se pak k němu připojí.
 - Pravidelné srovnání s obchody (noční kontrola stavu předplatných přes API, kdyby se nějaké oznámení ztratilo).
