@@ -965,3 +965,38 @@ grant execute on function public.store_record(jsonb), public.store_sub_by_token(
 -- rozesílání upozornění: jen push-worker s tajným klíčem (sb_secret_…)
 grant execute on function public.push_start(timestamptz), public.push_batch(int, int), public.push_report(bigint, bigint[], bigint[], bigint[]) to service_role;
 grant execute on function public.app_catalog(bigint) to anon, authenticated;
+
+-- ---------- Zveřejňování na Instagram (Edge Function instagram), stejné jako migrations/20261113_instagram.sql ----------
+create table if not exists public.instagram_ucet (
+  id int primary key default 1 check (id = 1),
+  ig_user_id text not null,
+  username text,
+  token text not null,
+  expires_at timestamptz not null,
+  token_at timestamptz not null default now(),
+  propojil uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+-- jednorázové kódy přihlášení (state) mezi administrací a Instagramem, platí 15 minut
+create table if not exists public.instagram_oauth (
+  state text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  navrat text not null,
+  created_at timestamptz not null default now()
+);
+-- co a kdy se z administrace zveřejnilo
+create table if not exists public.instagram_prispevky (
+  id bigserial primary key,
+  polozka text not null,
+  typ text not null,
+  media_id text,
+  permalink text,
+  popisek text,
+  zverejnil uuid references auth.users(id) on delete set null,
+  at timestamptz not null default now()
+);
+
+alter table public.instagram_ucet enable row level security;
+alter table public.instagram_oauth enable row level security;
+alter table public.instagram_prispevky enable row level security;
+revoke all on public.instagram_ucet, public.instagram_oauth, public.instagram_prispevky from anon, authenticated;

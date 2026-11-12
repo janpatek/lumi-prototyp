@@ -70,6 +70,51 @@ Jedna pohádka stojí asi 3–10 Kč (Opus 5.5: 4 $ / 20 $ za milion tokenů; vs
 spotřeba každého generování se zapisuje do auditu (`content.generate`). Generování trvá obvykle 1–2 minuty, Edge Function
 má na bezplatném tarifu limit 150 s, na placeném 400 s; u 15minutových pohádek na bezplatném tarifu může vypršet.
 
+### Materiály pro sociální sítě
+
+Reels, příspěvky na Instagram, profilové obrázky a podklady pro Google Play z `marketing/` nejsou v gitu. Leží v soukromém
+bucketu `marketing` a administrace (Obsah → Sociální sítě) si na ně vyžádá podepsané odkazy platné 6 hodin. Číst je smí
+jen vlastník a role Obsah přihlášení s kódem. Osobní údaje v nich nejsou.
+
+1. Jednou spusť `migrations/20261112_marketing_uloziste.sql` v SQL Editoru (bucket a pravidla čtení a nahrávání;
+   v `schema.sql` není, protože lokální dev-server úložiště nemá).
+2. Po každé změně obsahu `node marketing/katalog.mjs`, pak otevři administraci z localhost (např. `python3 -m http.server 5174`
+   v kořeni repa, http://localhost:5174/admin/#socialni), přihlas se a klikni na *Nahrát z místní složky do úložiště*.
+   Nahraje se pod tvým přihlášením, žádný tajný klíč není potřeba. Záložní `node marketing/nahrat.mjs` s tajným klíčem
+   12. 11. 2026 s klíčem `sb_secret_…` ani service_role neprošel (úložiště vracelo „Invalid Compact JWS“), proto tlačítko.
+
+Ukázková data a lokální databáze (`?db=…`) berou katalog a soubory přímo ze složky `marketing/`.
+
+### Zveřejňování na Instagram
+
+Reels a příspěvky jdou z detailu v Sociálních sítích zveřejnit tlačítkem *Zveřejnit na Instagramu* (popisek jde před
+odesláním upravit). Zveřejněný materiál se sám označí jako použitý, s odkazem na příspěvek. Používá se Instagram API
+s přihlášením přes Instagram (firemní účet, facebooková stránka není potřeba, zdarma). Přístupový token drží jen Edge
+Function `instagram` v tabulce `instagram_ucet`. Platí 60 dní a funkce ho při používání sama prodlužuje, po delší pauze
+stačí účet propojit znovu. Obrázky posílá jako JPG (`marketing/katalog.mjs` je vyrobí vedle PNG), Instagram PNG přes API nebere.
+
+Zapojení (jednou):
+
+1. **Instagram:** účet Ospalek.cz přepnout na profesionální (aplikace Instagram → Nastavení → Typ účtu a nástroje → Firma).
+2. **Databáze:** SQL Editor → spustit `migrations/20261113_instagram.sql`.
+3. **Edge Function:** Edge Functions → Deploy a new function → Via editor, název `instagram`, obsah `functions/instagram/index.ts`.
+   V nastavení funkce **vypnout „Verify JWT“** (Instagram vrací přihlášení přímo na funkci). Ostatní adresy si přihlášení ověřují samy.
+4. **Meta for Developers** (developers.facebook.com, přihlášení osobním Facebookem):
+   - Create app → typ Business (název třeba „Ospalek admin“) → přidat produkt **Instagram** → *API setup with Instagram login*.
+   - *Set up Instagram business login* → Business login settings → OAuth redirect URIs: `https://imiujppjewddeldjifkl.supabase.co/functions/v1/instagram/zpet`
+     (administrace ji ukáže i s tlačítkem Zkopírovat).
+   - Aplikace zůstává ve vývojovém režimu, App Review není potřeba, protože zveřejňuje jen na vlastní účet. Účet Ospalek.cz
+     ale musí mít v aplikaci roli: App roles → Roles → Instagram Testers → přidat `ospalek.cz` a pozvánku potvrdit
+     v aplikaci Instagram (Nastavení → Aplikace a weby → Pozvánky testerů). Kdo je administrátor aplikace, roli už má.
+5. **Secrets** (Edge Functions → Secrets): `IG_APP_ID` = *Instagram app ID* a `IG_APP_SECRET` = *Instagram app secret*
+   ze stránky API setup with Instagram login (jiné hodnoty než Facebook App ID nahoře v aplikaci). Secret nikam jinam nevkládej.
+6. **Propojení:** administrace → Sociální sítě → *Propojit Instagram*, přihlásit se účtem Ospalek.cz a povolit oprávnění.
+
+Omezení API: nejde přidat hudbu z knihovny Instagramu ani označit lidi, přes API jde za 24 hodin zveřejnit jen omezený počet příspěvků
+(desítky), popisek nejvýš 2200 znaků a 30 hashtagů. Příspěvky se zástupnými texty `[…]` administrace nepustí.
+
+Test funkce bez Supabase a bez Instagramu (podvržené odpovědi, Node 24): `node supabase/functions/instagram/test.mjs`
+
 ## Zapojení (jednou, asi 15 minut)
 
 1. Na [supabase.com](https://supabase.com) založ projekt. **Region: EU (náš projekt běží v West EU – Irsko, eu-west-1; Frankfurt by šel také).** Tarif Free na začátek stačí.
