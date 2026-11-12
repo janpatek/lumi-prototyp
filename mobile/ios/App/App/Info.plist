@@ -50,6 +50,8 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Podle polohy najdeme vaši obec, aby se pohádky odehrávaly tam, kde bydlíte. Polohu neukládáme.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

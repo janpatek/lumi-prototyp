@@ -51,7 +51,9 @@ public class PrehravacPlugin extends Plugin {
         }
         try {
             PrehravacService.running = true; // stop() hned potom musí službu zastavit, i když ještě nevznikla
-            if (Boolean.TRUE.equals(call.getBoolean("playing", false))) ContextCompat.startForegroundService(getContext(), i);
+            // Služba už v popředí běží (hraje nebo je pozastavená): stačí startService. startForegroundService
+            // by Android z pozadí (zamčený telefon, jiná aplikace) zakázal.
+            if (Boolean.TRUE.equals(call.getBoolean("playing", false)) && !PrehravacService.foregroundNow) ContextCompat.startForegroundService(getContext(), i);
             else getContext().startService(i);
             call.resolve();
         } catch (Exception e) {

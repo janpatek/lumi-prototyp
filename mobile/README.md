@@ -99,7 +99,13 @@ Pozor na velikost dat v Intentu: obálka jde do služby jako zmenšená bitmapa 
 (`PrehravacService.nextArtwork`), ne jako data URL v Intentu. Intent nad ~500 kB Android nedoručí
 (TransactionTooLargeException), služba nezavolá `startForeground` a systém aplikaci za pár sekund shodí
 (ForegroundServiceDidNotStartInTimeException). `onStartCommand` proto `startForeground` volá vždy, v nouzi
-s jednoduchým oznámením. Testovat release sestavení (`assembleRelease`, podepsat ladicím klíčem přes apksigner),
+s jednoduchým oznámením. Služba zůstává v popředí i během pauzy (nejvýš 30 minut, pak už jen obyčejné oznámení). Kdyby při pauze z popředí
+odešla (hovor, zvuk oznámení, video v jiné aplikaci), Android by ji po návratu zvuku z pozadí znovu spustit nedovolil
+(ForegroundServiceStartNotAllowedException): pohádka by stála a přehrávač na zamčené obrazovce by zmizel. Plugin proto
+pro běžící službu v popředí používá startService. Test: pohádka hraje, aplikace na pozadí, `adb emu gsm call 777123456`
+a `adb emu gsm cancel 777123456`; pohádka musí sama pokračovat a `dumpsys activity services cz.ospalek.app` ukazuje
+`isForeground=true`.
+Testovat release sestavení (`assembleRelease`, podepsat ladicím klíčem přes apksigner),
 a s pohádkou s velkou obálkou (např. Sůl nad zlato).
 Ladění: `adb shell cmd media_session dispatch next`, stav `adb shell dumpsys media_session`.
 Focus: `adb shell dumpsys audio` (Audio Focus stack), hovor v emulátoru `adb emu gsm call 777123456` / `adb emu gsm cancel 777123456`.

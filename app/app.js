@@ -301,7 +301,7 @@ const screens = {
     <div class="section-t">Bydliště</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
     <div class="section-t">Poslech bez internetu</div>
-    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Stažené pohádky pustíte v autě nebo na chalupě bez signálu. Co dohrajete do konce, uloží se samo.</span></div></div>
+    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Každá pohádka, kterou otevřete, se uloží do telefonu sama. Pustíte ji pak v autě nebo na chalupě bez signálu.</span></div></div>
     <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     ${remindSettings()}
     <div class="section-t">Předplatné</div>
@@ -442,7 +442,7 @@ function homeForm() {
   const chips = (opts, sel, kind) => opts.map((o, i) => `<button class="chip ${sel.includes(o) ? 'on' : ''}" data-a="toggleSpot" data-kind="${kind}" data-i="${i}">${esc(o)}</button>`).join('');
   return `
     <label for="town">Obec nebo město</label>
-    <div class="row"><input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small" style="flex:0 0 auto" data-a="findSpots">Najít okolí</button></div>
+    <div class="row"><input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small ghost" style="flex:0 0 auto" data-a="useLocation">${I.home} Podle polohy</button></div>
     <label for="inTown">Jak doma říkáte: „bydlíme …“</label>
     <input id="inTown" maxlength="${LIMIT.place + 4}" placeholder="v Benešově" value="${esc(h.inTown)}">
     <div id="spotsMsg" class="note" style="margin-top:8px"></div>
@@ -452,42 +452,53 @@ function homeForm() {
     <div class="row"><input id="addSpot" maxlength="${LIMIT.place}" placeholder="např. Zoo Dvůr Králové"><button class="btn small ghost" style="flex:0 0 auto" data-a="addSpot">Přidat</button></div>`;
 }
 
-// ---------- Okolí z OpenStreetMap ----------
-async function findSpots() {
-  const town = document.getElementById('town').value.trim();
+// ---------- Obec podle polohy telefonu ----------
+// Rodič si může obec nechat najít podle polohy. Poloha se zaokrouhlí na ~100 m (u menších přesnost obec netrefí) a jen jednou se pošle
+// OpenStreetMap (Nominatim), který vrátí název obce. Souřadnice nikam neukládáme, zůstane jen obec.
+// (Dřívější „Najít okolí“ přes Overpass bylo nespolehlivé: veřejné servery v aplikaci neodpovídaly.)
+async function useLocation(el) {
   const msg = document.getElementById('spotsMsg');
-  if (!town) { msg.textContent = 'Nejdřív napište obec.'; return; }
-  if (syncHome() === false) return;
-  msg.textContent = 'Hledám místa v okolí…';
+  const say = (t, err) => { if (msg) msg.innerHTML = err ? `<span class="err">${esc(t)}</span>` : esc(t); };
+  // v mobilní aplikaci doplněk @capacitor/geolocation (poloha ze služeb telefonu, stačí přibližná),
+  // na webu poloha prohlížeče
+  const G = window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.Plugins && Capacitor.Plugins.Geolocation;
+  if (!G && !navigator.geolocation) return say('Polohu tady zjistit nejde. Napište obec ručně.', true);
+  if (el) el.disabled = true;
+  say('Zjišťuji, kde jste…');
   try {
-    const g = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=cz,sk&accept-language=cs&q=${encodeURIComponent(town)}`).then((r) => r.json());
-    if (!g.length) throw new Error('Obec jsme nenašli. Zkuste jiný název.');
-    const lat = +g[0].lat, lon = +g[0].lon;
-    const q = `[out:json][timeout:25];(node(around:12000,${lat},${lon})[place~"^(town|village)$"][name];nwr(around:25000,${lat},${lon})[tourism~"^(zoo|theme_park|attraction)$"][name];nwr(around:25000,${lat},${lon})[historic~"^(castle|ruins)$"][name];);out tags center 200;`;
-    const d = await overpass(q);
-    const dist = (e) => { const la = e.lat ?? e.center?.lat, lo = e.lon ?? e.center?.lon; return (la - lat) ** 2 + ((lo - lon) * 0.64) ** 2; };
-    const score = (t) => ({ castle: 3, zoo: 3, theme_park: 3, ruins: 2 }[t.historic || t.tourism] || 1);
-    const uniq = (a) => [...new Set(a)];
-    const towns = uniq(d.elements.filter((e) => e.tags.place && e.tags.name !== town).sort((a, b) => (a.tags.place === 'town' ? 0 : 1) - (b.tags.place === 'town' ? 0 : 1) || dist(a) - dist(b)).map((e) => e.tags.name)).slice(0, 10);
-    const attrs = uniq(d.elements.filter((e) => !e.tags.place).sort((a, b) => score(b.tags) - score(a.tags) || dist(a) - dist(b)).map((e) => e.tags.name)).slice(0, 10);
-    const h = S.family.home;
-    h.nearOpts = towns; h.near = towns.slice(0, 4);
-    h.attrOpts = uniq([...h.attr, ...attrs]); h.attr = h.attr.length ? h.attr : attrs.slice(0, 3);
-    save(); render();
-    document.getElementById('spotsMsg').textContent = towns.length || attrs.length ? 'Vybraná místa se objeví v pohádkách. Klepnutím je zapnete nebo vypnete.' : 'V okolí jsme nic nenašli. Přidejte místa ručně.';
+    const opts = { enableHighAccuracy: false, timeout: 20000, maximumAge: 10 * 60 * 1000 };
+    let pos;
+    if (G) {
+      let perm = await G.checkPermissions().catch(() => null);
+      if (!perm || (perm.coarseLocation !== 'granted' && perm.location !== 'granted')) perm = await G.requestPermissions({ permissions: ['coarseLocation'] });
+      if (perm.coarseLocation !== 'granted' && perm.location !== 'granted') throw Object.assign(new Error('denied'), { code: 1 });
+      const fail = (e) => {
+        if (/disabled|services/i.test((e && e.message) || '')) throw new Error('V telefonu je vypnutá poloha. Zapněte ji, nebo napište obec ručně.');
+        throw Object.assign(new Error('timeout'), { code: 3 });
+      };
+      // čerstvá poloha nepřišla (vnitřek domu, slabý signál): stačí i poslední známá z dneška
+      pos = await G.getCurrentPosition(opts)
+        .catch((e) => (/disabled|services/i.test((e && e.message) || '') ? fail(e) : G.getCurrentPosition({ ...opts, timeout: 5000, maximumAge: 24 * 3600 * 1000 })))
+        .catch(fail);
+    } else {
+      pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, opts));
+    }
+    const lat = pos.coords.latitude.toFixed(3), lon = pos.coords.longitude.toFixed(3);
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=13&accept-language=cs&lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(15000) });
+    const a = r.ok ? (await r.json()).address || {} : {};
+    const town = a.village || a.town || a.city || a.municipality || '';
+    if (!town) throw new Error('Obec podle polohy jsme nenašli. Napište ji ručně.');
+    if (a.country_code && !['cz', 'sk'].includes(a.country_code)) throw new Error('Pohádky zatím umí jen obce v Česku a na Slovensku. Napište obec ručně.');
+    const t = document.getElementById('town');
+    if (!t) return;
+    t.value = cleanText(town, LIMIT.place);
+    t.dispatchEvent(new Event('input', { bubbles: true })); // doplní „bydlíme v …“
+    say(`Našli jsme: ${t.value}. Zkontrolujte, jestli sedí, a případně opravte.`);
   } catch (e) {
-    msg.innerHTML = `<span class="err">${esc(e.message || 'Hledání se nepovedlo.')} Místa můžete přidat i ručně.</span>`;
+    say(e && e.code === 1 ? 'Polohu jste nepovolili. Napište obec ručně.' : e && e.code ? 'Polohu se nepodařilo zjistit. Napište obec ručně.' : (e && e.message) || 'Obec se nepodařilo najít. Napište ji ručně.', true);
+  } finally {
+    if (el) el.disabled = false;
   }
-}
-// veřejné servery Overpass bývají přetížené – zkusíme víc zrcadel, každé s časovým limitem
-async function overpass(q) {
-  for (const url of ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter']) {
-    try {
-      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q), signal: AbortSignal.timeout(15000) });
-      if (r.ok) return await r.json();
-    } catch (e) { /* další zrcadlo */ }
-  }
-  throw new Error('Mapový server je teď přetížený.');
 }
 function syncHome() {
   const t = document.getElementById('town'), i = document.getElementById('inTown');
@@ -801,11 +812,10 @@ function notOffline() {
   $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
     <img class="sheet-mascot" src="${MASCOT.trip}" alt="">
     <h2 style="text-align:center">Tahle pohádka není stažená</h2>
-    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budete zase online, otevřete pohádku a klepněte na <b>Stáhnout na cestu</b>.</p>
+    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budete zase online, stačí pohádku otevřít: uloží se do telefonu sama.</p>
     <button class="btn" data-a="closeModal">Rozumím</button>
   </div></div>`;
 }
-const dlLabel = (ok) => (ok ? '✓ Staženo' : `${I.down} Stáhnout na cestu`);
 
 // ---------- Co jsme už slyšeli (jen v zařízení, S.history) ----------
 const heardCount = (id) => (S.history || []).filter((x) => x.id === id && x.done).length;
@@ -833,7 +843,7 @@ function openPlayer(st, queue) {
   $app.insertAdjacentHTML('beforeend', `
     <div class="player" id="player" style="--c:${catColor(st)}">
       <div class="inner">
-        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><button class="chip dl" data-a="download" id="dlBtn">${dlLabel(false)}</button><div class="pbtns">${favBtn(st.id, 'icon-btn pfav')}<button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div></div>
+        <div class="bar"><button class="icon-btn" data-a="closePlayer" aria-label="Zavřít">${I.close}</button><div class="pbtns">${favBtn(st.id, 'icon-btn pfav')}<button class="icon-btn" data-a="toggleText" aria-label="Text">${I.book}</button></div></div>
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
         <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}<div class="self-end"><img src="${st.cats.includes('noc') ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${st.cats.includes('noc') ? 'Dobrou noc' : 'Konec'}</h2></div></div>
@@ -863,7 +873,8 @@ function openPlayer(st, queue) {
 // Přehrát jde až ve chvíli, kdy je v zařízení všechno, co pohádka potřebuje (věty, věty se jménem,
 // obálka, hudba v pozadí). Během poslechu se pak nic nestahuje: žádné ticho uprostřed, když se síť
 // zadrhne, a hraje to i se zhasnutým displejem, kdy Android přístup k internetu omezuje.
-// Stažené zůstane v zařízení (jako Stáhnout na cestu), příště se pohádka otevře hned.
+// Stažené zůstane v zařízení (proto přehrávač nemá vlastní tlačítko Stáhnout), příště se pohádka otevře hned
+// a pustí se i bez internetu.
 const PREP_MSG = 'Připravuji celou pohádku, aby se nikde nezadrhla…';
 async function prepareStory() {
   const p = P;
@@ -877,8 +888,6 @@ async function prepareStory() {
     p.ready = true;
     p.prog = 1;
     if (w() && w().textContent === PREP_MSG) w().textContent = '';
-    const b = document.getElementById('dlBtn');
-    if (b && saved) { b.innerHTML = dlLabel(true); b.classList.add('on'); }
     highlight();
     if (p.autoplay) { p.autoplay = false; playPause(); }
   };
@@ -1295,7 +1304,7 @@ const actions = {
     save(); closeModal(); render();
   },
   closeModal: (el, e) => { if (e.target.closest('[data-stop]') && el.classList.contains('overlay')) return; closeModal(); },
-  findSpots,
+  useLocation,
   toggleSpot: (el) => {
     syncHome();
     const h = S.family.home; const kind = el.dataset.kind;
@@ -1345,18 +1354,6 @@ const actions = {
   unheard: () => { ui.unheard = !ui.unheard; render(); },
   history: () => go('history'),
   clearHistory: () => { if (confirm('Smazat historii poslechu v tomhle zařízení?')) { S.history = []; store.set(S); render(); } },
-  download: async (el) => {
-    if (!P || P.dl || el.classList.contains('on')) return;
-    const st = P.st;
-    P.dl = true;
-    try {
-      await downloadStory(st, (d, n) => { el.innerHTML = `${I.down} ${Math.round((d / n) * 100)} %`; });
-      el.innerHTML = dlLabel(true); el.classList.add('on');
-    } catch (e) {
-      el.innerHTML = `${I.down} Zkusit znovu`;
-      const w = document.getElementById('voicewarn'); if (w) w.textContent = e.message || 'Stažení se nepovedlo.';
-    } finally { if (P) P.dl = false; }
-  },
   downloadAll: async (el) => {
     if (el.dataset.busy) return;
     const stat = document.getElementById('offStat');
