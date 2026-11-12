@@ -91,7 +91,10 @@ služba v popředí `PrehravacService` (typ mediaPlayback) s mediální relací:
 je obálka, název a tlačítka předchozí / přehrát-pozastavit / další; fungují i tlačítka na sluchátkách.
 JS strana je `app/media.js`, doplněk `PrehravacPlugin` (registrovaný v MainActivity). Předchozí / další
 přepíná pohádky v pořadí poličky, ze které se pohádka otevřela, a přeskočí zamčené.
+Když pohádka hraje, služba drží audio focus (WebView si o něj samo neřekne): Spotify a jiné přehrávače se zastaví,
+a když začne hrát jiná aplikace, pohádka se pozastaví. Po hovoru nebo budíku pokračuje sama.
 Ladění: `adb shell cmd media_session dispatch next`, stav `adb shell dumpsys media_session`.
+Focus: `adb shell dumpsys audio` (Audio Focus stack), hovor v emulátoru `adb emu gsm call 777123456` / `adb emu gsm cancel 777123456`.
 
 iPhone: aplikace má v Info.plist režim pozadí `audio` a stránka si řekne o `navigator.audioSession.type = 'playback'`
 (hraje i s tichým režimem). Právě hraje na zamčené obrazovce vyplní WebKit sám z `navigator.mediaSession`
