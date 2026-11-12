@@ -752,13 +752,15 @@ async function downloadStory(st, onprog) {
       try { return await job(); } catch (e) {
         // limit nových vět ve Workeru (120 za minutu) – chvilku počkat
         if (e.status === 429 && a < 4) { await new Promise((r) => setTimeout(r, 20000)); continue; }
+        // zakolísání sítě: ještě dvakrát zkusit
+        if (navigator.onLine && e.status !== 429 && a < 3) { await new Promise((r) => setTimeout(r, 1500 * a)); continue; }
         throw navigator.onLine ? e : new Error('Bez internetu se pohádka stáhnout nedá.');
       }
     }
   };
   let done = 0;
   const q = [...jobs];
-  await Promise.all(Array.from({ length: 4 }, async () => {
+  await Promise.all(Array.from({ length: 6 }, async () => {
     while (q.length) { await run(q.shift()); onprog && onprog(++done, jobs.length); }
   }));
   offlineMemo.delete(memoKey(st, heroes()));
@@ -823,7 +825,7 @@ function openPlayer(st, queue) {
   // skládaný hlas (voice-player.js): jde, když jsou namluvené všechny věty, nebo chybějící dotáhne tts-worker
   const plan = VOICE_LINES.planStory(segs);
   const linesOk = voiceLines.missing(plan) === 0 || !!TTS_URL;
-  P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null };
+  P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null, ready: false, prog: 0 };
   // pořadí pohádek pro Předchozí / Další ze zamčené obrazovky: polička, ze které se pohádka otevřela
   P.queue = queue && queue.includes(st.id) ? queue : STORIES.map((s) => s.id);
   // jeden přehrávač vytvořený při kliknutí – iOS pak pustí i další odstavce bez dalšího klepnutí
@@ -853,8 +855,66 @@ function openPlayer(st, queue) {
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
   ambience.preloadBackground(st);
   document.getElementById('ptext').addEventListener('scroll', selfReadEnd, { passive: true });
-  storyOffline(st).then((ok) => { const b = document.getElementById('dlBtn'); if (b && ok && P && P.st === st) { b.innerHTML = dlLabel(true); b.classList.add('on'); } });
   highlight();
+  prepareStory();
+}
+
+// ---------- celá pohádka připravená předem ----------
+// Přehrát jde až ve chvíli, kdy je v zařízení všechno, co pohádka potřebuje (věty, věty se jménem,
+// obálka, hudba v pozadí). Během poslechu se pak nic nestahuje: žádné ticho uprostřed, když se síť
+// zadrhne, a hraje to i se zhasnutým displejem, kdy Android přístup k internetu omezuje.
+// Stažené zůstane v zařízení (jako Stáhnout na cestu), příště se pohádka otevře hned.
+const PREP_MSG = 'Připravuji celou pohádku, aby se nikde nezadrhla…';
+async function prepareStory() {
+  const p = P;
+  if (!p) return;
+  const st = p.st;
+  const live = () => P === p;
+  const w = () => document.getElementById('waiting');
+  p.loadErr = false;
+  const finish = (saved) => {
+    if (!live()) return;
+    p.ready = true;
+    p.prog = 1;
+    if (w() && w().textContent === PREP_MSG) w().textContent = '';
+    const b = document.getElementById('dlBtn');
+    if (b && saved) { b.innerHTML = dlLabel(true); b.classList.add('on'); }
+    highlight();
+    if (p.autoplay) { p.autoplay = false; playPause(); }
+  };
+  // jiný hlas než skládaný (nahrávka, hlas prohlížeče) se nepřipravuje
+  if (p.voice !== 'lines') return finish(false);
+  const beds = Promise.race([ambience.bedsReady(st), new Promise((r) => setTimeout(r, 15000))]);
+  if (await storyOffline(st)) { await beds; return finish(true); }
+  if (!live()) return;
+  if (w()) w().textContent = PREP_MSG;
+  highlight();
+  try {
+    await downloadStory(st, (d, n) => { if (live() && !p.ready) { p.prog = (d / n) * 0.97; playBtnPrep(document.getElementById('playBtn')); } });
+    await beds;
+    finish(true);
+  } catch (e) {
+    if (!live()) return;
+    p.loadErr = true;
+    if (w()) w().textContent = navigator.onLine ? 'Pohádku se nepodařilo načíst celou. Klepněte na tlačítko a zkusíme to znovu.' : 'Bez internetu se pohádka nenačte. Připojte se a klepněte na tlačítko.';
+    highlight();
+  }
+}
+// tlačítko Přehrát během přípravy: průběh v procentech, po chybě Zkusit znovu
+function playBtnPrep(b) {
+  if (P.ready) { b.disabled = false; b.classList.remove('loading'); return false; }
+  b.classList.add('loading');
+  if (P.loadErr) {
+    b.disabled = false;
+    b.innerHTML = I.replay;
+    b.setAttribute('aria-label', 'Zkusit načíst znovu');
+  } else {
+    b.disabled = true;
+    b.style.setProperty('--p', P.prog || 0);
+    b.innerHTML = `<span class="pct">${Math.round((P.prog || 0) * 100)} %</span>`;
+    b.setAttribute('aria-label', 'Pohádka se načítá');
+  }
+  return true;
 }
 
 // posouvá jen textem pohádky; scrollIntoView by posunul i celou stránku a v iOS aplikaci
@@ -872,8 +932,10 @@ function highlight() {
     if (i === P.i) scrollInText(p, true);
   });
   const b = document.getElementById('playBtn');
-  b.innerHTML = P.playing ? I.pause : I.play;
-  b.setAttribute('aria-label', P.playing ? 'Pozastavit' : 'Přehrát');
+  if (!playBtnPrep(b)) {
+    b.innerHTML = P.playing ? I.pause : I.play;
+    b.setAttribute('aria-label', P.playing ? 'Pozastavit' : 'Přehrát');
+  }
   syncMedia();
 }
 
@@ -1062,6 +1124,12 @@ function waitAnswer(sec, done) {
 }
 
 function playPause() {
+  if (!P) return;
+  if (!P.ready && !P.playing) {
+    // po chybě klepnutí zkusí načíst znovu; jinak (zamčená obrazovka, další pohádka) se spustí po načtení
+    if (P.loadErr) { P.autoplay = true; prepareStory(); } else P.autoplay = true;
+    return;
+  }
   if (P.playing) {
     P.playing = false;
     stopVoice();

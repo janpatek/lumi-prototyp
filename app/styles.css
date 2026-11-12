@@ -186,6 +186,10 @@ details summary { cursor: pointer; padding: 10px 0; color: var(--ink-muted); fon
 .controls { display: flex; justify-content: center; align-items: center; gap: 28px; margin: 8px 0 14px; }
 .controls .play { width: 80px; height: 80px; border-radius: 50%; background: var(--lavender-ink); color: var(--on-lavender); display: grid; place-items: center; box-shadow: var(--shadow-soft); }
 .controls .play svg { width: 34px; height: 34px; fill: currentColor; }
+/* pohádka se načítá: kruh se plní podle průběhu (--p 0–1), Přehrát jde až po načtení */
+.controls .play.loading { background: radial-gradient(circle, var(--lavender-ink) 0 60%, transparent 61%), conic-gradient(var(--lavender-ink) calc(var(--p, 0) * 360deg), color-mix(in srgb, var(--lavender-ink) 25%, transparent) 0); }
+.controls .play.loading .pct { font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; }
+.controls .play:disabled { cursor: progress; }
 .controls .skip { width: 52px; height: 52px; display: grid; place-items: center; color: var(--ink); }
 .controls .skip svg { width: 28px; height: 28px; fill: currentColor; }
 .mix { display: flex; align-items: center; gap: 10px; color: var(--ink-muted); font-size: 14px; font-weight: 600; }

@@ -162,6 +162,15 @@ class Ambience {
     });
   }
 
+  // všechny smyčky pohádky načtené (pro přípravu před Přehrát); chyba nevadí, hraje pak syntetizovaná hudba
+  bedsReady(st) {
+    this.ensure();
+    return bedIndex.then((ix) => {
+      const clips = ix && ix.clips[st.id];
+      return clips ? Promise.all(Object.values(clips).map((c) => this.bedBuffer(c.file))) : null;
+    }).catch(() => null);
+  }
+
   startBackground(st) {
     this.ensure();
     this.stopBackground(true);
