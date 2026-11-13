@@ -58,7 +58,8 @@ class Ambience {
       const d = this.noise.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    // 'interrupted': WebKit po hovoru nebo budíku, kontext se musí znovu rozběhnout
+    if (this.ctx.state === 'suspended' || this.ctx.state === 'interrupted') this.ctx.resume();
   }
 
   startMusic(mood) {

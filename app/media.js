@@ -1,25 +1,27 @@
 // Ovládání pohádky mimo aplikaci: zamčená obrazovka, oznámení a tlačítka na sluchátkách.
-// Android (Capacitor): vlastní doplněk Prehravac (PrehravacService.java) drží pohádku při zhasnutém displeji
-// a ukazuje obálku s tlačítky předchozí / přehrát-pozastavit / další.
-// iPhone a web: navigator.mediaSession – WebKit z něj sám vyplní Právě hraje na zamčené obrazovce
-// a tlačítka pošle sem; hraní po zamčení zajistí režim „audio“ v Info.plist a audioSession níže.
+// Aplikace pro Android a iPhone (Capacitor): vlastní doplněk Prehravac – na Androidu PrehravacService.java
+// (služba v popředí drží pohádku při zhasnutém displeji), na iPhonu PrehravacPlugin.swift (Právě hraje,
+// tlačítka, přerušení hovorem). Ukazuje obálku s tlačítky předchozí / přehrát-pozastavit / další.
+// Web: navigator.mediaSession – prohlížeč z něj sám vyplní ovládání a tlačítka pošle sem.
+// (Na iPhonu se mediaSession nepoužívá: WebKit z ní pro Web Audio ukáže jen název, bez obálky a tlačítek,
+// a přepisoval by Právě hraje od doplňku.)
 // app.js volá MEDIA.update(…) při každé změně přehrávání a MEDIA.stop() po zavření přehrávače;
 // stisknutá tlačítka přicházejí do MEDIA.onAction(fn) jako 'play' | 'pause' | 'toggle' | 'next' | 'prev' | 'stop'.
 
 const MEDIA = (() => {
   const C = window.Capacitor;
-  const plugin = C && C.isNativePlatform && C.isNativePlatform() && C.getPlatform() === 'android' && C.Plugins && C.Plugins.Prehravac;
+  const plugin = C && C.isNativePlatform && C.isNativePlatform() && ['android', 'ios'].includes(C.getPlatform()) && C.Plugins && C.Plugins.Prehravac;
   // WebKit (iPhone, Safari): zvuk stránky jako přehrávání, ne „zvuky na pozadí“ – hraje i s tichým režimem
-  // a po zamčení telefonu (v aplikaci s režimem pozadí audio)
+  // a po zamčení telefonu (v aplikaci s režimem pozadí audio v Info.plist)
   try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* starší WebKit */ }
   const ms = !plugin && 'mediaSession' in navigator ? navigator.mediaSession : null;
   let handler = () => {};
-  let sentArt = null; // obálka, kterou už Android má
+  let sentArt = null; // obálka, kterou už doplněk má
   let last = '';
   let gen = 0; // stop() zneplatní aktualizace, které ještě čekají na obálku
   const arts = new Map();
 
-  // obálka jako data URL (Android ani WebKit ji nenačtou samy z adresy uvnitř aplikace)
+  // obálka jako data URL (doplněk ani WebKit ji nenačtou samy z adresy uvnitř aplikace)
   function artwork(url) {
     if (!arts.has(url)) {
       arts.set(url, fetch(url)
