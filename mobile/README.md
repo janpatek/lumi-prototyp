@@ -38,7 +38,7 @@ npm run ios:run         # spustí v iOS Simulatoru
 ```
 
 iOS: potřeba plné Xcode (ne jen Command Line Tools) s iOS platformou: `sudo xcode-select -s /Applications/Xcode.app`.
-Nastaveno: `UIBackgroundModes: audio` a `AVAudioSession` `.playback` (hraje se zamčenou obrazovkou i s přepínačem ticha), jazyk cs/sk.
+Nastaveno: `UIBackgroundModes: audio` a `AVAudioSession` `.playback` (hraje se zamčenou obrazovkou i s přepínačem ticha), jazyk cs/sk, poloha jen při používání (`NSLocationWhenInUseUsageDescription`).
 Checklist pro App Store a technický návrh pro iOS: poznámka `ios-app-store.md` ve sdílené složce poznámek sessions.
 
 Android: Android Studio, Android SDK 36, build-tools 35.0.0 (chce je AGP 8.13) a emulátor s Androidem 16.
@@ -111,6 +111,19 @@ Ladění: `adb shell cmd media_session dispatch next`, stav `adb shell dumpsys m
 Focus: `adb shell dumpsys audio` (Audio Focus stack), hovor v emulátoru `adb emu gsm call 777123456` / `adb emu gsm cancel 777123456`.
 
 iPhone: aplikace má v Info.plist režim pozadí `audio` a stránka si řekne o `navigator.audioSession.type = 'playback'`
-(hraje i s tichým režimem). Právě hraje na zamčené obrazovce vyplní WebKit sám z `navigator.mediaSession`
-(app/media.js) – nativní doplněk tam není potřeba; vlastní MPNowPlayingInfoCenter by WebKit stejně přepsal.
-V simulátoru se ukáže název, obálku a tlačítka je potřeba ověřit na skutečném iPhonu.
+(hraje i s tichým režimem a se zamčenou obrazovkou). Právě hraje na zamčené obrazovce a v Ovládacím centru dělá
+vlastní doplněk `PrehravacPlugin.swift` (registrovaný v `MainViewController.swift`, stejné rozhraní jako na Androidu):
+MPNowPlayingInfoCenter s obálkou, MPRemoteCommandCenter s tlačítky přehrát/pozastavit/další/předchozí/stop.
+`navigator.mediaSession` se na iPhonu nepoužívá: WebKit z ní pro Web Audio ukázal jen název bez obálky a tlačítek.
+Hovor, budík nebo Siri pohádku pozastaví a po konci přerušení pokračuje sama (AVAudioSession interruption);
+vytažená sluchátka ji pozastaví. Po tlačítku ze zamčené obrazovky si doplněk vezme až 25 s běhu na pozadí,
+aby uspaná aplikace stihla rozjet zvuk nebo připravit další pohádku.
+
+Věty se jmény dítěte (tts-worker) leží na iPhonu v souborech (`rodina/`, app/offline.js), ne v IndexedDB:
+IndexedDB ve WKWebView po zamčení telefonu přestane odpovídat a příprava další pohádky stála na 0 %.
+
+Test v simulátoru (ověřeno 13. 11. 2026, iPhone 18 Pro, iOS 27.2, Release): pohádka hraje na pozadí i se zamčenou
+obrazovkou do konce, Právě hraje má obálku a název, iOS registruje tlačítka (log `mediaremoted`: supportedCommands),
+obec podle polohy (`xcrun simctl location booted set 49.17,16.74`). Simulátor ale tlačítka na zamčené obrazovce
+nevykreslí, aplikaci v pauze neuspí („process is simulated“) a nedoručí přerušení hovorem – to je potřeba ověřit
+na skutečném iPhonu (TestFlight). Nákup jde v simulátoru jen při spuštění z Xcode s `Ospalek.storekit`.

@@ -747,7 +747,7 @@ function storyOffline(st, hs = heroes()) {
     offlineMemo.set(k, (async () => {
       const n = await storyNeeds(st, hs);
       const have = await OFFLINE.keys();
-      if (!n.family.every((t) => have.has(lineId(t, st.mood)))) return false;
+      if (!n.family.every((t) => have.has(OFFLINE.keyOf(lineId(t, st.mood))))) return false;
       for (const f of n.files) if (!(await OFFLINE.hasFile(f))) return false;
       return true;
     })().catch(() => false));
@@ -784,7 +784,7 @@ async function pruneOffline() {
     for (let m = 1; m < 1 << kids.length; m++) {
       const c = kids.filter((_, i) => m & (1 << i));
       if (c.length > LIMIT.heroes) continue;
-      STORIES.forEach((st) => VOICE_LINES.planStory(st.text(ctx(c))).forEach((p) => p.lines.forEach((l) => need.add(lineId(l.t, st.mood)))));
+      STORIES.forEach((st) => VOICE_LINES.planStory(st.text(ctx(c))).forEach((p) => p.lines.forEach((l) => need.add(OFFLINE.keyOf(lineId(l.t, st.mood))))));
     }
     await OFFLINE.remove([...(await OFFLINE.keys())].filter((k) => !need.has(k)));
   } catch (e) { /* příště znovu */ }
