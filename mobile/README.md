@@ -114,7 +114,10 @@ iPhone: aplikace má v Info.plist režim pozadí `audio` a stránka si řekne o 
 (hraje i s tichým režimem a se zamčenou obrazovkou). Právě hraje na zamčené obrazovce a v Ovládacím centru dělá
 vlastní doplněk `PrehravacPlugin.swift` (registrovaný v `MainViewController.swift`, stejné rozhraní jako na Androidu):
 MPNowPlayingInfoCenter s obálkou, MPRemoteCommandCenter s tlačítky přehrát/pozastavit/další/předchozí/stop.
-`navigator.mediaSession` se na iPhonu nepoužívá: WebKit z ní pro Web Audio ukázal jen název bez obálky a tlačítek.
+WebKit si pro hrající Web Audio zakládá i vlastní Právě hraje (bez metadat ukazuje „localhost“). Proto:
+stav se doplňku posílá hned při klepnutí na Přehrát (ne až po úvodní hudbě), `navigator.mediaSession` dostává
+na iPhonu stejný název jako záloha, a když nic nehraje (pauza, konec, zavřená pohádka), Web Audio se po 5 s uspí
+(`audioRest` v app.js) – běžící kontext by jinak Právě hraje přebral i s tichem.
 Hovor, budík nebo Siri pohádku pozastaví a po konci přerušení pokračuje sama (AVAudioSession interruption);
 vytažená sluchátka ji pozastaví. Po tlačítku ze zamčené obrazovky si doplněk vezme až 25 s běhu na pozadí,
 aby uspaná aplikace stihla rozjet zvuk nebo připravit další pohádku.

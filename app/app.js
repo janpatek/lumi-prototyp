@@ -1152,6 +1152,7 @@ function playPause() {
     P.playing = false;
     stopVoice();
     ambience.stopBackground(true);
+    audioRest();
     highlight();
   } else {
     P.playing = true;
@@ -1163,6 +1164,9 @@ function playPause() {
     document.querySelector('.end-rate')?.remove();
     recVoice() ? playRec() : playSeg();
   }
+  // zamčená obrazovka hned, ne až s prvním odstavcem (po úvodní hudbě): jinak iOS ~10 s ukazoval
+  // Právě hraje od WebKitu („localhost“) a Android čekal se stavem přehrávače
+  syncMedia();
 }
 
 function jump(d) {
@@ -1181,6 +1185,7 @@ function theEnd() {
   SYNC.playEnd(P.sync, true);
   ambience.duck(false);
   ambience.stopBackground(false); // pomalé ztlumení
+  audioRest();
   const bedtime = P.st.cats.includes('noc');
   document.getElementById('ptext').insertAdjacentHTML('beforeend', `<div class="the-end"><img src="${bedtime ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${bedtime ? 'Dobrou noc' : 'Konec'}</h2></div>`);
   // hodnocení pod textem (ne v něm: text má nahoře a dole průhledný přechod a posouvá se)
@@ -1253,12 +1258,25 @@ function setBackground(on) {
 }
 
 // keepMedia: přepnutí na další pohádku – oznámení na zamčené obrazovce nezmizí, jen se přepíše
+// Když nic nehraje (pauza, konec, zavřená pohádka), Web Audio se po dozvuku hudby uspí. Na iPhonu by
+// jinak běžící kontext (i když hraje ticho) držel Právě hraje od WebKitu („localhost“) místo naší
+// obálky, a zbytečně by bral baterii. Při dalším Přehrát ho rozběhne ambience.ensure().
+let restTimer = null;
+function audioRest() {
+  clearTimeout(restTimer);
+  restTimer = setTimeout(() => {
+    if (P && (P.playing || P.autoplay)) return;
+    if (ambience.ctx && ambience.ctx.state === 'running') ambience.ctx.suspend().catch(() => {});
+  }, 5000); // pomalé ztlumení hudby na konci trvá 4 s
+}
+
 function closePlayer(keepMedia) {
   resumeClear();
   if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
   if (keepMedia !== true) MEDIA.stop();
   if (ui.screen === 'lib' || ui.screen === 'history') render();
   ambience.stopBackground(true);
+  audioRest();
   document.getElementById('player')?.remove();
 }
 
