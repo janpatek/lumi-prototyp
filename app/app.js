@@ -847,6 +847,7 @@ function openPlayer(st, queue) {
         <div class="pcover">${st.cover.img ? `<img src="${coverImg(st, heroes())}" alt="">` : st.cover.emoji}</div>
         <h2>${esc(st.title(c))}</h2>
         <div class="ptext" id="ptext">${P.segs.map((s, i) => `<p data-i="${i}">${esc(s.t)}</p>`).join('')}<div class="self-end"><img src="${st.cats.includes('noc') ? MASCOT.sleep : MASCOT.head}" alt=""><h2>${st.cats.includes('noc') ? 'Dobrou noc' : 'Konec'}</h2></div></div>
+        <div class="ptime" id="ptime" aria-live="off"><span id="ptElapsed">0:00</span><div class="ptbar"><div id="ptFill"></div></div><span id="ptLeft"></span></div>
         <div class="waiting" id="waiting"></div>
         <div class="controls">
           <button class="skip" data-a="prevSeg" aria-label="Předchozí">${I.prev}</button>
@@ -865,8 +866,37 @@ function openPlayer(st, queue) {
   document.getElementById('musicVol').addEventListener('input', (e) => ambience.setMusicVolume(+e.target.value));
   ambience.preloadBackground(st);
   document.getElementById('ptext').addEventListener('scroll', selfReadEnd, { passive: true });
+  storyTimes();
   highlight();
   prepareStory();
+}
+
+// ---------- čas pohádky (délka, uplynulo, zbývá) ----------
+// Délka odstavce = nahrávky vět z rejstříku (voice-player.js) + mezera nebo pauza po něm; u jiných hlasů odhad podle textu.
+function storyTimes() {
+  const lines = P.voice === 'lines';
+  P.durs = P.segs.map((seg, i) => {
+    const speak = lines ? voiceLines.seconds(P.plan[i]) : seg.t.length / 14;
+    const rest = !seg.pause ? 0.5 : answerTime(seg) ? seg.pause : quietPause(seg);
+    return speak + rest + (seg.sfx ? 0.7 : 0.15);
+  });
+  P.total = P.durs.reduce((a, b) => a + b, 0);
+  clearInterval(P.timeIv);
+  P.timeIv = setInterval(showTime, 1000);
+  showTime();
+}
+const mmss = (s) => { s = Math.max(0, Math.round(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function showTime() {
+  if (!P || !P.durs) return;
+  const el = document.getElementById('ptime');
+  if (!el) return;
+  const i = Math.min(P.i, P.segs.length);
+  let done = P.durs.slice(0, i).reduce((a, b) => a + b, 0);
+  if (P.playing && P.segAt && i < P.segs.length) done += Math.min((Date.now() - P.segAt) / 1000, P.durs[i]);
+  if (i >= P.segs.length) done = P.total;
+  document.getElementById('ptElapsed').textContent = mmss(done);
+  document.getElementById('ptLeft').textContent = i >= P.segs.length ? mmss(P.total) : `zbývá ${mmss(P.total - done)}`;
+  document.getElementById('ptFill').style.width = `${P.total ? (done / P.total) * 100 : 0}%`;
 }
 
 // ---------- celá pohádka připravená předem ----------
@@ -887,6 +917,7 @@ async function prepareStory() {
     if (!live()) return;
     p.ready = true;
     p.prog = 1;
+    storyTimes(); // rejstřík nahrávek je teď určitě načtený: přesná délka
     if (w() && w().textContent === PREP_MSG) w().textContent = '';
     highlight();
     if (p.autoplay) { p.autoplay = false; playPause(); }
@@ -942,6 +973,7 @@ function highlight() {
     if (i === P.i) scrollInText(p, true);
   });
   const b = document.getElementById('playBtn');
+  showTime();
   if (!playBtnPrep(b)) {
     b.innerHTML = P.playing ? I.pause : I.play;
     b.setAttribute('aria-label', P.playing ? 'Pozastavit' : 'Přehrát');
@@ -1026,6 +1058,7 @@ function playSeg() {
   document.getElementById('waiting').textContent = '';
   if (P.i >= P.segs.length) return theEnd();
   resumeMark();
+  P.segAt = Date.now();
   highlight();
   const seg = P.segs[P.i];
   if (seg.sfx) ambience.sfx(seg.sfx);
@@ -1039,8 +1072,11 @@ function playSeg() {
   if (lines) voiceLines.prefetch(P.plan[P.i + 1], fallback);
   const after = () => {
     if (!seg.pause) return setTimeout(go, 500);
-    ambience.duck(false); // čas na odpověď: pozadí zase nahlas
-    P.stop = waitAnswer(seg.pause, go);
+    ambience.duck(false); // pauza: pozadí zase nahlas
+    if (answerTime(seg)) { P.stop = waitAnswer(seg.pause, go); return; }
+    // jen ticho (uspávanka, nádech a výdech, „Dobrou noc“): bez nápisu a bez dlouhého čekání
+    const t = setTimeout(go, quietPause(seg) * 1000);
+    P.stop = () => clearTimeout(t);
   };
   const delay = setTimeout(() => {
     ambience.duck(true);
@@ -1127,6 +1163,18 @@ function stopVoice() {
 }
 
 // pauza na odpověď u hádanek – vrací funkci, která odpočet zruší
+// „Čas na odpověď“ jen tam, kde se dětí na něco ptáme nebo je vyzýváme (hádanky, úkoly, hry).
+// Platí i pro pohádky z katalogu v administraci; odstavec to může určit natvrdo vlastností ask.
+const ASK_CUES = /hádank|zavol|řekn|zkus|hádej|najd|počítej|počítejte|zopakuj|ozvěn|úkol|nahlas|vymysl|zazpív/i;
+function answerTime(seg) {
+  if (!seg || !seg.pause) return false;
+  if (typeof seg.ask === 'boolean') return seg.ask;
+  const t = seg.t || '';
+  if (/dobrou noc|nádech|výdech/i.test(t)) return false;
+  return t.includes('?') || ASK_CUES.test(t);
+}
+const quietPause = (seg) => Math.min(seg.pause || 0, 6);
+
 function waitAnswer(sec, done) {
   let left = sec;
   const w = document.getElementById('waiting');
@@ -1272,6 +1320,7 @@ function audioRest() {
 
 function closePlayer(keepMedia) {
   resumeClear();
+  if (P) clearInterval(P.timeIv);
   if (P) { SYNC.playEnd(P.sync, false, P.i / P.segs.length); logListen(false); stopVoice(); P = null; }
   if (keepMedia !== true) MEDIA.stop();
   if (ui.screen === 'lib' || ui.screen === 'history') render();

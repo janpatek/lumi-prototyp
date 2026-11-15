@@ -12,7 +12,9 @@
 //   c.inTown       "v Benešově"                c.near  okolní obce   c.attr  atrakce v okolí
 //   c.food, c.animal                           oblíbené jídlo a zvíře hrdinů
 // cover.img = ilustrace náhledu (3:4), cover.imgF = verze s holčičkou (když jsou hrdinkami jen holky), emoji a barvy jsou záloha, než se obrázek načte.
-// Odstavec: { t: text, sfx?: 'sparkle'|'magic'|'car'|'horn'|'birds'|'owl'|'paper'|'wind'|'ding', pause?: sekundy }
+// Odstavec: { t: text, sfx?: 'sparkle'|'magic'|'car'|'horn'|'birds'|'owl'|'paper'|'wind'|'ding', pause?: sekundy, ask?: true|false }
+// pause u otázky nebo výzvy pro děti = „Čas na odpověď“ s odpočtem; jinde jen krátké ticho (app.js answerTime).
+// ask: false/true to rozhodne natvrdo (otázka v přímé řeči postavy, vypravěčská otázka…).
 
 window.CATEGORIES = [
   { id: 'all', label: 'Vše' },
@@ -641,7 +643,7 @@ window.STORIES = [
         { t: `Baterka svítila čím dál slaběji. Stíny na zdi se zmenšovaly, zmenšovaly, až se schoulily do malých klubíček. Jako koťata u kamen.` },
         { t: `Žirafa zívla. Dinosaurus zívl. I kaktus by zívl, kdyby měl pusu.` },
         { t: `A pak bylo ticho. Takové to hezké, měkké ticho, ve kterém je slyšet jen dech.`, pause: 5 },
-        { t: `Někde venku zahoukala sova. Hú, hú. Ale ne strašidelně. Spíš jako když se ptá: spíte už? A pokoj jí tiše odpověděl: spíme.`, sfx: 'owl', pause: 3 },
+        { t: `Někde venku zahoukala sova. Hú, hú. Ale ne strašidelně. Spíš jako když se ptá: spíte už? A pokoj jí tiše odpověděl: spíme.`, sfx: 'owl', pause: 3, ask: false },
         { t: `Cvak. Baterka zhasla. ${c.H} ${g('zalezl', 'zalezla', 'zalezli')} zpátky pod peřinu.` },
         { t: `Za oknem svítil měsíc, ale už nikoho nestrašil. Jen tiše hlídal, jako noční lampička na nebi.` },
         { t: `Dveře se maličko pootevřely. Do pokoje nakoukl${p.g('', 'a')} ${p.full}.` },
@@ -3653,7 +3655,7 @@ window.STORIES = [
         { t: `Fazolka se natáčela k oknu, za sluníčkem.` },
         { t: `${c.H} každý den ${c.g('otočil', 'otočila', 'otočili')} kelímek, a fazolka se zase pomalu natočila zpátky. Za světlem, vždycky za světlem. Každý den byla o kousek vyšší. Jednou o nehet, jindy o dva.` },
         { t: `Večer, už v pyžamu, se ještě jednou ${c.g('podíval', 'podívala', 'podívali')} na okno. Fazolka ve tmě složila lístky dolů, jako když se dají ruce pod hlavu.` },
-        { t: `„Ty taky spíš?“ zašeptal${a}. „Ve spánku se roste nejlíp,“ zašustila fazolka.`, pause: 2 },
+        { t: `„Ty taky spíš?“ zašeptal${a}. „Ve spánku se roste nejlíp,“ zašustila fazolka.`, pause: 2, ask: false },
         { t: `Venku je tma. Hlína v kelímku je vlhká a teplá. Kořínek se potichu natahuje do hloubky, ani ho není slyšet. A ráno, až vyjde slunce, fazolka lístky zase zvedne. Jako když se ${c.n('protáhneš a zamáváš', 'protáhnete a zamáváte')} sluníčku.`, pause: 2 },
         { t: `Pomalu, polehoučku. Kořínek do hloubky, lísteček ke sluníčku.`, pause: 3 },
         { t: `A ${c.n('ty', 'vy')} taky. Pomalu, polehoučku. ${c.n('Rosteš', 'Rostete')} ve spánku jako fazolka na okně.`, pause: 3 },
@@ -5546,7 +5548,7 @@ window.STORIES = [
       { t: `„Prosím, buďte chvilku zticha!“ ${c.g('zavolal', 'zavolala', 'zavolali')} ${c.H}.` },
       { t: `Hlubák se tak podivil, že ${c.n('malé dítě okřiklo', 'malé děti okřikly')} celý velrybí sbor, až zapomněl zavřít pusu. Ale ztichl. A s ním ztichlo celé moře.` },
       { t: `${c.H} ${c.g('poslouchal', 'poslouchala', 'poslouchali')}.` },
-      { t: `Šplouchání vln. Pískání delfínů někde daleko. A pak, úplně slaboučce, zprava, od skal: „Mmmami?“`, pause: 2 },
+      { t: `Šplouchání vln. Pískání delfínů někde daleko. A pak, úplně slaboučce, zprava, od skal: „Mmmami?“`, pause: 2, ask: false },
       { t: `„Jak to, že ho ${c.n('slyšíš', 'slyšíte')}, a my ne?“ zabručel Hlubák. „Protože jste byli zticha,“ zněla odpověď. A Hlubák se poprvé po dlouhých letech hluboce zamyslel.` },
       { t: `„Tam!“ Zvonilka se otočila a plavala ke skalám, co jí ploutve stačily. Držet se, pevně držet!` },
       { t: `Skály byly černé a mokré a vlny do nich pleskaly. Plesk, plesk. Zvonilka plavala opatrně a pomalu, aby se o ně neodřela.` },

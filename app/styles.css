@@ -182,6 +182,13 @@ details summary { cursor: pointer; padding: 10px 0; color: var(--ink-muted); fon
 .ptext p.now { opacity: 1; }
 .ptext p.done { opacity: .6; }
 .ptext.hide p:not(.now) { display: none; }
+/* čas pohádky: uplynulo · průběh · zbývá */
+.ptime { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: var(--ink-muted); font-variant-numeric: tabular-nums; margin: 0 4px 6px; }
+.ptime span { min-width: 3.2em; }
+.ptime span:last-child { text-align: right; min-width: 6.5em; }
+.ptbar { flex: 1; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--lavender-ink) 18%, transparent); overflow: hidden; }
+.ptbar div { height: 100%; width: 0; background: var(--lavender-ink); border-radius: 3px; transition: width 1s linear; }
+.player.self .ptime { display: none; }
 .waiting { text-align: center; color: var(--lavender-ink); font-weight: 800; min-height: 24px; }
 .controls { display: flex; justify-content: center; align-items: center; gap: 28px; margin: 8px 0 14px; }
 .controls .play { width: 80px; height: 80px; border-radius: 50%; background: var(--lavender-ink); color: var(--on-lavender); display: grid; place-items: center; box-shadow: var(--shadow-soft); }

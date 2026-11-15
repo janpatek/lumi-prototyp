@@ -99,6 +99,8 @@
     key: (url) => (url.startsWith(BASE) ? url.slice(BASE.length, -4) : null),
     // kolik vět pohádky ještě nemá nahrávku
     missing: (plan) => lines(plan).filter((l) => !has(l)).length,
+    // délka odstavce v sekundách (z rejstříku; věty bez nahrávky odhadem podle délky textu) – čas v přehrávači
+    seconds: (para) => (para ? para.lines.reduce((a, l) => a + (has(l) && manifest.clips[l.key].d ? manifest.clips[l.key].d : l.t.length / 14), 0) + GAP * Math.max(0, para.lines.length - 1) : 0),
     prefetch(para, fallback) { para && para.lines.forEach((l) => clip(l, fallback).catch(() => {})); },
     // stejné rozhraní jako speak() v app.js: zavolá onend, vrací funkci pro zastavení
     speak(para, onend, { fallback, onerror } = {}) {
