@@ -95,6 +95,13 @@ Druhá rodina se stejným jménem dítěte dnes použije zhruba 83 % hotových n
 
 Do ElevenLabs odchází text pohádky včetně jmen dětí a obce. Měl by to zmínit text o ochraně údajů.
 
+## Náklady po uživatelích (POST /tts s přihlášením)
+
+Aplikace posílá s požadavkem na větu i přihlášení uživatele (`Authorization: Bearer …`, anonymní účet Supabase).
+Když věta nebyla v mezipaměti a opravdu ji namluvil ElevenLabs, worker ji přes `app_tts_usage` zapíše k uživateli
+(kredity podle hlavičky `character-cost`, jinak počet znaků). Text věty se nikam neukládá. Administrace → Uživatelé
+z toho počítá variabilní náklady. Potřebuje migraci `supabase/migrations/20261115_uzivatele_naklady.sql`.
+
 ## Náklady v administraci (GET /naklady)
 
 Stránka **Hlas a náklady** v administraci ukazuje skutečnou spotřebu kreditů: celkem od začátku, tento měsíc, dnes, průměr na den a graf po dnech. Worker se na ni ptá ElevenLabs svým klíčem (endpointy `user/subscription` a `usage/character-stats`) a kurz bere z ČNB. Výsledek drží 10 minut v mezipaměti.

@@ -15,6 +15,7 @@
 //   TTS_LIMIT        (binding ratelimits) kolik nových vět smí jedna IP adresa vygenerovat za minutu
 //   LANGUAGE_CODE    volitelně "cs" – jen pro modely, které vynucení jazyka podporují
 //   SUPABASE_URL, SUPABASE_KEY  databáze administrace (veřejný publishable klíč); GET /naklady podle ní pozná člena týmu
+//   (POST /tts s hlavičkou Authorization od aplikace: věta, která šla do ElevenLabs, se zapíše k uživateli přes app_tts_usage)
 //
 // GET /naklady (pro administraci): spotřeba kreditů ElevenLabs po dnech od začátku, tarif a kurz ČNB.
 // Pustí jen člena týmu přihlášeného i kódem z Google Authenticatoru (token Supabase v hlavičce Authorization).
@@ -86,12 +87,13 @@ export default {
       const { success } = await env.TTS_LIMIT.limit({ key: request.headers.get('CF-Connecting-IP') || 'neznama' });
       if (!success) return json({ error: 'Příliš mnoho nových vět najednou. Zkus to za chvilku.' }, 429, cors);
     }
+    const sent = tag ? `${tag} ${text}` : text;
     const res = await fetch(`${API}${voiceId}?output_format=mp3_44100_128`, {
       method: 'POST',
       headers: { 'xi-api-key': env.ELEVENLABS_API_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
       // language_code jen když je nastavený – vynutit jazyk umí jen některé modely (např. eleven_flash_v2_5)
       body: JSON.stringify({
-        text: tag ? `${tag} ${text}` : text,
+        text: sent,
         model_id: model(env),
         ...(tag ? { voice_settings: { stability, similarity_boost: 0.75 } } : {}),
         ...(env.LANGUAGE_CODE ? { language_code: env.LANGUAGE_CODE } : {}),
@@ -105,6 +107,15 @@ export default {
     }
     const buf = await res.arrayBuffer();
     ctx.waitUntil(cache.put(cacheKey, new Response(buf, { headers: audioHeaders })));
+    // náklady po uživatelích: s přihlášením z aplikace zapíše větu k jeho účtu (administrace → Uživatelé).
+    // Kredity podle hlavičky ElevenLabs, jinak počet znaků. Chyba zápisu hlas nezdrží ani nezastaví.
+    const auth = request.headers.get('Authorization') || '';
+    if (/^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(auth) && env.SUPABASE_URL && env.SUPABASE_KEY) {
+      const credits = Number(res.headers.get('character-cost')) || sent.length;
+      ctx.waitUntil(fetch(`${env.SUPABASE_URL}/rest/v1/rpc/app_tts_usage`, {
+        method: 'POST', headers: { apikey: env.SUPABASE_KEY, Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ chars: credits }),
+      }).then((r) => { if (!r.ok) console.log('app_tts_usage', r.status); }, (e) => console.log('app_tts_usage', e.message)));
+    }
     if (env.AUDIO) ctx.waitUntil(env.AUDIO.put(key + '.mp3', buf, { httpMetadata: { contentType: 'audio/mpeg' } }));
     return new Response(buf, { headers: { ...audioHeaders, 'X-Ospalek-Cache': 'miss' } });
   },

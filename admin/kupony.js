@@ -6,7 +6,7 @@
 // Vyzkoušení a měsíce zdarma zapne náš server jako dočasný přístup rodiny (bez RevenueCat): rodina nic
 // neplatí a nezadává kartu, proto fungují stejně na iOS i Androidu. Slevy z ceny musí projít obchodem
 // (App Store nabídkové kódy, Google Play promo kódy), platby na webu nemáme.
-// Partner dostává provizi z rodin, které se registrovaly s jeho kódem (atribuce 30 dní od kliknutí na odkaz).
+// Partner dostává provizi z uživatelů, kteří se registrovali s jeho kódem (atribuce 30 dní od kliknutí na odkaz).
 // Dnes ukázková data; nové kampaně, kódy a výplaty se drží v localStorage tohoto prohlížeče.
 
 const CPN = (() => {
@@ -14,8 +14,8 @@ const CPN = (() => {
   const KEY = D.live ? 'ospalek.admin.live.coupons.v1' : 'ospalek.admin.coupons.v1';
   const ALPH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // bez 0/O, 1/I/L, ať se kód dá přečíst a opsat
   const GIVES = {
-    trial: { label: 'Vyzkoušení zdarma bez karty', unit: 'dní', where: 'iOS i Android', how: 'Dočasný přístup zapne náš server. Rodina nic neplatí ani nezadává kartu, po skončení uvidí nabídku předplatného.' },
-    months: { label: 'Měsíce zdarma', unit: 'měs.', where: 'iOS i Android', how: 'Dočasný přístup zapne náš server. U už platících rodin se místo toho použije nabídka obchodu (Apple promotional offer, odklad platby v Google Play).' },
+    trial: { label: 'Vyzkoušení zdarma bez karty', unit: 'dní', where: 'iOS i Android', how: 'Dočasný přístup zapne náš server. Uživatel nic neplatí ani nezadává kartu, po skončení uvidí nabídku předplatného.' },
+    months: { label: 'Měsíce zdarma', unit: 'měs.', where: 'iOS i Android', how: 'Dočasný přístup zapne náš server. U už platících uživatelů se místo toho použije nabídka obchodu (Apple promotional offer, odklad platby v Google Play).' },
     percent: { label: 'Procentní sleva', unit: '%', where: 'App Store a Google Play přes nabídkové kódy', how: 'Obchody umí jen předem založené nabídky (Apple offer codes, Google promo kódy), sleva se zaokrouhlí na jejich cenovou úroveň.' },
     amount: { label: 'Sleva v Kč', unit: 'Kč', where: 'zatím nikde', how: 'Pevnou slevu v Kč obchody neumí a platby na webu nemáme. Použij měsíce zdarma nebo procentní slevu.' },
   };
@@ -28,7 +28,7 @@ const CPN = (() => {
   };
   const PRESETS = {
     znami: { name: 'Známí: měsíc na vyzkoušení', purpose: 'znami', gives: 'trial', value: 30, mode: 'unique', count: 10, prefix: 'ZNAMI', newOnly: true, days: 90, desc: '30 dní zdarma bez karty, každý dostane svůj kód' },
-    partner: { name: 'Influencer: ', purpose: 'partner', gives: 'percent', value: 20, dur: 'year', mode: 'shared', newOnly: true, days: 180, comm: { kind: 'fixed', value: 150 }, desc: 'vlastní kód, sleva pro sledující, provize za platící rodinu' },
+    partner: { name: 'Influencer: ', purpose: 'partner', gives: 'percent', value: 20, dur: 'year', mode: 'shared', newOnly: true, days: 180, comm: { kind: 'fixed', value: 150 }, desc: 'vlastní kód, sleva pro sledující, provize za platícího uživatele' },
     marketing: { name: 'Kampaň: ', purpose: 'marketing', gives: 'percent', value: 20, dur: 'first', mode: 'shared', newOnly: true, days: 30, desc: 'jeden veřejný kód na sociální sítě nebo leták' },
     b2b: { name: 'Školka: ', purpose: 'b2b', gives: 'trial', value: 30, mode: 'unique', count: 50, prefix: 'SKOLKA', newOnly: true, days: 120, desc: 'sada jednorázových kódů na rozdání rodičům' },
     podpora: { name: 'Kompenzace z podpory', purpose: 'podpora', gives: 'months', value: 1, mode: 'unique', count: 1, prefix: 'OMLUVA', newOnly: false, days: 60, desc: 'měsíc zdarma jako omluva za problém' },
@@ -138,7 +138,7 @@ const CPN = (() => {
       : c.gives === 'months' ? `${c.value} ${plural(c.value, 'měsíc', 'měsíce', 'měsíců')} předplatného zdarma`
       : c.gives === 'percent' ? `sleva ${c.value} % ${durTxt}`
       : `sleva ${c.value} Kč ${durTxt}`;
-    return g + (c.newOnly ? ', jen pro nové rodiny' : '');
+    return g + (c.newOnly ? ', jen pro nové uživatele' : '');
   }
 
   return {
@@ -213,15 +213,15 @@ function pageCoupons() {
   const presets = Object.entries(CPN.PRESETS).map(([k, v]) => `<button class="panel preset" data-a="cpnNew" data-v="${k}" ${canC() ? '' : 'disabled'}><span class="tag ${CPN.PURPOSE[v.purpose].tag}">${CPN.PURPOSE[v.purpose].label}</span><span>${esc(v.desc)}</span></button>`).join('');
   return `
     ${head('Kupony a partneři', 'Slevy, vyzkoušení zdarma pro známé a kódy pro influencery', `<button class="btn white" data-a="cpnCheck">${I.search}Ověřit kód</button>${canC() ? `<button class="btn" data-a="cpnNew" data-v="">${I.plus}Nový kupon</button>` : ''}`)}
-    ${demoBar('Kódy se zatím nikde neuplatní; uplatnění jsou přiřazená k ukázkovým rodinám.')}
+    ${demoBar('Kódy se zatím nikde neuplatní; uplatnění jsou přiřazená k ukázkovým uživatelům.')}
     <div class="tiles t8">
       ${tile('Aktivní kampaně', fmt(active), `${fmt(CPN.campaigns.length)} celkem`)}
       ${tile('Uplatněno za 30 dní', fmt(uses30), `${fmt(uses)} celkem`)}
-      ${tile('Rodiny z kódů, které platí', fmt(paying), `konverze ${pct(paying, uses)}`)}
-      ${tile('Tržby od rodin z kódů', kc(revenue), 'všechny platby od uplatnění')}
+      ${tile('Uživatelé z kódů, kteří platí', fmt(paying), `konverze ${pct(paying, uses)}`)}
+      ${tile('Tržby od uživatelů z kódů', kc(revenue), 'všechny platby od uplatnění')}
       ${tile('Známí na vyzkoušení', fmt(zUses), `${fmt(zPay)} z nich si pak předplatné koupilo`)}
       ${tile('Partneři', fmt(CPN.partners.length), `${fmt(CPN.campaigns.filter((c) => c.partner).length)} kampaní`)}
-      ${tile('Provize k výplatě', kc(owed), 'za platící rodiny od partnerů')}
+      ${tile('Provize k výplatě', kc(owed), 'za platící uživatele od partnerů')}
       ${tile('Poskytnutá sleva (odhad)', kc(all.reduce((n, x) => n + x.s.discount, 0)), 'kolik stály slevy z ceny')}
     </div>
     <h2 style="margin:16px 0 8px;font-size:15px">Rychle vytvořit</h2>
@@ -245,7 +245,7 @@ function partnersTable() {
     <td class="r num">${fmt(s.uses)}</td><td class="r num">${fmt(s.paying)}</td><td class="r num">${kc(s.revenue)}</td><td class="r num">${kc(s.comm)}</td><td class="r num">${kc(s.paid)}</td><td class="r num"><b>${kc(s.owed)}</b></td>
     <td class="r">${API.can('billing.refund') && s.owed > 0 ? `<button class="btn white sm" data-a="partnerPaid" data-v="${p.id}">Vyplaceno</button>` : ''}${canC() && !s.campaigns.length ? `<button class="btn white sm" data-a="cpnNew" data-v="partner" data-p="${p.id}">Vytvořit kód</button>` : ''}</td></tr>`; }).join('')}
   </tbody></table></div>
-  <p class="hint" style="margin-top:8px">Provize se počítá z rodin, které se registrovaly s kódem partnera nebo přes jeho odkaz (atribuce 30 dní). Pevná částka za platící rodinu, nebo procento z jejích plateb za prvních 12 měsíců.</p>`;
+  <p class="hint" style="margin-top:8px">Provize se počítá z uživatelů, kteří se registrovali s kódem partnera nebo přes jeho odkaz (atribuce 30 dní). Pevná částka za platícího uživatele, nebo procento z jejích plateb za prvních 12 měsíců.</p>`;
 }
 
 function pageCampaign(c) {
@@ -264,13 +264,13 @@ function pageCampaign(c) {
     ${demoBar()}
     <div class="grid21" style="margin-top:0">
       <section class="panel">
-        <div class="notice" style="margin-bottom:12px"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div><b>Rodina dostane: ${esc(CPN.describe(c))}.</b><br>Funguje: ${g.where}. ${g.how}</div></div>
+        <div class="notice" style="margin-bottom:12px"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div><b>Uživatel dostane: ${esc(CPN.describe(c))}.</b><br>Funguje: ${g.where}. ${g.how}</div></div>
         <dl class="kv" style="max-width:520px">
           <dt>Kód</dt><dd>${c.mode === 'shared' ? `<span class="mono">${esc(c.code)}</span>` : `${fmt(list.length)} jednorázových kódů ${esc(c.prefix)}-XXXX-XXXX`}</dd>
           ${c.mode === 'shared' ? `<dt>Odkaz</dt><dd class="mono">${esc(shareLink(c.code))}</dd>` : ''}
           <dt>Platnost</dt><dd>${fdate(c.from)} – ${c.to ? fdate(c.to) : 'bez konce'}</dd>
-          <dt>Limit</dt><dd>${c.limit ? `${fmt(c.limit)} uplatnění` : c.mode === 'unique' ? 'každý kód jednou' : 'bez limitu'}${c.newOnly ? ' · jen nové rodiny' : ''}</dd>
-          ${c.comm ? `<dt>Provize</dt><dd>${c.comm.kind === 'fixed' ? `${kc(c.comm.value)} za platící rodinu` : `${c.comm.value} % z plateb za 12 měsíců`}</dd>` : ''}
+          <dt>Limit</dt><dd>${c.limit ? `${fmt(c.limit)} uplatnění` : c.mode === 'unique' ? 'každý kód jednou' : 'bez limitu'}${c.newOnly ? ' · jen noví uživatelé' : ''}</dd>
+          ${c.comm ? `<dt>Provize</dt><dd>${c.comm.kind === 'fixed' ? `${kc(c.comm.value)} za platícího uživatele` : `${c.comm.value} % z plateb za 12 měsíců`}</dd>` : ''}
           <dt>Založeno</dt><dd>${fdate(c.created)}</dd>
         </dl>
       </section>
@@ -280,12 +280,12 @@ function pageCampaign(c) {
       </section>
     </div>
     ${list ? `<section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Kódy</h2><span class="muted">${fmt(list.filter((x) => x.used).length)} z ${fmt(list.length)} použito</span></div>
-      <div class="table-wrap" style="max-height:420px;overflow-y:auto"><table><thead><tr><th>Kód</th><th>Pro koho</th><th>Použila rodina</th><th></th></tr></thead><tbody>
+      <div class="table-wrap" style="max-height:420px;overflow-y:auto"><table><thead><tr><th>Kód</th><th>Pro koho</th><th>Použil uživatel</th><th></th></tr></thead><tbody>
       ${list.map((x) => `<tr><td class="mono"><b>${esc(x.c)}</b></td><td>${esc(x.note) || '<span class="muted">–</span>'}</td><td>${x.used ? famLink(API.families.get(x.used)) : '<span class="tag line">volný</span>'}</td>
         <td class="r">${x.used ? '' : `<button class="btn white sm" data-a="cpnCopy" data-v="${esc(shareMsg(c, x.c))}">${I.copy}Zpráva s kódem</button>`}</td></tr>`).join('')}
       </tbody></table></div></section>` : ''}
     <section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Kdo kód uplatnil</h2><span class="muted">${fmt(usedList.length)}</span></div>
-      <div class="table-wrap" style="max-height:420px;overflow-y:auto"><table><thead><tr><th>Kdy</th><th>Rodina</th><th>Kód</th><th>Tarif</th><th class="r">Zaplaceno</th></tr></thead><tbody>
+      <div class="table-wrap" style="max-height:420px;overflow-y:auto"><table><thead><tr><th>Kdy</th><th>Uživatel</th><th>Kód</th><th>Tarif</th><th class="r">Zaplaceno</th></tr></thead><tbody>
       ${usedList.slice(0, 300).map((x) => { const f = API.families.get(x.fam); const paid = f ? API.families.payments(f.id).filter((q) => q.status === 'zaplaceno').reduce((a, q) => a + q.czk, 0) : 0; return `<tr><td class="num">${fdate(x.at)}</td><td>${famLink(f)}</td><td class="mono">${esc(x.code)}</td><td>${f ? subTag(f) : ''}</td><td class="r num">${paid ? kc(paid) : '–'}</td></tr>`; }).join('') || '<tr><td colspan="5" class="muted">Zatím nikdo.</td></tr>'}
       </tbody></table></div></section>`;
 }
@@ -314,7 +314,7 @@ function nkForm() {
     <label for="nkName">Název (vidí jen tým)</label><input id="nkName" data-nk="name" value="${esc(NK.name)}">
     ${NK.purpose === 'partner' ? `<div class="fields2">
       <div><label for="nkPartner">Partner</label><select id="nkPartner" data-nk="partner">${o('', 'Vyber partnera…', NK.partner)}${CPN.partners.map((p) => o(p.id, p.name, NK.partner)).join('')}</select></div>
-      <div><label>Provize</label><div style="display:flex;gap:6px"><select data-nk="commKind" style="width:auto">${o('fixed', 'Kč za platící rodinu', NK.comm.kind)}${o('percent', '% z plateb 12 měsíců', NK.comm.kind)}</select><input data-nk="commValue" type="number" min="0" value="${NK.comm.value}" style="width:90px"></div></div>
+      <div><label>Provize</label><div style="display:flex;gap:6px"><select data-nk="commKind" style="width:auto">${o('fixed', 'Kč za platícího uživatele', NK.comm.kind)}${o('percent', '% z plateb 12 měsíců', NK.comm.kind)}</select><input data-nk="commValue" type="number" min="0" value="${NK.comm.value}" style="width:90px"></div></div>
     </div><p class="hint">Nového partnera přidáš v záložce Partneři.</p>` : ''}
     <div class="fields2">
       <div><label for="nkGives">Co kód dává</label><select id="nkGives" data-nk="gives">${Object.entries(CPN.GIVES).map(([k, v]) => o(k, v.label, NK.gives)).join('')}</select></div>
@@ -328,7 +328,7 @@ function nkForm() {
       <label for="nkNotes">Pro koho jsou (nepovinné, jeden řádek = jeden kód)</label><textarea id="nkNotes" data-nk="notes" rows="4" style="font-family:var(--body);font-size:13px" placeholder="sestra\nsousedi\nkamarádka z práce">${esc(NK.notes)}</textarea>
       <p class="hint">Poznámka je jen pro tebe, ať víš, komu jsi který kód poslal. Kódy jsou náhodné (31 znaků bez 0/O a 1/I/L), nedají se uhodnout.</p>`}
     <div class="fields2"><div><label for="nkFrom">Platí od</label><input id="nkFrom" data-nk="from" type="date" value="${NK.from}"></div><div><label for="nkTo">Platí do</label><input id="nkTo" data-nk="to" type="date" value="${NK.to}"></div></div>
-    <label class="check"><input type="checkbox" data-nk="newOnly" ${NK.newOnly ? 'checked' : ''}> Jen pro nové rodiny (při registraci)</label>`;
+    <label class="check"><input type="checkbox" data-nk="newOnly" ${NK.newOnly ? 'checked' : ''}> Jen pro nové uživatele (při registraci)</label>`;
 }
 function nkPreview() {
   const c = { ...NK, value: Number(NK.value) || 0, months: Number(NK.months) || 1 };
@@ -338,11 +338,11 @@ function nkPreview() {
   const example = NK.mode === 'shared' ? (NK.code || 'KOD').toUpperCase() : `${(NK.prefix || 'KOD').toUpperCase()}-7KQ4-M2PX`;
   $('#nkPrev').innerHTML = `<h2 style="font-size:15px">Náhled</h2>
     <p style="margin:10px 0"><span class="tag ${CPN.PURPOSE[c.purpose].tag}">${CPN.PURPOSE[c.purpose].label}</span></p>
-    <p><b>Rodina dostane:</b> ${esc(CPN.describe(c))}.</p>
+    <p><b>Uživatel dostane:</b> ${esc(CPN.describe(c))}.</p>
     <p class="hint" style="margin:6px 0 12px">Funguje: ${g.where}. ${g.how}</p>
     <dl class="kv"><dt>Kód</dt><dd class="mono">${esc(example)}</dd>${n ? `<dt>Počet kódů</dt><dd>${fmt(n)}</dd>` : ''}<dt>Odkaz</dt><dd class="mono" style="font-size:11px">${esc(shareLink(example))}</dd></dl>
     ${c.gives === 'trial' ? `<div class="notice" style="margin:12px 0 0"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div>Zpráva pro příjemce:<br><i>${esc(shareMsg(c, example))}</i></div></div>` : ''}
-    ${c.purpose === 'partner' ? `<p class="hint" style="margin-top:12px">Provize: ${NK.comm.kind === 'fixed' ? `${kc(Number(NK.comm.value) || 0)} za každou platící rodinu` : `${Number(NK.comm.value) || 0} % z plateb za 12 měsíců`}.</p>` : ''}`;
+    ${c.purpose === 'partner' ? `<p class="hint" style="margin-top:12px">Provize: ${NK.comm.kind === 'fixed' ? `${kc(Number(NK.comm.value) || 0)} za každého platícího uživatele` : `${Number(NK.comm.value) || 0} % z plateb za 12 měsíců`}.</p>` : ''}`;
 }
 function nkSave() {
   const err = (m) => { $('#nkErr').textContent = m; };
@@ -387,7 +387,7 @@ Object.assign(ACTIONS, {
   cpnCopy: (v) => copy(v, 'Zkopírováno do schránky'),
   cpnPause: (v) => { CPN.togglePause(v); render(); toast('Hotovo'); },
   cpnCsv: (v) => {
-    const c = CPN.get(v), rows = [['kod', 'pro_koho', 'pouzito_rodinou', 'odkaz']];
+    const c = CPN.get(v), rows = [['kod', 'pro_koho', 'pouzil_uzivatel', 'odkaz']];
     (CPN.codes[v] || []).forEach((x) => rows.push([x.c, x.note, x.used || '', shareLink(x.c)]));
     download(`kody-${(c.prefix || c.code).toLowerCase()}.csv`, '﻿' + rows.map((r) => r.map((s) => `"${String(s).replace(/"/g, '""')}"`).join(';')).join('\n'), 'text/csv');
     API.log('coupon.export', c.prefix, `Export ${rows.length - 1} kódů`);
@@ -404,7 +404,7 @@ Object.assign(ACTIONS, {
   cpnCheck: () => {
     modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="ckT">
       <div class="dialog-head"><h2 id="ckT">Ověřit kód</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
-      <div class="dialog-body"><p class="hint">Hodí se v helpdesku, když rodina píše, že jí kód nefunguje.</p><label for="ckQ">Kód</label><input id="ckQ" data-f="ckQ" autocomplete="off" style="text-transform:uppercase" placeholder="např. VECERNI nebo ZNAMI-…"><div id="ckRes" style="margin-top:12px"></div></div></div>`);
+      <div class="dialog-body"><p class="hint">Hodí se v helpdesku, když uživatel píše, že jí kód nefunguje.</p><label for="ckQ">Kód</label><input id="ckQ" data-f="ckQ" autocomplete="off" style="text-transform:uppercase" placeholder="např. VECERNI nebo ZNAMI-…"><div id="ckRes" style="margin-top:12px"></div></div></div>`);
     $('#ckQ').focus();
   },
   partnerNew: () => modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="pnT">

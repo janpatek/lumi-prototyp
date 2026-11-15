@@ -25,13 +25,13 @@ function pageUsage() {
   const dauAvg = sumR(dl.dau, L - n + 1, L) / n;
   const mau = D.families.reduce((s, f) => s + (f.days30 > 0 ? 1 : 0), 0);
   const wauLast = D.wau[D.WEEKS - 2];
-  lineChart('chDau', idx, [{ name: 'Přehrání', color: 'var(--s1)', get: (i) => dl.plays[i] }, { name: 'Aktivní rodiny', color: 'var(--s2)', get: (i) => dl.dau[i] }], n > 60);
+  lineChart('chDau', idx, [{ name: 'Přehrání', color: 'var(--s1)', get: (i) => dl.plays[i] }, { name: 'Aktivní uživatelé', color: 'var(--s2)', get: (i) => dl.dau[i] }], n > 60);
   lineChart('chCat', idx, D.catIds.map((c, k) => ({ name: catLabel(c), color: `var(--s${k + 1})`, get: (i) => dl.cat[c][i] })), true);
   // kohorty po týdnech registrace
   const C = D.cohorts, W = D.WEEKS, show = Math.min(12, W - 1);
   const rows = [];
   for (let w = W - show - 1; w < W; w++) if (C[w] && C[w].size) rows.push(w);
-  const cohort = `<div class="table-wrap"><table class="cohort"><thead><tr><th style="text-align:left">Týden registrace</th><th>Rodin</th>${Array.from({ length: show }, (_, k) => `<th>T${k}</th>`).join('')}</tr></thead><tbody>
+  const cohort = `<div class="table-wrap"><table class="cohort"><thead><tr><th style="text-align:left">Týden registrace</th><th>Uživatelů</th>${Array.from({ length: show }, (_, k) => `<th>T${k}</th>`).join('')}</tr></thead><tbody>
     ${rows.map((w) => { const c = C[w]; const start = D.dayAt(Math.max(0, w * 7 - ((D.dayAt(0).getDay() + 6) % 7))); return `<tr><td style="text-align:left" class="num">${fshort(start)}</td><td class="num">${fmt(c.size)}</td>${Array.from({ length: show }, (_, k) => { if (w + k >= W) return '<td></td>'; const r = c.active[k] / c.size; return `<td class="c ${r > 0.55 ? 'hi' : ''}" style="background:color-mix(in srgb, var(--s1) ${Math.round(r * 100)}%, transparent)" title="${pct(c.active[k], c.size)} rodin aktivních v týdnu ${k}">${Math.round(r * 100)}</td>`; }).join('')}</tr>`; }).join('')}
   </tbody></table></div>`;
   // den v týdnu × hodina
@@ -45,23 +45,23 @@ function pageUsage() {
   const ages = {}; D.families.forEach((f) => f.kids.forEach((k) => { ages[k.age] = (ages[k.age] || 0) + 1; }));
   const bars = (list) => { const mx = Math.max(1, ...list.map((x) => x[1])); return `<div class="bars">${list.map(([s, c]) => `<div class="b"><span>${esc(s)}</span><span class="t"><i style="width:${(c / mx) * 100}%"></i></span><span class="r num">${fmt(c)}</span></div>`).join('')}</div>`; };
   return `
-    ${head('Používání', 'Jak rodiny poslouchají', rangeSeg('anDays', n))}
+    ${head('Používání', 'Jak uživatelé poslouchají', rangeSeg('anDays', n))}
     ${demoBar('Ve skutečnosti se počítá v noci z tabulky poslechů do daily_stats.')}
     <div class="tiles t8">
       ${tile('Denně aktivní (průměr)', fmt(dauAvg), `za ${n} dní`)}
       ${tile('Týdně aktivní', fmt(wauLast), 'minulý celý týden')}
       ${tile('Měsíčně aktivní', fmt(mau), `DAU/MAU ${pct(sumR(dl.dau, L - 6, L) / 7, mau)}`)}
-      ${tile('Přehrání', fmt(plays), `${dec(plays / Math.max(1, sumR(dl.dau, L - n + 1, L)))} na aktivní rodinu a den`)}
+      ${tile('Přehrání', fmt(plays), `${dec(plays / Math.max(1, sumR(dl.dau, L - n + 1, L)))} na aktivního uživatele a den`)}
       ${tile('Hodin poslechu', fmt(mins / 60), `${dec(mins / Math.max(1, plays))} min na přehrání`)}
       ${tile('Dohráno do konce', pct(done, plays), 'u ukolébavek je to dobré znamení')}
       ${tile('Retence po 1 týdnu', pct(rows.slice(0, -1).reduce((s, w) => s + C[w].active[1], 0), rows.slice(0, -1).reduce((s, w) => s + C[w].size, 0)), 'průměr kohort v tabulce')}
-      ${tile('Dětí na rodinu', dec(D.families.reduce((s, f) => s + f.kids.length, 0) / D.families.length), `${fmt(D.families.reduce((s, f) => s + f.kids.length, 0))} dětských profilů`)}
+      ${tile('Dětí na uživatele', dec(D.families.reduce((s, f) => s + f.kids.length, 0) / D.families.length), `${fmt(D.families.reduce((s, f) => s + f.kids.length, 0))} dětských profilů`)}
     </div>
     <div class="grid2">
-      <section class="panel"><div class="panel-head"><h2>Přehrání a aktivní rodiny</h2>${legendOf([['var(--s1)', 'Přehrání'], ['var(--s2)', 'Aktivní rodiny']])}</div><div class="chart" id="chDau"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Přehrání a aktivní uživatelé</h2>${legendOf([['var(--s1)', 'Přehrání'], ['var(--s2)', 'Aktivní uživatelé']])}</div><div class="chart" id="chDau"></div></section>
       <section class="panel"><div class="panel-head"><h2>Přehrání podle kategorií (po týdnech)</h2>${legendOf(D.catIds.map((c, k) => [`var(--s${k + 1})`, catLabel(c)]))}</div><div class="chart" id="chCat"></div></section>
     </div>
-    <section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Retence po týdnech</h2><span class="hint">% rodin z kohorty, které v týdnu T po registraci aspoň jednou poslouchaly</span></div>${cohort}</section>
+    <section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Retence po týdnech</h2><span class="hint">% uživatelů z kohorty, které v týdnu T po registraci aspoň jednou poslouchaly</span></div>${cohort}</section>
     <div class="grid21">
       <section class="panel"><div class="panel-head"><h2>Kdy se poslouchá</h2><span class="hint">den v týdnu × hodina, celé období</span></div>${heat}</section>
       <section class="panel"><div class="panel-head"><h2>Aktivní dny za 30 dní</h2></div>
@@ -75,7 +75,7 @@ function pageUsage() {
     </div>`;
 }
 function storyTable() {
-  return `<div class="table-wrap"><table><thead><tr><th>Pohádka</th><th class="r">Přehrání</th><th class="r">Rodin</th><th class="r">Do konce</th><th class="r">Ø min</th><th></th></tr></thead><tbody>
+  return `<div class="table-wrap"><table><thead><tr><th>Pohádka</th><th class="r">Přehrání</th><th class="r">Uživatelů</th><th class="r">Do konce</th><th class="r">Ø min</th><th></th></tr></thead><tbody>
     ${Object.entries(D.storyAgg).sort((a, b) => b[1].plays - a[1].plays).map(([id, s]) => { const st = STORIES.find((x) => x.id === id); return `<tr><td>${esc(st ? safeTitle(st) : id)}</td><td class="r num">${fmt(s.plays)}</td><td class="r num">${fmt(s.families)}</td><td class="r num">${pct(s.done, s.plays)}</td><td class="r num">${dec(s.minutes / Math.max(1, s.plays))}</td><td>${st && st.free ? '<span class="tag honey">Zdarma</span>' : '<span class="tag line">Placená</span>'}</td></tr>`; }).join('')}
   </tbody></table></div>`;
 }
@@ -107,7 +107,7 @@ function pageVoice() {
   ];
   return `
     ${head('Hlas a náklady', 'Generování nahrávek přes ElevenLabs, mezipaměť a marže')}
-    ${demoBar('Počty znaků vycházejí z délky pohádek a z toho, kdy rodina pohádku slyší poprvé.')}
+    ${demoBar('Počty znaků vycházejí z délky pohádek a z toho, kdy uživatel pohádku slyší poprvé.')}
     <section class="panel" style="margin-bottom:12px"><div class="filters" style="margin:0">
       <label for="ttsPrice" style="margin:0">Cena za 1 000 znaků</label><input id="ttsPrice" data-f="ttsPrice" type="number" min="0" step="0.1" value="${price}" style="width:100px"> <span class="muted">Kč · předpoklad, ověř aktuální ceník a tarif ElevenLabs</span>
     </div></section>
@@ -115,7 +115,7 @@ function pageVoice() {
       ${tile('Vygenerováno za 30 dní', `${fmt(ch30 / 1000)} tis. znaků`, trend(ch30, ch30b))}
       ${tile('Odhad nákladů za 30 dní', kc(cost30), `${dec(cost30 / Math.max(1, plays30), 2)} Kč na přehrání`)}
       ${tile('Přehráno z mezipaměti', pct(hits30, plays30), 'nic negenerovalo, 0 Kč')}
-      ${tile('Náklad na platící rodinu', kc(cost30 / Math.max(1, subs)), `vč. rodin zdarma · ARPPU ${kc(mrr / Math.max(1, subs))}`)}
+      ${tile('Náklad na platícího uživatele', kc(cost30 / Math.max(1, subs)), `vč. uživatelů zdarma · ARPPU ${kc(mrr / Math.max(1, subs))}`)}
       ${tile('Marže po hlasu', pct(mrr - cost30, mrr), 'MRR minus náklady na hlas (bez obchodů)')}
       ${tile('Průměrná doba generování', dec(avg / 1000) + ' s', `${ok.length} posledních úloh`)}
       ${tile('Selhané úlohy', fmt(jobs.filter((j) => j.status === 'selhalo').length), 'z posledních 40')}
@@ -128,7 +128,7 @@ function pageVoice() {
         <h2 style="margin:16px 0 8px">Podíl přehrání z mezipaměti</h2><div class="chart" id="chCache"></div></section>
     </div>
     <section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Poslední úlohy generování</h2></div>
-      <div class="table-wrap" style="max-height:380px;overflow-y:auto"><table><thead><tr><th>Kdy</th><th>Rodina</th><th>Pohádka</th><th class="r">Znaků</th><th class="r">Trvání</th><th>Stav</th><th></th></tr></thead><tbody>
+      <div class="table-wrap" style="max-height:380px;overflow-y:auto"><table><thead><tr><th>Kdy</th><th>Uživatel</th><th>Pohádka</th><th class="r">Znaků</th><th class="r">Trvání</th><th>Stav</th><th></th></tr></thead><tbody>
       ${jobs.map((j) => { const st = STORIES.find((x) => x.id === j.story); return `<tr><td class="num">${ago(j.at)}</td><td>${famLink(API.families.get(j.fam))}</td><td>${esc(st ? safeTitle(st) : j.story)}</td><td class="r num">${fmt(j.chars)}</td><td class="r num">${j.ms ? dec(j.ms / 1000) + ' s' : '–'}</td><td>${j.status === 'hotovo' ? '<span class="tag mint">hotovo</span>' : j.status === 'běží' ? '<span class="tag sky">běží</span>' : `<span class="tag peach" title="${esc(j.err)}">selhalo</span> <span class="muted">${esc(j.err)}</span>`}</td><td class="r">${j.status === 'selhalo' && API.can('content.edit') ? `<button class="btn white sm" data-a="ttsRetry" data-v="${j.id}">Zkusit znovu</button>` : ''}</td></tr>`; }).join('')}
       </tbody></table></div></section>`;
 }
@@ -141,7 +141,7 @@ function loadCosts(force) {
   if (COST.state === 'loading' || ((COST.state === 'ok' || COST.state === 'err') && !force)) return;
   COST.state = 'loading';
   D.ttsCosts().then((d) => { COST.state = 'ok'; COST.data = d; COST.err = ''; }, (e) => { COST.state = 'err'; COST.err = e.message; })
-    .then(() => { if (route() === 'hlas' || route() === 'prehled') render(); });
+    .then(() => { if (route() === 'hlas' || route() === 'prehled' || route() === 'rodiny') render(); });
 }
 // cena jednoho kreditu v Kč: tarif ÷ kredity v tarifu × kurz ČNB, jinak ručně zadaná cena za 1 000 kreditů
 function creditPrice(d) {
@@ -206,7 +206,7 @@ function pageVoiceLive() {
       ${tile('Odhad na měsíc', czk(last30), 'podle posledních 30 dní')}
       ${tile('Tarif ElevenLabs', p ? esc(tierName(p.tier)) : '–', p ? `${monthly ? `${dec(monthly, 2)} ${cur} měsíčně · ` : ''}${p.status === 'active' ? 'aktivní' : esc(p.status || '')}` : 'nepodařilo se načíst')}
       ${tile('Zbývá v tarifu', left == null ? '–' : `${fmt(left)} kreditů`, p && p.credits_limit ? `${pct(left, p.credits_limit)} z ${fmt(p.credits_limit)}${p.reset_at ? ` · obnova ${fdate(new Date(p.reset_at))}` : ''}` : '')}
-      ${tile('Na rodinu', fams ? czk2(total / fams) : '–', `${fmt(fams)} rodin · ${fmt(activeDays)} dní s generováním`)}
+      ${tile('Na uživatele', fams ? czk2(total / fams) : '–', `${fmt(fams)} uživatelů · ${fmt(activeDays)} dní s generováním`)}
     </div>
     <div class="grid2">
       <section class="panel"><div class="panel-head"><h2>Spotřebované kredity po dnech</h2><span class="muted">${n} dní</span></div><div class="chart" id="chCredits"></div></section>

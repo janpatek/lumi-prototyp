@@ -52,7 +52,7 @@ function pageSubscriptions() {
   const M = S.months, pc = S.payCohorts.slice(-8);
   const mName = (d) => d.toLocaleDateString('cs-CZ', { month: 'short', year: 'numeric' });
   const cell = (v, known) => (known ? `<td class="c ${v > 0.55 ? 'hi' : ''}" style="background:color-mix(in srgb, var(--s1) ${Math.round(v * 100)}%, transparent)">${Math.round(v * 100)}</td>` : '<td></td>');
-  const retTable = pc.length ? `<div class="table-wrap"><table class="cohort"><thead><tr><th style="text-align:left">Měsíc 1. platby</th><th>Rodin</th>${Array.from({ length: M }, (_, k) => `<th>M${k}</th>`).join('')}</tr></thead><tbody>
+  const retTable = pc.length ? `<div class="table-wrap"><table class="cohort"><thead><tr><th style="text-align:left">Měsíc 1. platby</th><th>Uživatelů</th>${Array.from({ length: M }, (_, k) => `<th>M${k}</th>`).join('')}</tr></thead><tbody>
     ${pc.map((c) => `<tr><td style="text-align:left">${mName(c.month)}</td><td class="num">${fmt(c.size)}</td>${Array.from({ length: M }, (_, k) => cell(c.known[k] ? c.active[k] / c.known[k] : 0, c.known[k])).join('')}</tr>`).join('')}
   </tbody></table></div>` : '<p class="muted">Zatím nikdo nezaplatil.</p>';
   const ltvTable = pc.length ? `<div class="table-wrap"><table><thead><tr><th>Měsíc 1. platby</th>${Array.from({ length: M }, (_, k) => `<th class="r">M${k}</th>`).join('')}</tr></thead><tbody>
@@ -70,7 +70,7 @@ function pageSubscriptions() {
     SUBS.vt = vtable($('#subEvents'), {
       cols: [
         { k: 'at', label: 'Kdy', w: '130px', html: (e) => `<span class="num">${fdate(e.at)} <span class="muted">${e.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></span>` },
-        { k: 'fam', label: 'Rodina', w: 'minmax(160px, 1.2fr)', html: (e) => (e.fam ? famLink(API.families.get(e.fam)) : '<span class="muted">nespárováno</span>') },
+        { k: 'fam', label: 'Uživatel', w: 'minmax(160px, 1.2fr)', html: (e) => (e.fam ? famLink(API.families.get(e.fam)) : '<span class="muted">nespárováno</span>') },
         { k: 'type', label: 'Událost', w: 'minmax(170px, 1fr)', html: (e) => `<span class="tag ${TYPE_TAG[e.type] || 'line'}">${TYPE_LABEL[e.type] || e.type}</span>${e.refunded ? ' <span class="muted">vráceno</span>' : ''}` },
         { k: 'platform', label: 'Obchod', w: '110px', html: (e) => S.STORE[e.platform] || e.platform },
         { k: 'period', label: 'Období', w: '150px', html: (e) => (e.start && e.end ? `<span class="num muted">${fshort(e.start)} – ${fshort(e.end)}</span>` : '') },
@@ -94,7 +94,7 @@ function pageSubscriptions() {
   return `
     ${head('Předplatné', 'App Store a Google Play napřímo, bez RevenueCat. Měsíční předplatné s 3denní zkušební dobou.', actions)}
     ${D.live ? `<div class="demo live"><b>Ostrá data</b><span>${err ? `Předplatné se nenačetlo (${esc(err)}). Je v databázi funkce admin_store? Viz supabase/README.md.` : `Události posílají obchody naší funkci store, ${fmt(S.events.length)} ${plural(S.events.length, 'událost', 'události', 'událostí')} od začátku${D.sandbox ? ' včetně testovacích nákupů' : ''}.`} Částky v eurech přepočtené kurzem ČNB ke dni platby. „Do kapsy“ = bez DPH (CZ 21 %, SK 23 %) a provize obchodu 15 %. <a class="link" href="#data">Napojení dat</a></span></div>`
-      : `<div class="demo"><b>Ukázková data</b><span>Vymyšlené rodiny a platby. Ve skutečnosti chodí události přímo z App Store a Google Play do naší databáze (supabase/functions/store). „Do kapsy“ = bez DPH (CZ 21 %, SK 23 %) a provize obchodu 15 %.</span></div>`}
+      : `<div class="demo"><b>Ukázková data</b><span>Vymyšlení uživatelé a platby. Ve skutečnosti chodí události přímo z App Store a Google Play do naší databáze (supabase/functions/store). „Do kapsy“ = bez DPH (CZ 21 %, SK 23 %) a provize obchodu 15 %.</span></div>`}
     <div class="tiles t8">
       ${tile('MRR', kc(mrr), `${trend(mrr, dl.mrr[Math.max(0, L - 30)], 'za 30 dní')} · čisté ${kc(mrrNet)}`)}
       ${tile('ARR', kc(mrr * 12), `čisté ${kc(mrrNet * 12)} ročně`)}
@@ -106,7 +106,7 @@ function pageSubscriptions() {
       ${tile('Nově platící', fmt(newPaid), trend(newPaid, newPaidB, prev))}
       ${tile('Nové zkušební doby', fmt(newTrials), trend(newTrials, newTrialsB, prev))}
       ${tile('Čistě na platícího', kc(arppu), `měsíčně · s DPH ${kc(dl.subs[L] ? mrr / dl.subs[L] : 0)}`)}
-      ${tile('LTV realizované', kc(realized), `čistě na rodinu, která kdy platila (${fmt(payingEver.length)})`)}
+      ${tile('LTV realizované', kc(realized), `čistě na uživatele, který kdy platil (${fmt(payingEver.length)})`)}
       ${tile('LTV odhad', predicted ? kc(predicted) : '–', predicted ? `${kc(arppu)} ÷ odchod ${pct(churn30, base30)} měsíčně` : 'až bude odchod za 30 dní')}
       ${tile('Vráceno', kc(refunds), `${fmt(refundN)} ${plural(refundN, 'platba', 'platby', 'plateb')} · ${pct(refunds, rev)} tržeb`)}
       ${tile('Problém s platbou', fmt(issues.length), 'obchod zkouší kartu znovu (odklad až 16 dní)')}
@@ -122,14 +122,14 @@ function pageSubscriptions() {
       <section class="panel"><div class="panel-head"><h2>Příchody a odchody${weekly ? ' po týdnech' : ''}</h2>${legendOf([['var(--s2)', 'Nové zkušební'], ['var(--s1)', 'Nově platící'], ['var(--s4)', 'Odešli'], ['var(--s3)', 'Vypnuli obnovení']])}</div><div class="chart" id="chSubFlow"></div></section>
     </div>
     <div class="grid2">
-      <section class="panel"><div class="panel-head"><h2>Retence platících</h2><span class="hint">% rodin z kohorty, které měsíc M po první platbě pořád platí</span></div>${retTable}</section>
-      <section class="panel"><div class="panel-head"><h2>Realizované LTV na rodinu</h2><span class="hint">čisté tržby na rodinu z kohorty do konce měsíce M</span></div>${ltvTable || '<p class="muted">Zatím nikdo nezaplatil.</p>'}</section>
+      <section class="panel"><div class="panel-head"><h2>Retence platících</h2><span class="hint">% uživatelů z kohorty, které měsíc M po první platbě pořád platí</span></div>${retTable}</section>
+      <section class="panel"><div class="panel-head"><h2>Realizované LTV na uživatele</h2><span class="hint">čisté tržby na uživatele z kohorty do konce měsíce M</span></div>${ltvTable || '<p class="muted">Zatím nikdo nezaplatil.</p>'}</section>
     </div>
     <div class="grid2">
       <section class="panel"><div class="panel-head"><h2>Konverze zkušební doby</h2><span class="hint">podle týdne, kdy zkušební doba začala</span></div>${trialTable}</section>
       <section class="panel"><div class="panel-head"><h2>Problém s platbou</h2></div>
         ${issues.length ? `<div class="table-wrap"><table><tbody>${issues.slice(0, 10).map((s) => `<tr><td>${s.fam ? famLink(API.families.get(s.fam)) : '<span class="muted">nespárováno</span>'}</td><td>${S.STORE[s.platform]}</td><td class="muted">${s.status === 'grace' ? 'odklad, pořád poslouchá' : 'přístup pozastavený'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Žádný.</p>'}
-        <p class="hint" style="margin-top:8px">Kartu zkouší obchod sám a rodině posílá e-mail. Vrácení peněz vyřizuje Apple (rodina žádá na reportaproblem.apple.com) nebo Google Play Console → Objednávky.</p></section>
+        <p class="hint" style="margin-top:8px">Kartu zkouší obchod sám a uživateli posílá e-mail. Vrácení peněz vyřizuje Apple (uživatel žádá na reportaproblem.apple.com) nebo Google Play Console → Objednávky.</p></section>
     </div>
     <div class="grid3">
       <section class="panel"><div class="panel-head"><h2>Aktivní podle obchodu</h2></div>${bars(byPlat)}<h2 style="margin:16px 0 10px">Tržby podle obchodu (${n} dní)</h2>${bars(revPlat, kc)}</section>

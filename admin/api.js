@@ -19,10 +19,10 @@ const API = (() => {
 
   // ---------- Role a oprávnění ----------
   const PERMS = {
-    'families.read': 'Vidět rodiny a jejich statistiky',
+    'families.read': 'Vidět uživatele a jejich statistiky',
     'families.pii': 'Vidět jména a e-maily',
-    'families.edit': 'Upravovat rodiny, poznámky',
-    'families.delete': 'Exportovat a mazat data rodin (GDPR)',
+    'families.edit': 'Upravovat uživatele, poznámky',
+    'families.delete': 'Exportovat a mazat data uživatelů (GDPR)',
     'tickets.read': 'Číst helpdesk',
     'tickets.reply': 'Odpovídat a měnit tickety',
     'billing.read': 'Vidět předplatné a platby',
@@ -82,7 +82,7 @@ const API = (() => {
     ls.set('ospalek.admin.tickets.v1', tPatch);
   };
   const OPEN = new Set(['new', 'open', 'waiting']);
-  const TSTATUS = { new: 'Nový', open: 'Otevřený', waiting: 'Čeká na rodinu', solved: 'Vyřešený', closed: 'Uzavřený' };
+  const TSTATUS = { new: 'Nový', open: 'Otevřený', waiting: 'Čeká na uživatele', solved: 'Vyřešený', closed: 'Uzavřený' };
   const TPRI = { urgent: 'Urgentní', high: 'Vysoká', normal: 'Normální', low: 'Nízká' };
   // SLA na první odpověď; u otevřených ticketů bez odpovědi běží odpočet
   function sla(t) {
@@ -97,7 +97,7 @@ const API = (() => {
     unassigned: { label: 'Nepřiřazené', test: (t) => OPEN.has(t.status) && !t.assignee },
     open: { label: 'Všechny otevřené', test: (t) => OPEN.has(t.status) },
     breach: { label: 'SLA v ohrožení', test: (t) => OPEN.has(t.status) && sla(t).state !== 'ok' },
-    waiting: { label: 'Čeká na rodinu', test: (t) => t.status === 'waiting' },
+    waiting: { label: 'Čeká na uživatele', test: (t) => t.status === 'waiting' },
     gdpr: { label: 'Osobní údaje (GDPR)', test: (t) => t.cat === 'gdpr' && OPEN.has(t.status) },
     solved: { label: 'Vyřešené', test: (t) => !OPEN.has(t.status) },
     all: { label: 'Všechny', test: () => true },
@@ -158,10 +158,13 @@ const API = (() => {
     dormant: { label: 'Usnulé (30+ dní)', test: (f) => (D.days - 1 - f.lastI) >= 30 },
     past_due: { label: 'Neuhrazená platba', test: (f) => f.status === 'past_due' },
     guests: { label: 'Hosté', test: (f) => !f.email },
+    news: { label: 'Souhlas s novinkami', test: (f) => !!f.newsletter },
+    changers: { label: 'Často mění údaje', test: (f) => !!f.usage && f.usage.changes30 >= 3 },
   };
   const FSORT = {
     created: (f) => f.created, last: (f) => f.lastSeen, plays30: (f) => f.plays30, min30: (f) => f.min30, days30: (f) => f.days30,
     health: (f) => f.health, kids: (f) => f.kids.length, name: (f) => f.name || '~', town: (f) => f.town,
+    cost30: (f) => (f.usage ? f.usage.chars30 : 0), changes30: (f) => (f.usage ? f.usage.changes30 : 0),
   };
   const actCache = new Map();
   const notes = ls.get('ospalek.admin.notes.v1', {});
@@ -224,7 +227,7 @@ const API = (() => {
         return a;
       },
       async removeLive(id) { await D.deleteFamily(fam.get(id)); deleted.add(id); bump('families'); },
-      remove(id) { deleted.add(id); ls.set('ospalek.admin.deleted.v1', [...deleted]); bump('families'); log('family.delete', id, 'Smazání rodiny (GDPR, ukázka)'); },
+      remove(id) { deleted.add(id); ls.set('ospalek.admin.deleted.v1', [...deleted]); bump('families'); log('family.delete', id, 'Smazání uživatele (GDPR, ukázka)'); },
       gift(id, months) {
         gifts.push({ fam: id, months, at: now() }); ls.set('ospalek.admin.gifts.v1', gifts);
         log('family.gift', id, `Dárek: ${months} ${months === 1 ? 'měsíc' : months < 5 ? 'měsíce' : 'měsíců'} předplatného`);
@@ -274,7 +277,7 @@ const API = (() => {
           const st = after || 'waiting'; if (st !== t.status) { t.status = st; p.status = st; if (!OPEN.has(st)) { t.solvedAt = msg.at; p.solvedAt = msg.at; } }
         }
         saveT(t, p, msg); bump('tickets');
-        log(kind === 'agent' ? 'ticket.reply' : 'ticket.note', `#${id}`, kind === 'agent' ? `Odpověď rodině${after === 'solved' ? ' a vyřešeno' : ''}` : 'Interní poznámka');
+        log(kind === 'agent' ? 'ticket.reply' : 'ticket.note', `#${id}`, kind === 'agent' ? `Odpověď uživateli${after === 'solved' ? ' a vyřešeno' : ''}` : 'Interní poznámka');
       },
       create({ famId, subject, text, pri, cat }) {
         const id = Math.max(...tickets.map((t) => t.id)) + 1;

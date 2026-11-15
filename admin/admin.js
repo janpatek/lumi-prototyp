@@ -41,9 +41,9 @@ const kc = (n) => `${Math.round(n).toLocaleString('cs-CZ')} Kč`;
 const dec = (n, d = 1) => n.toLocaleString('cs-CZ', { maximumFractionDigits: d, minimumFractionDigits: d });
 const initials = (n) => String(n || '?').split(/\s+/).map((x) => x[0]).join('').slice(0, 2).toUpperCase();
 // osobní údaje jen pro role s oprávněním families.pii
-const famName = (f) => (!f ? 'Smazaná rodina' : !f.email ? `Host ${f.id}` : API.can('families.pii') ? f.name : `Rodina ${f.id}`);
+const famName = (f) => (!f ? 'Smazaný uživatel' : !f.email ? `Host ${f.id}` : API.can('families.pii') ? f.name : `Uživatel ${f.id}`);
 const famMail = (f) => (!f?.email ? '' : API.can('families.pii') ? f.email : f.email.replace(/^(.).*(@.*)$/, '$1•••$2'));
-const famLink = (f) => (f ? `<a class="link" href="#rodiny/${f.id}">${esc(famName(f))}</a>` : '<span class="muted">Smazaná rodina</span>');
+const famLink = (f) => (f ? `<a class="link" href="#uzivatele/${f.id}">${esc(famName(f))}</a>` : '<span class="muted">Smazaný uživatel</span>');
 const SUB = { trial: ['Zkušební', 'honey'], active: ['Platí', 'mint'], past_due: ['Neuhrazeno', 'peach'], canceled: ['Zrušeno', 'line'], expired: ['Nepřevedeno', 'line'] };
 const subTag = (f) => {
   if (!f.status) return f.email ? '<span class="tag line">Zdarma</span>' : '<span class="tag line">Host</span>';
@@ -97,8 +97,8 @@ const ROUTES = [
   { id: 'prehled', label: 'Přehled', ico: I.home, perm: 'analytics.read' },
   { grp: 'Podpora' },
   { id: 'helpdesk', label: 'Helpdesk', ico: I.chat, perm: 'tickets.read', badge: () => API.tickets.counts().unassigned, full: true },
-  { grp: 'Rodiny' },
-  { id: 'rodiny', label: 'Rodiny', ico: I.users, perm: 'families.read' },
+  { grp: 'Uživatelé' },
+  { id: 'rodiny', label: 'Uživatelé', ico: I.users, perm: 'families.read' },
   { id: 'pouzivani', label: 'Používání', ico: I.chart, perm: 'analytics.read' },
   { id: 'registrace', label: 'Registrace', ico: I.reg, perm: 'analytics.read' },
   { id: 'navstevy', label: 'Návštěvy', ico: I.eye, perm: 'analytics.read' },
@@ -116,7 +116,7 @@ const ROUTES = [
   { id: 'audit', label: 'Audit log', ico: I.list, perm: 'audit.read' },
   { id: 'data', label: 'Napojení dat', ico: I.wave },
 ];
-// #stranka/parametr – např. #rodiny/f00042, #helpdesk/1042, #helpdesk/breach
+// #stranka/parametr – např. #uzivatele/f00042 (vnitřně stránka rodiny, staré odkazy #rodiny fungují dál), #helpdesk/1042, #helpdesk/breach
 const hashParts = () => { const [r, ...rest] = decodeURIComponent(location.hash.slice(1)).split('/'); return [r === 'uzivatele' ? 'rodiny' : r, rest.join('/')]; };
 const route = () => { const r = hashParts()[0]; return ROUTES.some((x) => x.id === r) ? r : 'prehled'; };
 const routeParam = () => hashParts()[1];
@@ -279,9 +279,9 @@ const LIVE_GAPS = {
   hlas: 'Kredity jsou skutečná spotřeba z ElevenLabs (přes tts-worker), Kč odhad podle tarifu a kurzu ČNB.',
   kupony: 'Kódy zatím nejde uplatnit v aplikaci; kampaně, které tu založíš, se drží jen v tomhle prohlížeči.',
   helpdesk: 'Helpdesk zatím nepřijímá e-maily ani zprávy z aplikace.',
-  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní rodiny jen rodiny se souhlasem se statistikami. Tržby a MRR jsou platby z App Store a Google Play (stránka Předplatné).',
-  pouzivani: 'Přehrání, pohádky a heatmapa zahrnují i anonymní poslechy; aktivní rodiny a retence jen rodiny se souhlasem se statistikami.',
-  rodiny: 'Rodiny bez souhlasu se statistikami vidíš celé, jen bez poslechů (štítek „bez statistik“).',
+  prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní uživatelé jen uživatelé se souhlasem se statistikami. Tržby a MRR jsou platby z App Store a Google Play (stránka Předplatné).',
+  pouzivani: 'Přehrání, pohádky a heatmapa zahrnují i anonymní poslechy; aktivní uživatelé a retence jen uživatelé se souhlasem se statistikami.',
+  rodiny: 'Uživatele bez souhlasu se statistikami vidíš celé, jen bez poslechů (štítek „bez statistik“).',
 };
 const demoBar = (extra = '') => (D.live
   ? `<div class="demo live"><b>Ostrá data</b><span>${D.dev ? 'Lokální testovací databáze. ' : ''}Načteno ${D.loadedAt.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })} ze Supabase za ${Math.round(D.fetchMs)} ms. ${LIVE_GAPS[route()] || ''} <a class="link" href="#data">Napojení dat</a></span></div>`
@@ -325,7 +325,7 @@ function pageOverview() {
   const idx = Array.from({ length: 90 }, (_, k) => N - 90 + k);
   after.push(() => chart($('#chUse'), {
     type: 'line', labels: idx.map((i) => fshort(D.dayAt(i))), titles: idx.map((i) => fday(D.dayAt(i))),
-    series: [{ name: 'Přehrání', color: 'var(--s1)', values: idx.map((i) => dl.plays[i]) }, { name: 'Aktivní rodiny', color: 'var(--s2)', values: idx.map((i) => dl.dau[i]) }],
+    series: [{ name: 'Přehrání', color: 'var(--s1)', values: idx.map((i) => dl.plays[i]) }, { name: 'Aktivní uživatelé', color: 'var(--s2)', values: idx.map((i) => dl.dau[i]) }],
   }));
   const all = Array.from({ length: N }, (_, i) => i).filter((i) => i % 2 === L % 2);
   after.push(() => chart($('#chMrr'), {
@@ -350,7 +350,7 @@ function pageOverview() {
     series: [
       { name: 'Tržby', unit: 'Kč', color: 'var(--s3)', values: weeks.map((w) => Math.round(w.rev)) },
       { name: 'Náklady', unit: 'Kč', color: 'var(--s4)', values: weeks.map((w) => Math.round(w.cost)) },
-      { name: 'Rodiny celkem', color: 'var(--s1)', axis: 'r', dash: true, values: weeks.map((w) => w.users) },
+      { name: 'Uživatelé celkem', color: 'var(--s1)', axis: 'r', dash: true, values: weeks.map((w) => w.users) },
     ],
   }));
   const moneyNote = `Za 6 měsíců: tržby ${kc(revSum)}, náklady ${costMap ? `${kc(costSum)} · rozdíl <b class="${revSum - costSum >= 0 ? 'up' : 'down'}">${kc(revSum - costSum)}</b>` : 'se načítají…'}. Tržby jsou zaplacené platby, náklady zatím jen hlas ElevenLabs (<a class="link" href="#hlas">Hlas a náklady</a>).`;
@@ -362,37 +362,37 @@ function pageOverview() {
     [tc.unassigned, plural(tc.unassigned, 'nepřiřazený ticket', 'nepřiřazené tickety', 'nepřiřazených ticketů'), '#helpdesk/unassigned', ''],
     [gdpr, plural(gdpr, 'žádost o osobní údaje', 'žádosti o osobní údaje', 'žádostí o osobní údaje') + ' (lhůta 30 dní)', '#helpdesk/gdpr', gdpr ? 'bad' : ''],
     [pastDue, plural(pastDue, 'neuhrazená platba', 'neuhrazené platby', 'neuhrazených plateb'), '#platby', ''],
-    [risk, plural(risk, 'platící rodina', 'platící rodiny', 'platících rodin') + ' bez poslechu 10+ dní', '#rodiny/segment-risk', ''],
-    [trialEnd, plural(trialEnd, 'zkušební doba končí', 'zkušební doby končí', 'zkušebních dob končí') + ' do 2 dnů', '#rodiny/segment-trial', ''],
+    [risk, plural(risk, 'platící uživatel', 'platící uživatelé', 'platících uživatelů') + ' bez poslechu 10+ dní', '#uzivatele/segment-risk', ''],
+    [trialEnd, plural(trialEnd, 'zkušební doba končí', 'zkušební doby končí', 'zkušebních dob končí') + ' do 2 dnů', '#uzivatele/segment-trial', ''],
     [ttsFail, plural(ttsFail, 'selhané generování hlasu', 'selhaná generování hlasu', 'selhaných generování hlasu'), '#hlas', ttsFail ? 'bad' : ''],
   ].filter((x) => x[0] > 0);
   return `
-    ${head('Přehled', `Stav k ${fdate(TODAY)} · ${fmt(fams.length)} rodin`)}
+    ${head('Přehled', `Stav k ${fdate(TODAY)} · ${fmt(fams.length)} uživatelů`)}
     ${demoBar()}
     <div class="tiles t8">
-      ${tile('Aktivní rodiny (30 dní)', fmt(mau), `${pct(mau, fams.length)} všech rodin`)}
+      ${tile('Aktivní uživatelé (30 dní)', fmt(mau), `${pct(mau, fams.length)} všech uživatelů`)}
       ${tile('Denně aktivní (průměr 7 dní)', fmt(dau), `${trend(dau, dauB, 'za měsíc')} · DAU/MAU ${pct(dau, mau)}`)}
       ${tile('Přehrání za 30 dní', fmt(p30), trend(p30, p30b))}
       ${tile('Hodin poslechu za 30 dní', fmt(m30 / 60), trend(m30, m30b))}
       ${tile('MRR', kc(mrr), `${trend(mrr, mrrB, 'za 30 dní')} · ARR ${kc(mrr * 12)}`)}
-      ${tile('Platící rodiny', fmt(subs), `${trend(subs, subsB, 'za 30 dní')} · odešlo ${fmt(churned)}`)}
+      ${tile('Platící uživatelé', fmt(subs), `${trend(subs, subsB, 'za 30 dní')} · odešlo ${fmt(churned)}`)}
       ${tile('Konverze zkušební doby', pct(conv, ended.length), `${fmt(conv)} z ${fmt(ended.length)} za 30 dní`)}
       ${tile('Otevřené tickety', `<a class="v" href="#helpdesk/open">${fmt(tc.open)}</a>`, tc.breach ? `<span class="down">${tc.breach} se SLA v ohrožení</span>` : '<span class="up">SLA v pořádku</span>')}
     </div>
     <div class="grid21">
-      <section class="panel"><div class="panel-head"><h2>Poslech po dnech (90 dní)</h2><div class="legend"><span><i class="key" style="--c:var(--s1)"></i>Přehrání</span><span><i class="key" style="--c:var(--s2)"></i>Aktivní rodiny</span></div></div><div class="chart" id="chUse"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Poslech po dnech (90 dní)</h2><div class="legend"><span><i class="key" style="--c:var(--s1)"></i>Přehrání</span><span><i class="key" style="--c:var(--s2)"></i>Aktivní uživatelé</span></div></div><div class="chart" id="chUse"></div></section>
       <section class="panel"><div class="panel-head"><h2>Vyžaduje pozornost</h2></div>
         ${att.length ? `<div class="stack">${att.map(([n, l, h, c]) => `<a class="link" style="display:flex;gap:10px;align-items:baseline" href="${h}"><b class="num ${c === 'bad' ? 'down' : ''}" style="min-width:34px;text-align:right;font-size:18px">${fmt(n)}</b><span>${l}</span></a>`).join('')}</div>` : '<p class="muted">Všechno je vyřízené.</p>'}
       </section>
     </div>
-    <section class="panel"><div class="panel-head"><h2>Rodiny, tržby a náklady po týdnech</h2>
-        <div class="legend"><span><i class="key" style="--c:var(--s3)"></i>Tržby (Kč, vlevo)</span><span><i class="key" style="--c:var(--s4)"></i>Náklady (Kč, vlevo)</span><span><i class="key" style="--c:var(--s1)"></i>Rodiny celkem (vpravo, čárkovaně)</span></div></div>
+    <section class="panel"><div class="panel-head"><h2>Uživatelé, tržby a náklady po týdnech</h2>
+        <div class="legend"><span><i class="key" style="--c:var(--s3)"></i>Tržby (Kč, vlevo)</span><span><i class="key" style="--c:var(--s4)"></i>Náklady (Kč, vlevo)</span><span><i class="key" style="--c:var(--s1)"></i>Uživatelé celkem (vpravo, čárkovaně)</span></div></div>
       <div class="chart" id="chMoney"></div><p class="hint">${moneyNote}</p>
     </section>
     <div class="grid3">
       <section class="panel"><div class="panel-head"><h2>MRR za 6 měsíců</h2><a class="btn white sm" href="#platby">Platby</a></div><div class="chart" id="chMrr"></div></section>
       <section class="panel"><div class="panel-head"><h2>Registrace po týdnech</h2><a class="btn white sm" href="#registrace">Detail</a></div><div class="chart" id="chReg"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Co se poslouchá (30 dní)</h2><a class="btn white sm" href="#pouzivani">Používání</a></div>${bars(cats)}<h2 style="margin:16px 0 10px">Odkud rodiny přišly</h2>${bars(src)}</section>
+      <section class="panel"><div class="panel-head"><h2>Co se poslouchá (30 dní)</h2><a class="btn white sm" href="#pouzivani">Používání</a></div>${bars(cats)}<h2 style="margin:16px 0 10px">Odkud uživatelé přišli</h2>${bars(src)}</section>
     </div>`;
 }
 
@@ -406,7 +406,7 @@ function pageRegistrations() {
   const appVisits = sum(bs, 'app');
   regChart('chReg', bs, F.range.by);
   return `
-    ${head('Kdo se registroval', 'Nové rodiny v čase')}
+    ${head('Kdo se registroval', 'Noví uživatelé v čase')}
     ${demoBar()}
     ${rangeFilters()}
     <div class="tiles">
@@ -417,7 +417,7 @@ function pageRegistrations() {
     </div>
     <section class="panel" style="margin-top:16px"><div class="panel-head"><h2>Registrace ${F.range.by === 'tyden' ? 'po týdnech' : 'po dnech'}</h2></div><div class="chart" id="chReg"></div></section>
     <section class="panel">
-      <div class="panel-head"><h2>Seznam registrací</h2><span class="muted">${fmt(list.length)} rodin</span></div>
+      <div class="panel-head"><h2>Seznam registrací</h2><span class="muted">${fmt(list.length)} uživatelů</span></div>
       <div class="table-wrap"><table><thead><tr><th>Kdy</th><th>Účet</th><th class="r">Děti</th><th>Bydliště</th><th>Zdroj</th><th>Předplatné</th></tr></thead>
       <tbody>${list.slice(F.regPage * per, (F.regPage + 1) * per).map((f) => `<tr><td class="num">${fdate(f.created)} <span class="muted">${f.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></td><td>${acct(f)}</td><td class="r num">${f.kids}</td><td>${esc(f.town)} <span class="muted">${f.country}</span></td><td class="muted">${esc(f.source)}</td><td>${planTag(f.premium)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">V tomhle období se nikdo neregistroval.</td></tr>'}</tbody></table></div>
       <div class="pager"><span>Strana ${F.regPage + 1} z ${pages}</span>
@@ -826,7 +826,7 @@ function renderNav() {
     if (!allowed(x)) return;
     if (grp) { html += `<div class="grp">${grp}</div>`; grp = null; }
     const b = x.badge && x.badge();
-    html += `<a href="#${x.id}" class="${x.id === r ? 'on' : ''}" ${x.id === r ? 'aria-current="page"' : ''}>${x.ico}${x.label}${b ? `<span class="badge" title="Nepřiřazené">${b}</span>` : ''}</a>`;
+    html += `<a href="#${x.id === 'rodiny' ? 'uzivatele' : x.id}" class="${x.id === r ? 'on' : ''}" ${x.id === r ? 'aria-current="page"' : ''}>${x.ico}${x.label}${b ? `<span class="badge" title="Nepřiřazené">${b}</span>` : ''}</a>`;
   });
   $('#nav').innerHTML = html;
 }

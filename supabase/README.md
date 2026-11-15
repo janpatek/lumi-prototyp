@@ -16,6 +16,7 @@ Dokud je `config.js` v kořeni webu prázdný, nic se neodesílá a administrace
 | `story_drafts` | zásobník pohádek z generátoru: šablona, zadání, stav (koncept, ve výrobě, zveřejněno, vyřazeno) a kroky publikace; žádné údaje rodin | administrace přes `admin_story_draft_save` a `admin_story_draft_delete` (role Vlastník a Obsah) |
 | `push_subs` | odběr večerního upozornění: adresa u push služby prohlížeče a klíče k zašifrování, platforma, kdy naposledy doručeno; jen rodiny, které připomínku zapnuly | aplikace přes `app_push_subscribe`, mazání `app_push_unsubscribe` a push-worker |
 | `push_settings`, `daily_story`, `push_log` | nastavení upozornění (hodina, texty, střídání), ručně vybrané pohádky dne, historie rozesílání | administrace (`admin_push_save`, `admin_daily_set`), push-worker |
+| `families.settings`, `family_usage` | nastavení aplikace bez osobního obsahu (vzhled, připomínka, počty blízkých, míst, oblíbených, využité změny) a po dnech: změny jmen dětí, přidané/odebrané dítě, změna obce, počet a kredity vět namluvených v ElevenLabs | aplikace přes `app_sync_family` (změny počítá databáze z rozdílu), tts-worker přes `app_tts_usage` s přihlášením z aplikace |
 
 Účet rodiny (CRM) se ukládá vždy, kvůli podpoře. Statistiky poslechu a zdroj návštěvy se k rodině přiřadí jen se souhlasem
 (`families.analytics`, přepínač v aplikaci); bez souhlasu se poslech uloží anonymně (bez rodiny, čas na hodinu, souhrn `daily_anon`)
@@ -113,6 +114,17 @@ Omezení API: nejde přidat hudbu z knihovny Instagramu ani označit lidi, přes
 (desítky), popisek nejvýš 2200 znaků a 30 hashtagů. Příspěvky se zástupnými texty `[…]` administrace nepustí.
 
 Test funkce bez Supabase a bez Instagramu (podvržené odpovědi, Node 24): `node supabase/functions/instagram/test.mjs`
+
+### Uživatelé: nastavení a variabilní náklady na hlas
+
+Administrace → Uživatelé ukazuje u každého uživatele nastavení aplikace, souhlasy (novinky, statistiky, připomínka) a kolik nás stál hlas:
+věty se jmény, které se kvůli němu opravdu namluvily v ElevenLabs (z mezipaměti se nepočítají), a změny jmen, dětí a obce.
+Kč = kredity × cena kreditu z tarifu (stránka Hlas a náklady).
+
+Zapojení (jednou, v tomhle pořadí):
+1. SQL Editor → spustit `migrations/20261115_uzivatele_naklady.sql`.
+2. `cd tts-worker && npx wrangler deploy` (worker zapisuje namluvené věty přes `app_tts_usage`; bez migrace jen zapíše chybu do logu, hlas běží dál).
+3. Web (GitHub Pages) a nové verze mobilních aplikací: aplikace posílá nastavení a přihlášení do tts-workeru. Starší verze aplikace se v nákladech neobjeví.
 
 ### Kalendář sociálních sítí
 

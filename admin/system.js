@@ -1,6 +1,6 @@
 // ---------- Tým a role, Audit log, hledání (⌘K) a klávesové zkratky ----------
 
-const ACTION_LABEL = { auth: 'Přihlášení', ticket: 'Helpdesk', family: 'Rodiny', payment: 'Platby', story: 'Pohádky', team: 'Tým', promo: 'Kódy', tts: 'Hlas', push: 'Upozornění' };
+const ACTION_LABEL = { auth: 'Přihlášení', ticket: 'Helpdesk', family: 'Uživatelé', payment: 'Platby', story: 'Pohádky', team: 'Tým', promo: 'Kódy', tts: 'Hlas', push: 'Upozornění' };
 
 function pageTeam() {
   // ostrá data: tým spravuje vlastník (účty a hesla přes Edge Function staff-admin, role a kód přes databázi)
@@ -97,7 +97,7 @@ Object.assign(ACTIONS, {
 // ---------- Napojení dat ----------
 function pageData() {
   const live = D.live;
-  const counts = [['Rodiny', D.families.length], ['Dětské profily', D.families.reduce((n, f) => n + f.kids.length, 0)], ['Přehrání celkem', D.families.reduce((n, f) => n + f.plays, 0)], ['Rodin s poslechem za 30 dní', D.families.filter((f) => f.days30 > 0).length]];
+  const counts = [['Uživatelé', D.families.length], ['Dětské profily', D.families.reduce((n, f) => n + f.kids.length, 0)], ['Přehrání celkem', D.families.reduce((n, f) => n + f.plays, 0)], ['Uživatelů s poslechem za 30 dní', D.families.filter((f) => f.days30 > 0).length]];
   return `
     ${head('Napojení dat', live ? 'Administrace čte ostrá data ze Supabase' : 'Administrace teď ukazuje ukázková data')}
     <div class="grid2 data-page" style="margin-top:0">
@@ -114,7 +114,7 @@ function pageData() {
       </section>
       <section class="panel"><div class="panel-head"><h2>Co je napojené</h2></div>
         <div class="table-wrap"><table><tbody>
-          ${[['Rodiny, děti, obec, zařízení', 'ano', 'aplikace posílá po každém uložení'], ['Poslechy (pohádka, délka, dohráno)', 'ano', 'začátek a konec poslechu'], ['Používání, retence, heatmapa, výkon pohádek', 'ano', 'předpočítané souhrny v databázi'], ['Audit log', 'ano', 'zapisuje administrace'], ['Předplatné a platby', 'ano', 'oznámení App Store a Google Play přes funkci store (supabase/functions/store)'], ['Helpdesk', 'ne', 'příjem e-mailů a zpráv z aplikace'], ['Návštěvy webu', 'ne', 'Plausible'], ['Kupony v aplikaci', 'ne', 'pole na kód při registraci']].map(([a, b, c]) => `<tr><td>${a}</td><td class="${b === 'ano' ? 'status-ok' : 'status-warn'}">${b}</td><td class="muted">${c}</td></tr>`).join('')}
+          ${[['Uživatelé, děti, obec, zařízení', 'ano', 'aplikace posílá po každém uložení'], ['Poslechy (pohádka, délka, dohráno)', 'ano', 'začátek a konec poslechu'], ['Nastavení aplikace a náklady na hlas', 'ano', 'nastavení posílá aplikace, namluvené věty zapisuje tts-worker (od 15. 11. 2026)'], ['Používání, retence, heatmapa, výkon pohádek', 'ano', 'předpočítané souhrny v databázi'], ['Audit log', 'ano', 'zapisuje administrace'], ['Předplatné a platby', 'ano', 'oznámení App Store a Google Play přes funkci store (supabase/functions/store)'], ['Helpdesk', 'ne', 'příjem e-mailů a zpráv z aplikace'], ['Návštěvy webu', 'ne', 'Plausible'], ['Kupony v aplikaci', 'ne', 'pole na kód při registraci']].map(([a, b, c]) => `<tr><td>${a}</td><td class="${b === 'ano' ? 'status-ok' : 'status-warn'}">${b}</td><td class="muted">${c}</td></tr>`).join('')}
         </tbody></table></div>
       </section>
     </div>
@@ -122,7 +122,7 @@ function pageData() {
       <ol class="steps">
         <li>Založ projekt na <b>supabase.com</b> v regionu <b>EU</b> (Irsko nebo Frankfurt).</li>
         <li>V SQL Editoru spusť celý soubor <code>supabase/schema.sql</code>.</li>
-        <li>V Authentication → Sign In / Providers zapni <b>Anonymous sign-ins</b> (rodiny nemusí zadávat e-mail).</li>
+        <li>V Authentication → Sign In / Providers zapni <b>Anonymous sign-ins</b> (uživatelé nemusí zadávat e-mail).</li>
         <li>V Authentication → Users vytvoř svůj účet (e-mail a heslo) a v SQL přidej sebe do týmu: <code>insert into staff (user_id, name, role) select id, 'Jan', 'owner' from auth.users where email = 'tvuj@email';</code></li>
         <li>Do <code>config.js</code> v kořeni webu vlož Project URL a anon key (Project Settings → API) a nasaď.</li>
       </ol>
@@ -138,7 +138,7 @@ function pageAudit() {
         { k: 'at', label: 'Kdy', w: '150px', html: (e) => `<span class="num">${fdate(e.at)} <span class="muted">${e.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></span>` },
         { k: 'actor', label: 'Kdo', w: '130px', html: (e) => `<span class="av">${initials(API.staffName(e.actor))}</span>${esc(API.staffName(e.actor))}` },
         { k: 'action', label: 'Akce', w: '150px', html: (e) => `<span class="tag ${e.live ? 'honey' : 'line'}">${ACTION_LABEL[e.action.split('.')[0]] || e.action}</span> <span class="mono muted">${e.action.split('.')[1]}</span>` },
-        { k: 'target', label: 'Objekt', w: '140px', html: (e) => (/^#\d+$/.test(e.target) ? `<a class="link" href="#helpdesk/${e.target.slice(1)}">${e.target}</a>` : /^f\d+$/.test(e.target) ? `<a class="link mono" href="#rodiny/${e.target}">${e.target}</a>` : esc(e.target)) },
+        { k: 'target', label: 'Objekt', w: '140px', html: (e) => (/^#\d+$/.test(e.target) ? `<a class="link" href="#helpdesk/${e.target.slice(1)}">${e.target}</a>` : /^f\d+$/.test(e.target) ? `<a class="link mono" href="#uzivatele/${e.target}">${e.target}</a>` : esc(e.target)) },
         { k: 'detail', label: 'Detail', w: 'minmax(240px, 1fr)', html: (e) => `<span class="ell">${esc(e.detail)}</span>` },
       ],
       rowH: 38, key: (e) => e.at.getTime() + e.action,
@@ -166,7 +166,7 @@ PAGES.audit = pageAudit;
 let PAL = null;
 function openPalette() {
   modal(`<div class="palette" role="dialog" aria-modal="true" aria-label="Hledat">
-    <input id="palQ" placeholder="Rodina, e-mail, dítě, #ticket, pohádka nebo stránka…" autocomplete="off" aria-label="Hledat">
+    <input id="palQ" placeholder="Uživatel, e-mail, dítě, #ticket, pohádka nebo stránka…" autocomplete="off" aria-label="Hledat">
     <div class="res" id="palRes" role="listbox"></div>
     <div class="foot"><span><kbd>↑↓</kbd> vybrat</span><span><kbd>↵</kbd> otevřít</span><span><kbd>Esc</kbd> zavřít</span><span style="margin-left:auto"><kbd>?</kbd> zkratky</span></div></div>`);
   PAL = { items: [], i: 0 };
@@ -183,7 +183,7 @@ function palSearch(q) {
       const ts = m ? [API.tickets.get(m[1])].filter(Boolean) : API.tickets.list({ view: 'all', q }, null, 6).items;
       ts.slice(0, 6).forEach((t) => add('Tickety', `#helpdesk/${t.id}`, `#${t.id} ${t.subject}`, API.TSTATUS[t.status]));
     }
-    if (API.can('families.read')) API.families.list({ q, seg: 'all' }, null, 6).items.forEach((f) => add('Rodiny', `#rodiny/${f.id}`, famName(f), `${f.town} · ${f.kids.map((k) => k.name).join(', ')}`));
+    if (API.can('families.read')) API.families.list({ q, seg: 'all' }, null, 6).items.forEach((f) => add('Uživatelé', `#uzivatele/${f.id}`, famName(f), `${f.town} · ${f.kids.map((k) => k.name).join(', ')}`));
     if (API.can('content.edit')) STORIES.filter((s) => D.deacc(safeTitle(s) + ' ' + s.id).includes(nq)).slice(0, 4).forEach((s) => add('Pohádky', '#pohadky', safeTitle(s), s.id));
   }
   PAL.items = out; PAL.i = 0;
@@ -201,7 +201,7 @@ function openHelp() {
   modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="hlpT">
     <div class="dialog-head"><h2 id="hlpT">Klávesové zkratky</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body"><table><tbody>
-      ${k(['⌘ K'], 'Hledat cokoli (rodiny, tickety, stránky)')}${k(['g', 'h'], 'Helpdesk')}${k(['g', 'r'], 'Rodiny')}${k(['g', 'p'], 'Přehled')}${k(['g', 'u'], 'Používání')}${k(['g', 'f'], 'Platby')}
+      ${k(['⌘ K'], 'Hledat cokoli (uživatele, tickety, stránky)')}${k(['g', 'h'], 'Helpdesk')}${k(['g', 'r'], 'Uživatelé')}${k(['g', 'p'], 'Přehled')}${k(['g', 'u'], 'Používání')}${k(['g', 'f'], 'Platby')}
       ${k(['j', 'k'], 'Další / předchozí ticket')}${k(['r'], 'Odpovědět')}${k(['n'], 'Interní poznámka')}${k(['e'], 'Vyřešit ticket')}${k(['a'], 'Vzít si ticket')}${k(['/'], 'Hledat v seznamu')}${k(['⌘ ↵'], 'Odeslat odpověď')}${k(['↑', '↓', '↵'], 'Pohyb v tabulce a otevření řádku')}
     </tbody></table></div></div>`);
 }
@@ -260,7 +260,7 @@ document.addEventListener('keydown', (ev) => {
   if (ev.key === '?') { openHelp(); return; }
   if (ev.key === 'g') { gPending = Date.now(); return; }
   if (Date.now() - gPending < 900) {
-    const to = { h: 'helpdesk', r: 'rodiny', p: 'prehled', u: 'pouzivani', f: 'platby', a: 'audit', t: 'tym', o: 'pohadky', v: 'hlas' }[ev.key];
+    const to = { h: 'helpdesk', r: 'uzivatele', p: 'prehled', u: 'pouzivani', f: 'platby', a: 'audit', t: 'tym', o: 'pohadky', v: 'hlas' }[ev.key];
     gPending = 0; if (to) go(to);
   }
 });

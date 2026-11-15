@@ -56,7 +56,7 @@ function loadPush(force) {
 
 function pagePush() {
   loadPush();
-  const top = head('Pohádka dne a upozornění', 'Která pohádka je dnes navrchu aplikace a co večer přijde rodinám do telefonu',
+  const top = head('Pohádka dne a upozornění', 'Která pohádka je dnes navrchu aplikace a co večer přijde uživatelům do telefonu',
     `<button class="btn" data-a="pushTest"${PUSHS.busy ? ' disabled' : ''}>${I.bell}Poslat zkoušku sem</button>`) + demoBar('Zkouška tu je jen místní upozornění v tomhle prohlížeči.');
   if (PUSHS.state !== 'ok') {
     return PUSHS.state === 'err'
@@ -76,10 +76,10 @@ function pagePush() {
 
   return `${top}
     <div class="tiles">
-      ${tile('Odběratelé upozornění', fmt(sub.total || 0), `+${fmt(sub.new7 || 0)} za 7 dní · ${pct(sub.total || 0, D.families.length)} rodin`)}
+      ${tile('Odběratelé upozornění', fmt(sub.total || 0), `+${fmt(sub.new7 || 0)} za 7 dní · ${pct(sub.total || 0, D.families.length)} uživatelů`)}
       ${tile('Dnes', `<span style="font-size:20px">${esc(storyName(today.story))}</span>`, today.manual ? `vybráno ručně${today.by ? ` (${esc(today.by)})` : ''}` : 'podle střídání')}
       ${tile('Poslední večer', lastDaily ? `${fmt(lastDaily.ok)} / ${fmt(lastDaily.targets)}` : '–', lastDaily ? `doručeno ${fday(parseIso(lastDaily.day))}${lastDaily.removed ? ` · ${fmt(lastDaily.removed)} zaniklých odběrů smazáno` : ''}` : 'zatím se neposílalo')}
-      ${tile('Upozornění', s.enabled ? `<span class="status-ok">v ${s.hour}:00</span>` : '<span class="status-bad">vypnutá</span>', s.enabled ? 'každý den podle pražského času' : 'rodiny nic nedostanou, pohádka dne v aplikaci zůstává')}
+      ${tile('Upozornění', s.enabled ? `<span class="status-ok">v ${s.hour}:00</span>` : '<span class="status-bad">vypnutá</span>', s.enabled ? 'každý den podle pražského času' : 'uživatelé nic nedostanou, pohádka dne v aplikaci zůstává')}
     </div>
 
     <div class="grid2">
@@ -94,12 +94,12 @@ function pagePush() {
         <p class="hint">Místo <b>{pohadka}</b> se doplní název pohádky dne se jménem dítěte z té rodiny (doplní ho až telefon, jména na server nejdou). Když telefon název nezná, napíše se „na dnešní večer“.</p>
         <div class="row-acts" style="margin-top:12px;justify-content:flex-start;align-items:center"><button class="btn" data-a="pushSave">Uložit</button><span class="err" id="pErr"></span></div>
       </section>
-      <section class="panel"><div class="panel-head"><h2>Jak to uvidí rodina</h2><span class="muted">dnes v ${s.hour}:00</span></div>
+      <section class="panel"><div class="panel-head"><h2>Jak to uvidí uživatel</h2><span class="muted">dnes v ${s.hour}:00</span></div>
         <div class="lock-mock">
           <div class="lock-time">${s.hour}:00</div>
           <div class="notif"><img src="../app/icon-192.png" alt=""><div><b id="pvTitle">${esc(s.title)}</b><span id="pvBody">${pushBody(s.body, today.story)}</span></div><small>teď</small></div>
         </div>
-        <p class="hint">Klepnutí otevře aplikaci rovnou na pohádce dne. Rodiny bez předplatného u placené pohádky uvidí nabídku předplatného.</p>
+        <p class="hint">Klepnutí otevře aplikaci rovnou na pohádce dne. Uživatelé bez předplatného u placené pohádky uvidí nabídku předplatného.</p>
       </section>
     </div>
 
@@ -133,7 +133,7 @@ function pagePush() {
     </section>
 
     <div class="notice"><img src="../brand/maskot-3d/web/ospalek-spi.webp" alt=""><div>
-      <b>Kdo upozornění dostane:</b> rodiny, které v aplikaci připomínku zapnuly a povolily upozornění. Ptáme se v posledním kroku úvodního nastavení,
+      <b>Kdo upozornění dostane:</b> uživatelé, kteří v aplikaci připomínku zapnuli a povolili upozornění. Ptáme se v posledním kroku úvodního nastavení,
       ostatním jednou v knihovně. Vypnout jde v nastavení aplikace. Na iPhonu chodí upozornění jen z Ospalka přidaného na plochu (iOS 16.4 a novější).
       Nedoručitelné odběry (odinstalovaný prohlížeč, zrušené povolení) se po odpovědi push služby samy smažou.
     </div></div>`;

@@ -763,12 +763,15 @@ function fetchLimited(url, opts, ms = 25000) {
   const t = setTimeout(() => ac.abort(), ms);
   return fetch(url, { ...opts, signal: ac.signal }).finally(() => clearTimeout(t));
 }
+// přihlášení uživatele jde s požadavkem, aby tts-worker zapsal namluvené věty k jeho účtu (náklady v administraci)
+const ttsHeaders = () => (SYNC.ttsAuth ? SYNC.ttsAuth(S) : Promise.resolve(null)).catch(() => null)
+  .then((t) => ({ 'Content-Type': 'application/json', ...(t ? { Authorization: 'Bearer ' + t } : {}) }));
 function cloudClip(text, mood) {
   const id = (mood || '') + '|' + text;
   if (!cloudClips.has(id)) {
     // věta už stažená v zařízení (offline.js), jinak z Workeru a hned ji uložit na příště i na cestu
     const p = OFFLINE.get(id)
-      .then((buf) => buf || fetchLimited(TTS_URL + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) })
+      .then((buf) => buf || ttsHeaders().then((headers) => fetchLimited(TTS_URL + '/tts', { method: 'POST', headers, body: JSON.stringify({ text, voice: 'jana', ...(mood ? { mood } : {}) }) }))
         .catch(() => { throw Object.assign(new Error('Bez připojení k internetu se hlas nenačte.'), { status: 0 }); })
         .then(async (r) => {
           if (!r.ok) throw Object.assign(new Error((await r.json().catch(() => ({}))).error || 'Hlas se nepodařilo načíst.'), { status: r.status });

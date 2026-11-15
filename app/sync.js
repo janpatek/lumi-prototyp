@@ -91,6 +91,17 @@ const SYNC = (() => {
 
   let famT = null;
   const realEmail = (u) => (u && u.provider !== 'guest' && /@/.test(u.email || '') && !/@example\.(com|cz)$/.test(u.email) ? u.email : null);
+  // nastavení aplikace pro administraci: jen volby a počty, žádná jména blízkých, místa ani oblíbené věci
+  const len = (a) => (Array.isArray(a) ? a.length : 0);
+  function settingsOf(S) {
+    const f = S.family || {}, h = f.home || {}, m = new Date().toISOString().slice(0, 7);
+    return {
+      theme: S.theme || 'auto', notify: S.notify === true ? 'on' : S.notify === false ? 'off' : 'ask',
+      relatives: len(f.parents), places: len(h.near) + len(h.attr) + (h.inTown ? 1 : 0), heroes: len(S.heroIds),
+      favs: len(S.favs), heard: (S.history || []).filter((x) => x.done).length,
+      changesMonth: S.changes && S.changes.m === m ? S.changes.n : 0, code: !!(S.codeUntil && S.codeUntil > Date.now()),
+    };
+  }
   function familyJob(S) {
     const consent = S.analytics === true;
     if (consent) set(SRC, firstSrc); else set(SRC, null);
@@ -101,6 +112,7 @@ const SYNC = (() => {
         email: realEmail(S.user), town: S.family.home.town || null, country: S.family.home.country || null,
         platform: PLATFORM, app_version: version(), source: consent ? firstSrc : null, newsletter: !!(S.news && realEmail(S.user)), onboarded: !!S.onboarded, premium: !!S.premium, analytics: consent,
         children: S.family.children.map((k) => ({ id: String(k.id), name: (k.forms && k.forms.nom) || '', gender: k.gender === 'f' ? 'f' : 'm', age: k.age })),
+        settings: settingsOf(S),
       } },
     };
   }
@@ -110,6 +122,8 @@ const SYNC = (() => {
     on: true,
     // přihlášení rodiny pro ověření nákupu na serveru (app/billing.js)
     token: async () => (await session()).access_token,
+    // přihlášení pro tts-worker (ten podle něj zapíše namluvené věty k uživateli); nikdy kvůli tomu nezakládá účet
+    ttsAuth: async (S) => { if (!S.user || !get(SKEY)) return null; try { return (await session()).access_token; } catch (e) { return null; } },
     // po každém uložení; odešle se s krátkým zpožděním, ať se nepíše při každém písmenku
     family(S) {
       if (!S.user) return;

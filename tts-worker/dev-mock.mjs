@@ -42,7 +42,7 @@ globalThis.caches = { default: {
 
 const env = {
   ELEVENLABS_API_KEY: 'mock',
-  ALLOWED_ORIGINS: 'http://localhost:5174',
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS || 'http://localhost:5174',
   VOICES: '{"jana":"mock-voice"}',
   MODEL_ID: 'eleven_v4',
   MAX_CHARS: '1500',

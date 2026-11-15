@@ -274,6 +274,9 @@ const LIVE = (() => {
         plan: premium ? 'měsíc' : null, status: premium ? 'active' : null, trialI: -1, subI: -1, subEnd: -1, failed: false, premium: premium ? 'měsíc' : null,
         plays: N(r.plays), minutes: N(r.seconds) / 60, days: N(r.days), plays30: N(r.plays30), min30: N(r.seconds30) / 60, days30: N(r.days30),
         lastSeen: new Date(r.last_seen_at), lastI, favCat: r.fav_category || 'noc', onboarded: r.onboarded, analytics: !!r.analytics, tags: [],
+        newsletter: !!r.newsletter, newsletterAt: r.newsletter_at ? new Date(r.newsletter_at) : null, analyticsAt: r.analytics_at ? new Date(r.analytics_at) : null,
+        settings: r.settings || null, push: N(r.push_devices || 0), usageDays: null,
+        usage: Object.fromEntries(['names', 'kids', 'towns', 'clips', 'chars', 'changes30', 'clips30', 'chars30'].map((k) => [k, N((r.usage || {})[k] || 0)])),
       };
       const idle = DAYS - 1 - lastI;
       f.health = Math.max(0, Math.min(100, Math.round(25 + f.days30 * 3.2 + Math.min(20, f.plays30) - idle * 1.6 + (premium ? 8 : 0))));
@@ -292,6 +295,12 @@ const LIVE = (() => {
     D.staff.sort((a, b) => (a.name === me.name && a.role === me.role ? -1 : b.name === me.name && b.role === me.role ? 1 : 0));
     D.audit = audit.map((a) => ({ at: new Date(a.at), actor: a.actor_name || 'systém', action: a.action, target: a.target || '', detail: a.detail || '' }));
 
+    // Změny a namluvené věty jednoho uživatele po dnech (detail uživatele, karta Náklady)
+    D.familyUsageAsync = async (f) => {
+      const rows = await rpc('admin_family_usage', { fseq: f.n });
+      f.usageDays = rows.map((u) => ({ i: idxOf(pd(u.day)), names: N(u.name_changes), kids: N(u.kid_changes), towns: N(u.town_changes), clips: N(u.tts_clips), chars: N(u.tts_chars) }));
+      return f.usageDays;
+    };
     // Poslechy jedné rodiny se načítají až při otevření detailu
     D.familyDetailAsync = async (f) => {
       const rows = await rpc('admin_family_plays', { fseq: f.n, n: DAYS });

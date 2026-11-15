@@ -195,6 +195,35 @@ window.makeDemo = function () {
     }
   });
 
+  // ---------- Nastavení, souhlasy a variabilní náklady (vlastní náhoda, zbytek dat se tím nezmění) ----------
+  // Náklady: věty se jménem, které se namlouvají v ElevenLabs. Nová pohádka ≈ 12 vět po ~55 znacích (jen poprvé, pak mezipaměť);
+  // změna jména nebo dítěte znamená namluvit znovu všechno, co pak rodina poslouchá.
+  families.forEach((f) => {
+    const r = mk(f.seed ^ 0x5bd1);
+    const news = !!f.email && r() < 0.42, ana = r() < 0.71;
+    f.newsletter = news; f.newsletterAt = news ? new Date(Math.min(NOW - 6e5, +f.created + r() * 864e5)) : null;
+    f.analytics = ana; f.analyticsAt = ana ? f.created : null;
+    const notify = r() < 0.48 ? 'on' : r() < 0.6 ? 'off' : 'ask';
+    f.push = notify === 'on' ? (r() < 0.85 ? 1 : 2) : 0;
+    f.settings = r() < 0.06 ? null : { theme: weighted([['auto', 0.72], ['dark', 0.2], ['light', 0.08]], r), notify, relatives: Math.floor(r() * 5), places: Math.floor(r() * 7),
+      heroes: Math.min(2, f.kids.length), favs: Math.floor(r() * r() * 9), heard: Math.round(f.plays * 0.7), changesMonth: 0, code: r() < 0.02 };
+    const days = [];
+    const stories = Math.max(1, Math.round(Math.min(f.plays, 40) * 0.55));
+    for (let k = 0; k < stories; k++) { const i = Math.min(f.lastI, f.ci + Math.floor(r() * Math.max(1, f.lastI - f.ci + 1))); const clips = 8 + Math.floor(r() * 9); days.push({ i, names: 0, kids: 0, towns: 0, clips, chars: clips * (45 + Math.floor(r() * 25)) }); }
+    const changers = r() < 0.18 ? 1 + Math.floor(r() ** 3 * 9) : 0; // pár uživatelů jména mění často (přezdívky, zkoušení)
+    for (let k = 0; k < changers; k++) {
+      const i = Math.min(f.lastI, f.ci + 1 + Math.floor(r() * Math.max(1, f.lastI - f.ci))), kind = r();
+      const clips = 10 + Math.floor(r() * 30);
+      days.push({ i, names: kind < 0.7 ? 1 : 0, kids: kind >= 0.7 && kind < 0.9 ? 1 : 0, towns: kind >= 0.9 ? 1 : 0, clips, chars: clips * 55 });
+    }
+    days.sort((a, b) => a.i - b.i);
+    f.usageDays = days;
+    const sum = (k, from = 0) => days.filter((d) => d.i >= from).reduce((a, d) => a + d[k], 0), from30 = DAYS - 30;
+    f.usage = { names: sum('names'), kids: sum('kids'), towns: sum('towns'), clips: sum('clips'), chars: sum('chars'),
+      changes30: sum('names', from30) + sum('kids', from30) + sum('towns', from30), clips30: sum('clips', from30), chars30: sum('chars', from30) };
+    if (f.settings) f.settings.changesMonth = days.filter((d) => d.i >= DAYS - 1 - (dayAt(DAYS - 1).getDate() - 1)).reduce((a, d) => a + d.names + d.kids + d.towns, 0);
+  });
+
   // ---------- Předplatné a platby ----------
   // ceník od 8. 11. 2026: jen měsíční předplatné 129 Kč; cena pro Slovensko zatím neurčená, 4,99 € je předpoklad
   const PRICE = { CZ: 129, SK: 4.99 };

@@ -1,11 +1,11 @@
-// ---------- Rodiny (CRM) ----------
+// ---------- Uživatelé (CRM; v kódu a databázi pořád „families“) ----------
 // Seznam je virtualizovaný a čte se po stránkách; čísla ve sloupcích jsou z předpočítaného souhrnu rodiny.
 // Detail rodiny dopočítá aktivitu až při otevření (v backendu endpoint /families/:id/activity).
 
 const FAM = { q: '', seg: 'all', country: 'all', platform: 'all', sort: 'created', dir: -1, vt: null };
 
 const famCols = () => [
-  { k: 'name', label: 'Rodina', w: 'minmax(190px, 1.5fr)', sort: true, html: (f) => `<span class="av">${f.email ? initials(famName(f)) : 'H'}</span><span class="ell"><b>${esc(famName(f))}</b> <span class="muted">${esc(famMail(f)) || f.id}</span></span>` },
+  { k: 'name', label: 'Uživatel', w: 'minmax(190px, 1.5fr)', sort: true, html: (f) => `<span class="av">${f.email ? initials(famName(f)) : 'H'}</span><span class="ell"><b>${esc(famName(f))}</b> <span class="muted">${esc(famMail(f)) || f.id}</span></span>` },
   { k: 'kids', label: 'Děti', w: 'minmax(120px, 1fr)', sort: true, html: kidsHtml },
   { k: 'town', label: 'Bydliště', w: '124px', sort: true, html: (f) => `<span class="ell">${esc(f.town)}</span> <span class="muted">${f.country}</span>` },
   { k: 'plan', label: 'Tarif', w: '136px', html: subTag },
@@ -13,9 +13,20 @@ const famCols = () => [
   { k: 'min30', label: 'Minut 30 d', w: '84px', cls: 'r', sort: true, html: (f) => (f.analytics === false ? '<span class="muted">–</span>' : fmt(f.min30)) },
   { k: 'days30', label: 'Aktivní dny', w: '110px', sort: true, html: (f) => `<span class="meter" style="width:44px"><i style="width:${(f.days30 / 30) * 100}%"></i></span><span class="num">${f.days30}/30</span>` },
   { k: 'health', label: 'Zdraví', w: '64px', cls: 'r', sort: true, html: (f) => healthTag(f.health) },
+  { k: 'cost30', label: 'Náklady 30 d', w: '96px', cls: 'r', sort: true, html: (f) => costCell(f) },
   { k: 'last', label: 'Naposledy', w: '100px', sort: true, html: (f) => `<span class="muted">${ago(f.lastSeen)}</span>` },
   { k: 'created', label: 'Registrace', w: '92px', sort: true, html: (f) => `<span class="num">${fdate(f.created)}</span>` },
 ];
+// Variabilní náklady uživatele: kredity ElevenLabs za věty, které se kvůli němu opravdu namluvily (ne z mezipaměti).
+// Kč = kredity × cena kreditu (ostře podle tarifu z tts-workeru, jinak ručně zadaná cena ze stránky Hlas a náklady).
+function creditKc() {
+  const manual = (Number(store.get(TTS_KEY)) || 4) / 1000;
+  if (!D.live) return manual;
+  loadCosts();
+  return COST.state === 'ok' ? creditPrice(COST.data).perCredit : manual;
+}
+const kcSmall = (v) => (v >= 10 ? kc(v) : `${dec(v, 2)} Kč`);
+const costCell = (f) => (!f.usage || !f.usage.chars30 ? '<span class="muted">0 Kč</span>' : `<span class="num" title="${fmt(f.usage.chars30)} kreditů · ${fmt(f.usage.clips30)} vět · ${fmt(f.usage.changes30)} změn">${kcSmall(f.usage.chars30 * creditKc())}</span>`);
 const famQuery = () => ({ q: FAM.q, seg: FAM.seg, country: FAM.country, platform: FAM.platform, sort: FAM.sort, dir: FAM.dir });
 
 function pageFamilies() {
@@ -27,21 +38,23 @@ function pageFamilies() {
     FAM.vt = vtable($('#famList'), {
       cols: famCols(), rowH: 40, key: (f) => f.id, sort: { k: FAM.sort, dir: FAM.dir },
       fetch: (c, l) => API.families.list(famQuery(), c, l),
-      onOpen: (f) => go('rodiny/' + f.id),
+      onOpen: (f) => go('uzivatele/' + f.id),
       onSort: (k) => { FAM.dir = FAM.sort === k ? -FAM.dir : -1; FAM.sort = k; render(); },
-      foot: (s) => `${fmt(s.total)} ${plural(s.total, 'rodina', 'rodiny', 'rodin')} · načteno ${fmt(s.loaded)} · dotaz ${dec(s.ms)} ms · v DOM jen viditelné řádky`,
+      foot: (s) => `${fmt(s.total)} ${plural(s.total, 'uživatel', 'uživatelé', 'uživatelů')} · načteno ${fmt(s.loaded)} · dotaz ${dec(s.ms)} ms · v DOM jen viditelné řádky`,
     });
-    onLeave(() => { FAM.vt.destroy(); FAM.vt = null; });
+    const vt = FAM.vt;
+    onLeave(() => { vt.destroy(); if (FAM.vt === vt) FAM.vt = null; });
   });
-  const localNote = LOCAL ? `<div class="notice" style="margin:0 0 12px"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div>V tomhle prohlížeči je uložená i skutečná rodina z aplikace: ${LOCAL.kids} ${plural(LOCAL.kids, 'dítě', 'děti', 'dětí')}, ${esc(LOCAL.town)}${LOCAL.premium ? ', předplatné (demo)' : ''}. Do seznamu se nepočítá.</div></div>` : '';
+  const localNote = LOCAL ? `<div class="notice" style="margin:0 0 12px"><img src="../brand/maskot-3d/web/ospalek-hlava.webp" alt=""><div>V tomhle prohlížeči je uložená i skutečný uživatel z aplikace: ${LOCAL.kids} ${plural(LOCAL.kids, 'dítě', 'děti', 'dětí')}, ${esc(LOCAL.town)}${LOCAL.premium ? ', předplatné (demo)' : ''}. Do seznamu se nepočítá.</div></div>` : '';
   return `
-    ${head('Rodiny', 'Účty, děti a jak aplikaci používají', `${API.can('tickets.reply') ? `<button class="btn white" data-a="tNew">${I.chat}Nový ticket</button>` : ''}<button class="btn white" data-a="famCsv">${I.down}Export CSV</button>`)}
+    ${head('Uživatelé', 'Účty, děti a jak aplikaci používají', `${API.can('tickets.reply') ? `<button class="btn white" data-a="tNew">${I.chat}Nový ticket</button>` : ''}<button class="btn white" data-a="famCsv">${I.down}Export CSV</button>`)}
     ${demoBar()}
     ${localNote}
+    ${costSummary()}
     <div class="chips tight" style="margin-bottom:10px">${Object.entries(API.SEGMENTS).map(([k, v]) => `<button class="chip ${FAM.seg === k ? 'on' : ''}" data-a="famSeg" data-v="${k}">${v.label} <span class="n">${fmt(API.families.count(k))}</span></button>`).join('')}</div>
     <section class="panel">
       <div class="filters">
-        <input type="search" data-f="famq" placeholder="Hledat jméno, e-mail, dítě, město nebo id" value="${esc(FAM.q)}" aria-label="Hledat rodinu">
+        <input type="search" data-f="famq" placeholder="Hledat jméno, e-mail, dítě, město nebo id" value="${esc(FAM.q)}" aria-label="Hledat uživatele">
         <select data-f="famcountry" aria-label="Země">${opt('country', 'all', 'ČR i SR')}${opt('country', 'CZ', 'Česko')}${opt('country', 'SK', 'Slovensko')}</select>
         <select data-f="famplatform" aria-label="Zařízení">${opt('platform', 'all', 'Všechna zařízení')}${opt('platform', 'iOS', 'iOS')}${opt('platform', 'Android', 'Android')}${opt('platform', 'Web', 'Web')}</select>
       </div>
@@ -49,6 +62,20 @@ function pageFamilies() {
     </section>`;
 }
 PAGES.rodiny = pageFamilies;
+// Souhrn variabilních nákladů nad seznamem (30 dní)
+function costSummary() {
+  const per = creditKc(), act = D.families.filter((f) => f.days30 > 0);
+  const chars = D.families.reduce((s, f) => s + (f.usage ? f.usage.chars30 : 0), 0);
+  const changers = D.families.filter((f) => f.usage && f.usage.changes30 >= 3).length;
+  const top = [...D.families].filter((f) => f.usage && f.usage.chars30).sort((x, y) => y.usage.chars30 - x.usage.chars30);
+  const top10 = top.slice(0, Math.max(1, Math.ceil(top.length / 10))).reduce((s, f) => s + f.usage.chars30, 0);
+  return `<div class="tiles" style="margin-bottom:12px">
+    ${tile('Náklady na hlas za 30 dní', kcSmall(chars * per), `${fmt(chars)} kreditů, jen věty se jmény`)}
+    ${tile('Na aktivního uživatele', kcSmall((chars * per) / Math.max(1, act.length)), `${fmt(act.length)} aktivních za 30 dní`)}
+    ${tile('Nejdražších 10 %', chars ? pct(top10, chars) : '–', 'podíl na nákladech za 30 dní')}
+    ${tile('Často mění údaje', fmt(changers), `<a class="link" href="#uzivatele/segment-changers">3+ změny jmen, dětí nebo obce za 30 dní</a>`)}
+  </div>`;
+}
 
 // Kalendář aktivity (posledních 26 týdnů), sloupec = týden, řádek = den v týdnu
 function calHeat(plays) {
@@ -72,7 +99,7 @@ const miniBars = (vals, labels) => {
 
 function pageFamily(id) {
   const f = API.families.get(id);
-  if (!f) return `${head('Rodina nenalezena')}<p><a class="link" href="#rodiny">Zpět na rodiny</a></p>`;
+  if (!f) return `${head('Uživatel nenalezen')}<p><a class="link" href="#uzivatele">Zpět na uživatele</a></p>`;
   const t0 = performance.now();
   // bez souhlasu se statistikami nejsou poslechy rodiny v databázi přiřazené, detail ukáže jen CRM údaje
   const noStats = D.live && f.analytics === false;
@@ -81,7 +108,7 @@ function pageFamily(id) {
   if (!a) {
     // ostrý režim: poslechy rodiny se načtou z databáze a stránka se pak vykreslí znovu
     API.families.loadActivity(id).then(() => { if (route() === 'rodiny' && routeParam() === id) render(); }, (e) => { const el = $('#famLoading'); if (el) el.textContent = 'Poslechy se nepodařilo načíst: ' + e.message; });
-    return `${head(esc(famName(f)))}<p class="muted" id="famLoading">Načítám poslechy rodiny…</p>`;
+    return `${head(esc(famName(f)))}<p class="muted" id="famLoading">Načítám poslechy uživatele…</p>`;
   }
   const pays = API.can('billing.read') ? API.families.payments(id) : [];
   const tks = API.can('tickets.read') ? API.families.tickets(id) : [];
@@ -110,18 +137,18 @@ function pageFamily(id) {
   return `
     <div class="head">
       <div class="fam-head">
-        <a class="btn white sm" href="#rodiny">${I.back}Rodiny</a>
+        <a class="btn white sm" href="#uzivatele">${I.back}Uživatelé</a>
         <div class="avatar">${f.email ? initials(famName(f)) : 'H'}</div>
         <div><h1>${esc(famName(f))}</h1><p>${esc(famMail(f)) || 'Bez e-mailu (host)'} · <span class="mono">${f.id}</span> · ${esc(f.town)} ${f.country} · ${subTag(f)} ${f.tags.map((x) => `<span class="tag line">${esc(x)}</span>`).join(' ')}</p></div>
       </div>
       <div class="head-actions">
         ${API.can('tickets.reply') && f.email ? `<button class="btn white sm" data-a="tNew">${I.chat}Nový ticket</button>` : ''}
         ${canGift && f.email ? `<button class="btn white sm" data-a="famGift" data-v="${f.id}">${I.gift}Darovat měsíc</button>` : ''}
-        ${canDel ? `<button class="btn white sm" data-a="famExport" data-v="${f.id}">${I.down}Export dat (GDPR)</button><button class="btn danger sm" data-a="famDelete" data-v="${f.id}">Smazat rodinu</button>` : ''}
+        ${canDel ? `<button class="btn white sm" data-a="famExport" data-v="${f.id}">${I.down}Export dat (GDPR)</button><button class="btn danger sm" data-a="famDelete" data-v="${f.id}">Smazat uživatele</button>` : ''}
       </div>
     </div>
     ${demoBar(D.live ? '' : `Aktivita se dopočítala za ${dec(ms)} ms.`)}
-    ${noStats ? '<div class="locked-note">Rodina nedala souhlas se statistikami poslechu. Účet, děti a obec vidíš kvůli podpoře, poslechy jsou jen v anonymních souhrnech.</div>' : ''}
+    ${noStats ? '<div class="locked-note">Uživatel nedal souhlas se statistikami poslechu. Účet, děti a obec vidíš kvůli podpoře, poslechy jsou jen v anonymních souhrnech.</div>' : ''}
     <div class="tiles t8">
       ${tile('Přehrání celkem', fmt(a.plays), `${fmt(f.plays30)} za 30 dní`)}
       ${tile('Hodin poslechu', dec(a.minutes / 60), `${fmt(f.min30)} min za 30 dní`)}
@@ -148,6 +175,10 @@ function pageFamily(id) {
         <textarea data-f="famNote" data-id="${f.id}" rows="4" style="font-family:var(--body);font-size:13px" ${canE ? '' : 'disabled'} placeholder="Vidí jen tým. Uloží se po opuštění pole.">${esc(API.families.note(f.id))}</textarea>
       </section>
     </div>
+    <div class="grid2" style="margin-top:16px">
+      <section class="panel"><div class="panel-head"><h2>Nastavení a souhlasy</h2><span class="hint">jak to má uživatel v aplikaci teď</span></div>${settingsHtml(f)}</section>
+      <section class="panel"><div class="panel-head"><h2>Náklady na hlas</h2><span class="hint">jen variabilní: věty se jmény namluvené kvůli tomuto uživateli</span></div>${usageHtml(f, a)}</section>
+    </div>
     <div class="grid3">
       <section class="panel"><div class="panel-head"><h2>Pohádky</h2></div>
         <div class="table-wrap"><table><thead><tr><th>Pohádka</th><th class="r">Přehrání</th><th class="r">Do konce</th></tr></thead><tbody>
@@ -162,6 +193,54 @@ function pageFamily(id) {
       </section>
     </div>`;
 }
+// ---------- Nastavení a souhlasy ----------
+const yesNo = (v, at, yes = 'ano', no = 'ne') => (v ? `<span class="status-ok">${yes}</span>${at ? ` <span class="muted">od ${fdate(at)}</span>` : ''}` : `<span class="muted">${no}</span>`);
+function settingsHtml(f) {
+  const st = f.settings, P = { device: 'bez přihlášení', guest: 'host', google: 'Google', apple: 'Apple', email: 'e-mail' };
+  const notify = !st ? '–' : st.notify === 'on' ? `<span class="status-ok">zapnutá</span>${f.push ? ` <span class="muted">${f.push} ${plural(f.push, 'zařízení', 'zařízení', 'zařízení')}</span>` : ' <span class="muted">upozornění zatím nedorazilo do žádného zařízení</span>'}` : st.notify === 'off' ? '<span class="muted">odmítnutá</span>' : '<span class="muted">zatím se nerozhodl</span>';
+  const theme = st && { auto: 'podle času', light: 'den', dark: 'noc' }[st.theme];
+  return `<dl class="kv">
+      <dt>Novinky e-mailem (marketing)</dt><dd>${f.email ? yesNo(f.newsletter, f.newsletterAt, 'souhlasí') : '<span class="muted">bez e-mailu, nejde oslovit</span>'}</dd>
+      <dt>Statistiky poslechu</dt><dd>${yesNo(f.analytics, f.analyticsAt, 'souhlasí')}</dd>
+      <dt>Večerní připomínka</dt><dd>${notify}</dd>
+      <dt>Účet</dt><dd>${esc(P[f.provider] || (f.email ? 'přihlášený' : 'bez přihlášení'))}${f.onboarded === false ? ' <span class="tag peach">nedokončil nastavení</span>' : ''}</dd>
+      <dt>Předplatné</dt><dd>${subTag(f)}${st && st.code ? ' <span class="tag line">odemčeno kódem</span>' : ''}</dd>
+      ${st ? `<dt>Vzhled</dt><dd>${theme || '–'}</dd>
+      <dt>Profil</dt><dd>${f.kids.length} ${plural(f.kids.length, 'dítě', 'děti', 'dětí')} · ${st.relatives} ${plural(st.relatives, 'blízký', 'blízcí', 'blízkých')} · ${st.places} ${plural(st.places, 'místo', 'místa', 'míst')}</dd>
+      <dt>Hrdinové pohádek</dt><dd>${st.heroes}</dd>
+      <dt>Oblíbené pohádky</dt><dd>${fmt(st.favs)}</dd>
+      <dt>Dohrané pohádky (v zařízení)</dt><dd>${fmt(st.heard)}</dd>
+      <dt>Změny tento měsíc</dt><dd>${st.changesMonth} z 10${st.changesMonth >= 10 ? ' <span class="tag peach">vyčerpáno</span>' : ''}</dd>` : ''}
+    </dl>
+    ${st ? '' : '<p class="hint" style="margin-top:10px">Nastavení aplikace zatím nepřišlo: uživatel má starší verzi aplikace, nebo od aktualizace aplikaci neotevřel.</p>'}
+    <p class="hint" style="margin-top:10px">Jména blízkých, místa ani oblíbené věci na server nejdou, vidíš jen počty.</p>`;
+}
+
+// ---------- Náklady na hlas (variabilní) ----------
+function usageHtml(f, a) {
+  if (!f.usageDays) {
+    if (D.familyUsageAsync) D.familyUsageAsync(f).then(() => { if (route() === 'rodiny' && routeParam() === f.id) render(); }, (e) => { const el = $('#famUsage'); if (el) el.textContent = 'Náklady se nepodařilo načíst: ' + e.message; });
+    return '<p class="muted" id="famUsage">Načítám náklady…</p>';
+  }
+  const u = f.usage || {}, per = creditKc(), days = f.usageDays;
+  const all = D.families.filter((x) => x.usage), avg30 = all.reduce((s, x) => s + x.usage.chars30, 0) / Math.max(1, all.filter((x) => x.days30 > 0).length);
+  const vs = u.chars30 && avg30 ? u.chars30 / avg30 : 0;
+  const plays = a.plays || f.plays || 0;
+  const changes = (u.names || 0) + (u.kids || 0) + (u.towns || 0);
+  const rows = days.filter((d) => d.clips || d.names || d.kids || d.towns).slice(-12).reverse();
+  const what = (d) => [d.names && `${d.names}× jméno`, d.kids && `${d.kids}× dítě`, d.towns && `${d.towns}× obec`].filter(Boolean).join(', ') || '<span class="muted">nové pohádky</span>';
+  return `<div class="tiles" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px">
+      ${tile('Za 30 dní', kcSmall((u.chars30 || 0) * per), vs ? `${dec(vs, 1)}× průměr aktivního uživatele` : 'nic se nenamlouvalo')}
+      ${tile('Od registrace', kcSmall((u.chars || 0) * per), `${fmt(u.chars || 0)} kreditů · ${fmt(u.clips || 0)} vět`)}
+      ${tile('Změny jmen, dětí a obce', fmt(changes), `${fmt(u.changes30 || 0)} za 30 dní · jméno ${fmt(u.names || 0)}× · dítě ${fmt(u.kids || 0)}× · obec ${fmt(u.towns || 0)}×`)}
+      ${tile('Na jedno přehrání', plays ? kcSmall(((u.chars || 0) * per) / plays) : '–', plays ? `${fmt(plays)} přehrání` : D.live && f.analytics === false ? 'přehrání nevidíme (bez souhlasu)' : 'zatím bez poslechu')}
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Den</th><th>Co se stalo</th><th class="r">Vět</th><th class="r">Kreditů</th><th class="r">Kč</th></tr></thead><tbody>
+    ${rows.map((d) => `<tr><td class="num">${fdate(D.dayAt(d.i))}</td><td>${what(d)}</td><td class="r num">${fmt(d.clips)}</td><td class="r num">${fmt(d.chars)}</td><td class="r num">${kcSmall(d.chars * per)}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">Zatím se kvůli tomuto uživateli nic nenamlouvalo.</td></tr>'}
+    </tbody></table></div>
+    <p class="hint" style="margin-top:8px">Věty se jménem se platí jen poprvé: stejnou větu pro jiného Toníka už bere hlasový server z mezipaměti zdarma. Každá změna jména, dítěte nebo obce znamená namluvit znovu vše, co pak uživatel poslouchá. Cena kreditu ${dec(per * 1000, 2)} Kč za 1 000${D.live && COST.state !== 'ok' ? ' (ručně zadaná, tarif se ještě nenačetl)' : ''}.${D.live ? ' Měří se od 15. 11. 2026 a jen v aplikaci, která už posílá přihlášení do hlasového serveru.' : ''}</p>`;
+}
+
 const emptyActivity = (f) => ({ plays: 0, minutes: 0, days: 0, cat: [0, 0, 0, 0], story: {}, hero: f.kids.map(() => 0), done: 0, hours: new Float64Array(24), series: { plays: new Uint16Array(D.days), minutes: new Float32Array(D.days), events: [] } });
 const payTag = (s) => `<span class="tag ${s === 'zaplaceno' ? 'mint' : s === 'vráceno' ? 'line' : 'peach'}">${s}</span>`;
 
@@ -179,18 +258,18 @@ function famCsv() {
 
 let famT;
 Object.assign(ACTIONS, {
-  famSeg: (v) => { FAM.seg = v; const h = 'rodiny/segment-' + v; if (location.hash === '#' + h) render(); else go(h); },
-  famCsv: () => { download('ospalek-rodiny-ukazka.csv', '﻿' + famCsv(), 'text/csv'); API.log('family.export', 'seznam', `Export CSV (${FAM.seg})`); toast('CSV se stahuje'); },
-  famGift: (v) => confirmBox('Darovat měsíc předplatného?', 'V ukázce se jen zapíše do časové osy a audit logu. Skutečně by náš server rodině zapnul dočasný přístup.', 'Darovat', () => { API.families.gift(v, 1); render(); toast('Dárek je zapsaný'); }),
+  famSeg: (v) => { FAM.seg = v; const h = 'uzivatele/segment-' + v; if (location.hash === '#' + h) render(); else go(h); },
+  famCsv: () => { download('ospalek-uzivatele-ukazka.csv', '﻿' + famCsv(), 'text/csv'); API.log('family.export', 'seznam', `Export CSV (${FAM.seg})`); toast('CSV se stahuje'); },
+  famGift: (v) => confirmBox('Darovat měsíc předplatného?', 'V ukázce se jen zapíše do časové osy a audit logu. Skutečně by náš server uživateli zapnul dočasný přístup.', 'Darovat', () => { API.families.gift(v, 1); render(); toast('Dárek je zapsaný'); }),
   famExport: (v) => {
     const f = API.families.get(v), a = API.families.activity(v);
     const data = { rodina: { id: f.id, email: f.email, jmeno: f.name, bydliste: f.town, zeme: f.country, registrace: f.created, zarizeni: f.platform }, deti: f.kids, predplatne: { stav: f.status, tarif: f.plan }, platby: API.families.payments(v), tickety: API.families.tickets(v).map((t) => ({ id: t.id, predmet: t.subject, zpravy: t.msgs.filter((m) => m.from !== 'note') })), poslech: a.series.events.map((e) => ({ den: iso(D.dayAt(e.i)), hodina: e.hour, pohadka: e.story, minut: Math.round(e.min * 10) / 10 })) };
     download(`ospalek-export-${v}.json`, JSON.stringify(data, null, 2), 'application/json');
-    API.log('family.export', v, 'Export údajů rodiny (GDPR)'); toast('Export se stahuje');
+    API.log('family.export', v, 'Export údajů uživatele (GDPR)'); toast('Export se stahuje');
   },
-  famDelete: (v) => confirmBox('Smazat rodinu?', `Rodina ${esc(v)} zmizí ze seznamů. ${D.live ? 'Smazání je nevratné: zmizí účet, děti i všechny poslechy v databázi.' : 'V ukázce se to dá vrátit smazáním dat prohlížeče, ve skutečném systému je smazání nevratné a týká se i nahrávek.'}`, 'Smazat', () => {
-    if (!D.live) { API.families.remove(v); go('rodiny'); toast('Rodina je smazaná (ukázka)'); return; }
-    API.families.removeLive(v).then(() => { go('rodiny'); toast('Rodina je smazaná i s poslechy a účtem'); }, (e) => toast('Smazání se nepovedlo: ' + e.message));
+  famDelete: (v) => confirmBox('Smazat uživatele?', `Uživatel ${esc(v)} zmizí ze seznamů. ${D.live ? 'Smazání je nevratné: zmizí účet, děti i všechny poslechy v databázi.' : 'V ukázce se to dá vrátit smazáním dat prohlížeče, ve skutečném systému je smazání nevratné a týká se i nahrávek.'}`, 'Smazat', () => {
+    if (!D.live) { API.families.remove(v); go('uzivatele'); toast('Uživatel je smazaný (ukázka)'); return; }
+    API.families.removeLive(v).then(() => { go('uzivatele'); toast('Uživatel je smazaný i s poslechy a účtem'); }, (e) => toast('Smazání se nepovedlo: ' + e.message));
   }),
 });
 document.addEventListener('input', (ev) => {
