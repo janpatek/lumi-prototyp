@@ -20,7 +20,14 @@ const SYNC = (() => {
   const SKEY = 'ospalek.sb.v1', QKEY = 'ospalek.sbq.v1', SRC = 'ospalek.src.v1';
   const get = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const set = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
-  const VERSION = 'web-' + ((document.querySelector('script[src*="app.js"]')?.getAttribute('src') || '').match(/v=(\d+)/) || [, '?'])[1];
+  // Platforma a verze do administrace. Dřív se verze četla hned při načtení sync.js, kdy app.js ještě v
+  // dokumentu nebyl (vždy „web-?“), a mobilní aplikace se hlásily jako Web.
+  const CAP = window.Capacitor;
+  const PLATFORM = CAP && CAP.isNativePlatform && CAP.isNativePlatform() ? (CAP.getPlatform() === 'ios' ? 'iOS' : 'Android') : 'Web';
+  const version = () => {
+    const v = ((document.querySelector('script[src*="/app.js"], script[src^="app.js"]')?.getAttribute('src') || '').match(/v=(\d+)/) || [, '?'])[1];
+    return (PLATFORM === 'Web' ? 'web-' : PLATFORM.toLowerCase() + '-') + v;
+  };
 
   // odkud rodina přišla (první návštěva): utm_source, jinak doména odkazu. Uloží se jen se souhlasem.
   const firstSrc = get(SRC) || (() => {
@@ -90,7 +97,7 @@ const SYNC = (() => {
       args: { p: {
         provider: S.user ? (S.user.provider === 'guest' ? 'guest' : S.user.provider) : 'guest',
         email: realEmail(S.user), town: S.family.home.town || null, country: S.family.home.country || null,
-        platform: 'Web', app_version: VERSION, source: consent ? firstSrc : null, onboarded: !!S.onboarded, premium: !!S.premium, analytics: consent,
+        platform: PLATFORM, app_version: version(), source: consent ? firstSrc : null, onboarded: !!S.onboarded, premium: !!S.premium, analytics: consent,
         children: S.family.children.map((k) => ({ id: String(k.id), name: (k.forms && k.forms.nom) || '', gender: k.gender === 'f' ? 'f' : 'm', age: k.age })),
       } },
     };

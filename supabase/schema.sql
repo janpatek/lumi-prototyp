@@ -21,7 +21,7 @@ create table if not exists public.families (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   last_seen_at timestamptz not null default now(),
-  provider text not null default 'guest' check (provider in ('guest', 'google', 'apple', 'email')),
+  provider text not null default 'guest' check (provider in ('device', 'guest', 'google', 'apple', 'email')),  -- device = bez přihlášení (od 11. 11. 2026)
   email text check (email is null or char_length(email) <= 254),
   town text check (char_length(town) <= 80),
   country text check (country in ('CZ', 'SK')),
@@ -33,6 +33,9 @@ create table if not exists public.families (
   analytics boolean not null default false,                  -- souhlas se statistikami poslechu
   analytics_at timestamptz
 );
+-- starší databáze: povolit typ účtu 'device' (migrations/20261115_ucet_v_zarizeni.sql)
+alter table public.families drop constraint if exists families_provider_check;
+alter table public.families add constraint families_provider_check check (provider in ('device', 'guest', 'google', 'apple', 'email'));
 alter table public.families add column if not exists analytics boolean not null default false;
 alter table public.families add column if not exists analytics_at timestamptz;
 
