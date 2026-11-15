@@ -36,6 +36,8 @@ create table if not exists public.families (
 -- starší databáze: povolit typ účtu 'device' (migrations/20261115_ucet_v_zarizeni.sql)
 alter table public.families drop constraint if exists families_provider_check;
 alter table public.families add constraint families_provider_check check (provider in ('device', 'guest', 'google', 'apple', 'email'));
+alter table public.families add column if not exists newsletter boolean not null default false;   -- souhlas s novinkami e-mailem
+alter table public.families add column if not exists newsletter_at timestamptz;
 alter table public.families add column if not exists analytics boolean not null default false;
 alter table public.families add column if not exists analytics_at timestamptz;
 
@@ -159,22 +161,27 @@ create trigger plays_rollup after insert or update or delete on public.plays for
 -- ---------- Funkce pro aplikaci ----------
 -- Uloží rodinu přihlášeného (anonymního) uživatele a nahradí seznam dětí.
 create or replace function public.app_sync_family(p jsonb) returns bigint language plpgsql security definer set search_path = public as $$
-declare uid uuid := auth.uid(); s bigint; consent boolean; was boolean;
+declare uid uuid := auth.uid(); s bigint; consent boolean; was boolean; mail text; prov text; news boolean;
 begin
   if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
   consent := coalesce((p->>'analytics')::boolean, false);
   select f.analytics into was from families f where f.id = uid;
+  -- e-mail jen z ověřeného účtu (přihlášení přes Google / Apple), ne z toho, co pošle aplikace
+  select nullif(u.email, '') into mail from auth.users u where u.id = uid;
+  prov := case when mail is null and p->>'provider' in ('google', 'apple', 'email') then 'device' else coalesce(p->>'provider', 'guest') end;
+  news := mail is not null and coalesce((p->>'newsletter')::boolean, false);
   -- nejdřív úprava; založení jen poprvé (insert … on conflict by při každém uložení spotřeboval číslo rodiny)
   update families f set
-    provider = coalesce(p->>'provider', 'guest'), email = nullif(p->>'email', ''), town = nullif(p->>'town', ''), country = nullif(p->>'country', ''),
+    provider = prov, email = mail,
+    newsletter = news, newsletter_at = case when news and not f.newsletter then now() when news then f.newsletter_at end, town = nullif(p->>'town', ''), country = nullif(p->>'country', ''),
     platform = p->>'platform', app_version = p->>'app_version', onboarded = coalesce((p->>'onboarded')::boolean, false),
     premium = coalesce((p->>'premium')::boolean, false), analytics = consent,
     analytics_at = case when consent and not f.analytics then now() when consent then f.analytics_at end,
     source = case when consent then coalesce(f.source, p->>'source') end, updated_at = now(), last_seen_at = now()
   where f.id = uid returning f.seq into s;
   if s is null then
-    insert into families (id, provider, email, town, country, platform, app_version, source, onboarded, premium, analytics, analytics_at)
-    values (uid, coalesce(p->>'provider', 'guest'), nullif(p->>'email', ''), nullif(p->>'town', ''), nullif(p->>'country', ''),
+    insert into families (id, provider, email, newsletter, newsletter_at, town, country, platform, app_version, source, onboarded, premium, analytics, analytics_at)
+    values (uid, prov, mail, news, case when news then now() end, nullif(p->>'town', ''), nullif(p->>'country', ''),
             p->>'platform', p->>'app_version', case when consent then p->>'source' end, coalesce((p->>'onboarded')::boolean, false),
             coalesce((p->>'premium')::boolean, false), consent, case when consent then now() end)
     returning seq into s;

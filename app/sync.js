@@ -14,7 +14,7 @@ const SYNC = (() => {
   const devOk = dev && /^http:\/\/localhost(:\d+)?$/.test(dev);
   const URL_ = devOk ? dev : C.supabaseUrl;
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
-  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, rate() {}, call: async () => null, forget: async () => {} };
+  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, rate() {}, link: async () => { throw new Error('Přihlášení teď není dostupné.'); }, signOut() {}, call: async () => null, forget: async () => {} };
   if (!URL_ || !KEY_) return noop;
 
   const SKEY = 'ospalek.sb.v1', QKEY = 'ospalek.sbq.v1', SRC = 'ospalek.src.v1';
@@ -97,7 +97,7 @@ const SYNC = (() => {
       args: { p: {
         provider: S.user ? (S.user.provider === 'guest' ? 'guest' : S.user.provider) : 'guest',
         email: realEmail(S.user), town: S.family.home.town || null, country: S.family.home.country || null,
-        platform: PLATFORM, app_version: version(), source: consent ? firstSrc : null, onboarded: !!S.onboarded, premium: !!S.premium, analytics: consent,
+        platform: PLATFORM, app_version: version(), source: consent ? firstSrc : null, newsletter: !!(S.news && realEmail(S.user)), onboarded: !!S.onboarded, premium: !!S.premium, analytics: consent,
         children: S.family.children.map((k) => ({ id: String(k.id), name: (k.forms && k.forms.nom) || '', gender: k.gender === 'f' ? 'f' : 'm', age: k.age })),
       } },
     };
@@ -133,6 +133,28 @@ const SYNC = (() => {
       if (!p || ![1, 2, 3].includes(rating)) return;
       push({ fn: 'app_play', volatile: p.volatile, args: { p: { id: p.id, story: p.story, rating } } }, true);
     },
+    // Přihlášení přes Google / Apple (auth.js): anonymní účet se propojí s účtem u Googlu nebo Applu,
+    // takže zůstane stejné ID uživatele i s historií a předplatným. Když už ten Google/Apple účet patří
+    // jinému uživateli (přihlášení na druhém telefonu), přepne se zařízení na něj.
+    // Vrací { email, switched }. nonce = náhodný řetězec, jehož SHA-256 dostal Google/Apple.
+    async link(provider, idToken, nonce) {
+      const s = await session();
+      const post = (body, token) => fetch(`${URL_}/auth/v1/token?grant_type=id_token`, { method: 'POST', headers: headers(token), body: JSON.stringify(body) });
+      let switched = false;
+      let r = await post({ provider, id_token: idToken, nonce, link_identity: true }, s.access_token);
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        if ((e.error_code || e.code) !== 'identity_already_exists') throw new Error(e.msg || e.error_description || e.message || 'Přihlášení se nepovedlo.');
+        r = await post({ provider, id_token: idToken, nonce });
+        switched = true;
+        if (!r.ok) { const e2 = await r.json().catch(() => ({})); throw new Error(e2.msg || e2.error_description || 'Přihlášení se nepovedlo.'); }
+      }
+      const j = await r.json();
+      set(SKEY, { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600), user: j.user && j.user.id });
+      return { email: (j.user && j.user.email) || null, switched };
+    },
+    // odhlášení: zařízení dostane při dalším odeslání nový anonymní účet
+    signOut() { set(SKEY, null); },
     // přímé volání s odpovědí (pohádka dne, odběr upozornění v app/daily.js); bez připojení vyhodí chybu
     call: (fn, args = {}) => rpc(fn, args),
     // „Smazat všechna data“: smaže rodinu i anonymní účet v databázi

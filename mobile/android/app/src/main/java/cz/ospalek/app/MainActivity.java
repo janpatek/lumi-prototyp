@@ -21,6 +21,7 @@ public class MainActivity extends BridgeActivity {
         // Lokální pluginy je nutné zaregistrovat před super.onCreate, jinak je bridge nenajde.
         registerPlugin(PrehravacPlugin.class); // přehrávání na pozadí a ovládání na zamčené obrazovce
         registerPlugin(StorePlugin.class);     // předplatné přes Google Play Billing
+        registerPlugin(LoginPlugin.class);     // volitelné přihlášení přes Google (app/auth.js)
         super.onCreate(savedInstanceState);
 
         // Proces WebView (stránka aplikace, hlas i hudba) může Android ukončit, nejčastěji kvůli paměti.

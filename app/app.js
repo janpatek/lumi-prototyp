@@ -201,8 +201,10 @@ const screens = {
     <div class="login">
       <div class="logo"><img src="${MASCOT.mark}" alt=""><h1 class="wordmark">${APP_NAME}</h1></div>
       <p class="tag">Pohádky, kde je hlavním hrdinou vaše dítě.</p>
-      <button class="btn" data-a="start">Začít</button>
-      <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
+      ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
+      <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
+      <p class="fine">Přihlášení je dobrovolné. Pomůže, když budete potřebovat poradit nebo změníte telefon. První 3 pohádky jsou zdarma.<br>` : `<button class="btn" data-a="start">Začít</button>
+      <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br>`}<a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
     </div>`,
 
   onb: () => {
@@ -304,6 +306,7 @@ const screens = {
     <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Každá pohádka, kterou otevřete, se uloží do telefonu sama. Pustíte ji pak v autě nebo na chalupě bez signálu.</span></div></div>
     <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     ${remindSettings()}
+    ${accountSettings()}
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native || codeOn() ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.premium && codeOn() ? `Odemčeno kódem do ${new Date(S.codeUntil).toLocaleDateString('cs-CZ')}.` : BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
       ${S.premium ? (codeOn() ? '' : `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>`) : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
@@ -315,6 +318,63 @@ const screens = {
     <p class="note" style="margin-top:6px">Podle času: od 19 do 7 hodin je zapnutý noční režim.</p>
     <div class="footer-actions"><button class="btn ghost" data-a="reset">Smazat účet a všechna data</button></div>`,
 };
+
+// krátká zpráva dole na obrazovce (stejný vzhled jako oznámení o nových pohádkách)
+function toast(msg) {
+  document.querySelector('.fresh-toast')?.remove();
+  const t = document.createElement('div');
+  t.className = 'fresh-toast';
+  t.setAttribute('role', 'status');
+  t.textContent = msg;
+  document.body.append(t);
+  setTimeout(() => t.classList.add('out'), 5000);
+  setTimeout(() => t.remove(), 5600);
+}
+
+// ---------- přihlášení (auth.js) ----------
+const signedIn = () => !!(S.user && (S.user.provider === 'google' || S.user.provider === 'apple') && S.user.email);
+const GLOGO = '<svg viewBox="0 0 48 48" aria-hidden="true" class="glogo"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.5z"/></svg>';
+const ALOGO = '<svg viewBox="0 0 24 24" aria-hidden="true" class="alogo"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.3 1.2 9.7.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.5-3.8zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1.1.1 2.1-.6 2.8-1.4z"/></svg>';
+function loginButtons() {
+  return `<div class="login-btns">
+    ${AUTH.can.apple ? `<button class="btn apple" data-a="login" data-p="apple">${ALOGO} Pokračovat s Apple</button>` : ''}
+    ${AUTH.can.google ? `<button class="btn google" data-a="login" data-p="google">${GLOGO} Pokračovat s Googlem</button>` : ''}
+    <label class="news"><input type="checkbox" id="newsOpt"${S.news ? ' checked' : ''}> Chci dostávat e-mailem novinky a akce Ospalka (jde kdykoli zrušit)</label>
+    <p class="err" id="loginErr" role="alert"></p>
+  </div>`;
+}
+function accountSettings() {
+  if (!AUTH.can.google && !AUTH.can.apple && !signedIn()) return '';
+  if (signedIn()) {
+    const via = S.user.provider === 'apple' ? 'Apple' : 'Google';
+    return `<div class="section-t">Účet</div>
+    <div class="person"><div class="av sky">${S.user.provider === 'apple' ? ALOGO : GLOGO}</div><div class="nm"><b>${esc(S.user.email)}</b><span>Přihlášeno přes ${via}. Podle e-mailu vám pomůžeme, když bude něco potřeba, a účet si obnovíte na jiném telefonu.</span></div><button class="btn small ghost" data-a="logout">Odhlásit</button></div>
+    <div class="person"><div class="nm"><b>Novinky a akce e-mailem</b><span>${S.news ? 'Zapnuto: občas pošleme novinky, nové pohádky a akce.' : 'Vypnuto: posíláme jen to, co se týká vašeho účtu a předplatného.'}</span></div><button class="btn small ${S.news ? 'ghost' : ''}" data-a="news">${S.news ? 'Vypnout' : 'Zapnout'}</button></div>`;
+  }
+  return `<div class="section-t">Účet</div>
+    <div class="person"><div class="nm"><b>Bez přihlášení</b><span>Přihlaste se, když chcete mít účet uložený i pro jiný telefon a abychom vám mohli pomoct, kdyby něco nefungovalo.</span></div></div>
+    ${loginButtons()}`;
+}
+async function login(el) {
+  if (el.disabled) return;
+  const err = document.getElementById('loginErr');
+  const news = document.getElementById('newsOpt');
+  document.querySelectorAll('[data-a=login]').forEach((b) => { b.disabled = true; });
+  if (err) err.textContent = '';
+  try {
+    const r = await AUTH.signIn(el.dataset.p);
+    if (!r) return; // okno přihlášení zavřené
+    S.user = { provider: r.provider, email: r.email || '', name: r.name || '' };
+    S.news = !!(news && news.checked);
+    save();
+    if (ui.screen === 'login') go(S.onboarded ? 'lib' : 'onb'); else render();
+    toast(r.switched ? `Přihlášeno jako ${r.email}. Účet už existoval, pokračujete v něm.` : `Přihlášeno jako ${r.email}.`);
+  } catch (e) {
+    if (err) err.textContent = e.message || 'Přihlášení se nepovedlo.';
+  } finally {
+    document.querySelectorAll('[data-a=login]').forEach((b) => { b.disabled = false; });
+  }
+}
 
 function peopleList(kind) {
   const arr = kind === 'child' ? S.family.children : S.family.parents;
@@ -1334,6 +1394,13 @@ const closeModal = () => { $modal.innerHTML = ''; ui.edit = null; };
 const actions = {
   // Bez přihlášení: rodina má anonymní účet (sync.js), předplatné patří k účtu v obchodě (Obnovit nákupy na dalším zařízení).
   start: () => { S.user = { provider: 'device' }; save(); go(S.onboarded ? 'lib' : 'onb'); },
+  login: (el) => login(el),
+  logout: async () => {
+    if (!confirm('Odhlásit se? Pohádky i nastavení v tomto telefonu zůstanou, jen už nebudou spojené s vaším e-mailem.')) return;
+    await AUTH.signOut();
+    S.user = { provider: 'device' }; S.news = false; save(); render();
+  },
+  news: () => { S.news = !S.news; save(); render(); },
   next: () => { ui.step++; render(); },
   prev: () => { syncHome(); ui.step--; render(); },
   finish: () => { syncHome(); S.onboarded = true; save(); go('lib'); },
