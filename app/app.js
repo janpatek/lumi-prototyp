@@ -370,13 +370,21 @@ async function login(el) {
   document.querySelectorAll('[data-a=login]').forEach((b) => { b.disabled = true; });
   if (err) err.textContent = '';
   try {
-    const r = await AUTH.signIn(el.dataset.p);
+    let r = await AUTH.signIn(el.dataset.p);
     if (!r) return; // okno přihlášení zavřené
+    if (r.exists) {
+      // Google / Apple účet už u Ospalka má účet (jiný telefon, nebo stejný e-mail): nabídnout sloučení
+      const who = r.email || 'tímto e-mailem';
+      if (!confirm(`Účet ${who} už u Ospalka máte.\n\nSpojit ho s tímto telefonem? Účet ${who} bude hlavní a přenesou se do něj děti, poslechy, hodnocení i předplatné z tohoto telefonu.`)) return;
+      S.news = !!(news && news.checked);
+      r = await AUTH.merge(r, { ...S, user: { provider: r.provider, email: r.email || '' } });
+      r.merged = true;
+    }
     S.user = { provider: r.provider, email: r.email || '', name: r.name || '' };
     S.news = !!(news && news.checked);
     save();
     if (ui.screen === 'login') go(S.onboarded ? 'lib' : 'onb'); else render();
-    toast(r.switched ? `Přihlášeno jako ${r.email}. Účet už existoval, pokračujete v něm.` : `Přihlášeno jako ${r.email}.`);
+    toast(r.merged ? `Účty jsou spojené. Přihlášeno jako ${r.email}.` : `Přihlášeno jako ${r.email}.`);
   } catch (e) {
     if (err) err.textContent = e.message || 'Přihlášení se nepovedlo.';
   } finally {

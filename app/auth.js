@@ -38,8 +38,20 @@ const AUTH = (() => {
       throw new Error(e && e.message ? e.message : 'Přihlášení se nepovedlo.');
     }
     if (!r || !r.idToken) return null;
-    const res = await SYNC.link(provider, r.idToken, n.raw);
-    return { provider, email: res.email || r.email || null, name: r.name || null, switched: res.switched };
+    try {
+      const res = await SYNC.link(provider, r.idToken, n.raw);
+      return { provider, email: res.email || r.email || null, name: r.name || null, switched: res.switched };
+    } catch (e) {
+      // účet s tímto Google / Apple účtem nebo e-mailem už existuje: aplikace nabídne sloučení (merge)
+      if (e.code === 'ACCOUNT_EXISTS') return { provider, exists: true, email: r.email || null, name: r.name || null, token: r.idToken, nonce: n.raw };
+      throw e;
+    }
+  }
+
+  // Sloučení: existující účet se stane hlavním, data z tohoto telefonu se do něj přesunou (sync.js merge).
+  async function merge(found, S) {
+    const res = await SYNC.merge(found.provider, found.token, found.nonce, S);
+    return { provider: found.provider, email: res.email || found.email, name: found.name };
   }
 
   async function signOut() {
@@ -47,5 +59,5 @@ const AUTH = (() => {
     SYNC.signOut();
   }
 
-  return { can, signIn, signOut };
+  return { can, signIn, merge, signOut };
 })();

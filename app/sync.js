@@ -14,7 +14,7 @@ const SYNC = (() => {
   const devOk = dev && /^http:\/\/localhost(:\d+)?$/.test(dev);
   const URL_ = devOk ? dev : C.supabaseUrl;
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
-  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, rate() {}, link: async () => { throw new Error('Přihlášení teď není dostupné.'); }, signOut() {}, call: async () => null, forget: async () => {} };
+  const noop = { on: false, family() {}, playStart() { return null; }, playEnd() {}, rate() {}, link: async () => { throw new Error('Přihlášení teď není dostupné.'); }, merge: async () => { throw new Error('Přihlášení teď není dostupné.'); }, signOut() {}, call: async () => null, forget: async () => {} };
   if (!URL_ || !KEY_) return noop;
 
   const SKEY = 'ospalek.sb.v1', QKEY = 'ospalek.sbq.v1', SRC = 'ospalek.src.v1';
@@ -46,6 +46,8 @@ const SYNC = (() => {
     set(SKEY, sess);
     return sess;
   }
+  // uloží session z přihlášení (auth/v1/token)
+  const keep = (j) => set(SKEY, { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600), user: j.user && j.user.id });
   let pending = null;
   function session() {
     const s = get(SKEY);
@@ -141,17 +143,34 @@ const SYNC = (() => {
       const s = await session();
       const post = (body, token) => fetch(`${URL_}/auth/v1/token?grant_type=id_token`, { method: 'POST', headers: headers(token), body: JSON.stringify(body) });
       let switched = false;
-      let r = await post({ provider, id_token: idToken, nonce, link_identity: true }, s.access_token);
+      const r = await post({ provider, id_token: idToken, nonce, link_identity: true }, s.access_token);
       if (!r.ok) {
         const e = await r.json().catch(() => ({}));
-        if ((e.error_code || e.code) !== 'identity_already_exists') throw new Error(e.msg || e.error_description || e.message || 'Přihlášení se nepovedlo.');
-        r = await post({ provider, id_token: idToken, nonce });
-        switched = true;
-        if (!r.ok) { const e2 = await r.json().catch(() => ({})); throw new Error(e2.msg || e2.error_description || 'Přihlášení se nepovedlo.'); }
+        const code = e.error_code || e.code;
+        // Google / Apple účet nebo jeho e-mail už u nás patří jinému účtu → aplikace nabídne sloučení (merge)
+        if (code === 'identity_already_exists' || code === 'email_exists' || code === 'user_already_exists') {
+          throw Object.assign(new Error('Účet s tímto e-mailem už existuje.'), { code: 'ACCOUNT_EXISTS' });
+        }
+        throw new Error(e.msg || e.error_description || e.message || 'Přihlášení se nepovedlo.');
       }
       const j = await r.json();
-      set(SKEY, { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: j.expires_at || Math.floor(Date.now() / 1000) + (j.expires_in || 3600), user: j.user && j.user.id });
+      keep(j);
       return { email: (j.user && j.user.email) || null, switched };
+    },
+    // Sloučení účtů: existující účet (Google / Apple) se stane hlavním a data anonymního účtu z telefonu
+    // se do něj přesunou. Lístek se vystaví ještě pod starým účtem (app_merge_ticket), po přihlášení se
+    // pošle uživatel z telefonu (app_sync_family) a server přesune zbytek (app_merge_from).
+    async merge(provider, idToken, nonce, S) {
+      const ticket = await rpc('app_merge_ticket', {});
+      const r = await fetch(`${URL_}/auth/v1/token?grant_type=id_token`, { method: 'POST', headers: headers(), body: JSON.stringify({ provider, id_token: idToken, nonce }) });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.msg || e.error_description || 'Přihlášení se nepovedlo.'); }
+      const j = await r.json();
+      keep(j);
+      queue = queue.filter((x) => x.fn !== 'app_sync_family'); persist();
+      await rpc('app_merge_from', { ticket });
+      // profil z telefonu do hlavního účtu jen tehdy, když už je vyplněný (prázdný by smazal děti v účtu)
+      if (S.onboarded && S.family.children.length) await rpc('app_sync_family', familyJob(S).args);
+      return { email: (j.user && j.user.email) || null };
     },
     // odhlášení: zařízení dostane při dalším odeslání nový anonymní účet
     signOut() { set(SKEY, null); },
