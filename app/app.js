@@ -197,14 +197,22 @@ const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
 // ---------- Obrazovky ----------
 const screens = {
+  // úvodní obrazovka: noční obloha (návrh „Noční obloha“, 15. 11. 2026) – vždy tmavá, bez ohledu na režim Den/Noc
   login: () => `
-    <div class="login">
-      <div class="logo"><img src="${MASCOT.mark}" alt=""><h1 class="wordmark">${APP_NAME}</h1></div>
-      <p class="tag">Pohádky, kde je hlavním hrdinou vaše dítě.</p>
+    <div class="login night">
+      <div class="sky" aria-hidden="true">${[[70, 10, 0, 6], [110, 80, .8, 4], [190, 18, 1.6, 4], [50, 56, 2.1, 6], [260, 87, 1.1, 5], [330, 8, 2.6, 3], [150, 42, .4, 3], [400, 70, 1.9, 4]].map(([t, l, d, w]) => `<span class="star" style="top:${t}px;left:${l}%;animation-delay:${d}s;width:${w}px;height:${w}px"></span>`).join('')}<span class="shooting"></span></div>
+      <div class="moonbox" aria-hidden="true"><div class="halo"></div><img class="sleepy" src="${MASCOT.sleep}" alt=""><span class="z z1">z</span><span class="z z2">z</span><span class="z z3">Z</span></div>
+      <div class="night-txt">
+        <h1 class="wordmark">ospalek</h1>
+        <p class="night-tag">Pohádky, kde je hlavním hrdinou vaše dítě</p>
+        <p class="night-sub">Se jménem, rodinou a místy, která zná. Čte je ${NARRATOR}.</p>
+      </div>
+      <div class="night-foot">
       ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
       <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
       <p class="fine">Přihlášení je dobrovolné. Pomůže, když budete potřebovat poradit nebo změníte telefon. První 3 pohádky jsou zdarma.<br>` : `<button class="btn" data-a="start">Začít</button>
       <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br>`}<a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
+      </div>
     </div>`,
 
   onb: () => {
