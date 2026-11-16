@@ -202,25 +202,54 @@ const codeOn = () => !!(S.codeUntil && S.codeUntil > Date.now());
 const IOS_APP = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios');
 const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
+// úvodní obrazovka: jména se v kartě i nadpisu střídají (3. a 6. pád mají u těchto jmen stejný tvar);
+// u holčičích jmen se ukáže obálka s holčičkou (hvezdicka-f.jpg)
+const LOGIN_NAMES = [['Vendelínovi'], ['Mariánce', 1], ['Olivce', 1], ['Kubíkovi'], ['Nině', 1], ['Sebastianovi'], ['Tondovi'], ['Josefíně', 1], ['Frederikovi'], ['Matějovi'], ['Damianovi']];
+const LOGIN_COVER = (i) => `../covers/hvezdicka${LOGIN_NAMES[i % LOGIN_NAMES.length][1] ? '-f' : ''}.jpg`;
+let loginName = 0;
+if (!S.user) new Image().src = LOGIN_COVER(1);
+setInterval(() => {
+  const els = document.querySelectorAll('.hero6 .h6-nm');
+  if (!els.length || document.hidden) return;
+  loginName++;
+  els.forEach((el) => { const c = el.cloneNode(); c.textContent = LOGIN_NAMES[loginName % LOGIN_NAMES.length][0]; el.replaceWith(c); });
+  const cov = document.querySelector('.hero6 .h6-cov');
+  if (cov) cov.src = LOGIN_COVER(loginName);
+}, 2600);
+
 // ---------- Obrazovky ----------
 const screens = {
-  // úvodní obrazovka: noční obloha (návrh „Noční obloha“, 15. 11. 2026) – vždy tmavá, bez ohledu na režim Den/Noc
-  login: () => `
-    <div class="login night">
-      <div class="sky" aria-hidden="true">${[[70, 10, 0, 6], [110, 80, .8, 4], [190, 18, 1.6, 4], [50, 56, 2.1, 6], [260, 87, 1.1, 5], [330, 8, 2.6, 3], [150, 42, .4, 3], [400, 70, 1.9, 4]].map(([t, l, d, w]) => `<span class="star" style="top:${t}px;left:${l}%;animation-delay:${d}s;width:${w}px;height:${w}px"></span>`).join('')}<span class="shooting"></span></div>
-      <div class="moonbox" aria-hidden="true"><div class="halo"></div><img class="sleepy" src="${MASCOT.sleep}" alt=""><span class="z z1">z</span><span class="z z2">z</span><span class="z z3">Z</span></div>
-      <div class="night-txt">
-        <h1 class="wordmark">ospalek</h1>
-        <p class="night-tag">Pohádky, kde je hlavním hrdinou vaše dítě</p>
-        <p class="night-sub">Se jménem, rodinou a místy, která zná. Čte je ${NARRATOR}.</p>
+  // úvodní obrazovka „Pohádka o vašem dítěti + polička“ (varianta 6, 16. 11. 2026): nahoře jezdí obálky pohádek,
+  // přes ně karta pohádky, ve které se střídají jména dětí (LOGIN_NAMES). Vždy světlá, bez ohledu na režim Den/Noc.
+  login: () => {
+    const covers = [...new Set(STORIES.map((s) => s.cover && s.cover.img).filter(Boolean))].filter((x) => !/hvezdicka/.test(x));
+    const row = (list) => { const imgs = list.map((src) => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join(''); return imgs + imgs; };
+    const n = LOGIN_NAMES[loginName % LOGIN_NAMES.length][0];
+    return `
+    <div class="login hero6">
+      <div class="h6-top" aria-hidden="true">
+        <div class="h6-row"><div class="h6-track l">${row(covers.slice(0, 8))}</div></div>
+        <div class="h6-row"><div class="h6-track r">${row(covers.slice(8, 16).length >= 4 ? covers.slice(8, 16) : covers.slice(0, 8).reverse())}</div></div>
+        <div class="h6-cardbox"><div class="h6-card">
+          <img class="h6-cov" src="${LOGIN_COVER(loginName)}" alt="">
+          <div class="h6-ct">Hvězdička, která spadla k <span class="h6-nm">${n}</span></div>
+          <div class="h6-cm">6 min · Na dobrou noc</div>
+          <img class="h6-peek" src="${MASCOT.sleep}" alt="">
+        </div></div>
       </div>
-      <div class="night-foot">
-      ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
-      <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
-      <p class="fine">Přihlášení je dobrovolné. Pomůže, když budete potřebovat poradit nebo změníte telefon. První 3 pohádky jsou zdarma.<br>` : `<button class="btn" data-a="start">Začít</button>
-      <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br>`}<a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
+      <div class="h6-body">
+        <div class="h6-brand"><img src="${MASCOT.mark}" alt=""><span>ospalek</span></div>
+        <h1 class="h6-h">Dneska budeme vyprávět<br>pohádku o <span class="h6-nm">${n}</span></h1>
+        <p class="h6-sub">Napíšete, jak se vaše dítě jmenuje, co rádo jí a kde bydlíte. Ospalek z toho složí pohádku jen pro něj a ${NARRATOR} vám ji přečte.</p>
+        <div class="h6-foot">
+        ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
+        <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
+        <p class="fine">Přihlášení je dobrovolné. Pomůže, když budete potřebovat poradit nebo změníte telefon. První 3 pohádky jsou zdarma.<br>` : `<button class="btn" data-a="start">Začít</button>
+        <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br>`}<a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
+        </div>
       </div>
-    </div>`,
+    </div>`;
+  },
 
   onb: () => {
     const steps = onbSteps();
@@ -354,7 +383,7 @@ function loginButtons() {
   return `<div class="login-btns">
     ${AUTH.can.apple ? `<button class="btn apple" data-a="login" data-p="apple">${ALOGO} Pokračovat s Apple</button>` : ''}
     ${AUTH.can.google ? `<button class="btn google" data-a="login" data-p="google">${GLOGO} Pokračovat s Googlem</button>` : ''}
-    <label class="news"><input type="checkbox" id="newsOpt"${S.news ? ' checked' : ''}> Chci dostávat e-mailem novinky a akce Ospalka (jde kdykoli zrušit)</label>
+    <label class="news"><input type="checkbox" id="newsOpt"${S.news ? ' checked' : ''}> Pošlete mi e-mail, když přibydou nové pohádky nebo bude nějaká akce (jde kdykoli zrušit)</label>
     <p class="err" id="loginErr" role="alert"></p>
   </div>`;
 }
