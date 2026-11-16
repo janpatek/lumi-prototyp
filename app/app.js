@@ -227,8 +227,8 @@ const screens = {
       </div>
       <div class="h6-body">
         <div class="h6-brand"><img src="${MASCOT.mark}" alt=""><span>ospalek</span></div>
-        <h1 class="h6-h">Dneska je pohádka<br>o <span class="h6-nm">${n}</span></h1>
-        <p class="h6-sub">Zadáte jméno, rodinu a vaše místa. Ospalek z nich každý večer udělá pohádku. Čte ji ${NARRATOR}.</p>
+        <h1 class="h6-h">Dneska budeme vyprávět<br>pohádku o <span class="h6-nm">${n}</span></h1>
+        <p class="h6-sub">Napíšete, jak se vaše dítě jmenuje, co rádo jí a kde bydlíte. Ospalek z toho složí pohádku jen pro něj a ${NARRATOR} vám ji přečte.</p>
         <div class="h6-foot">
         ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
         <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
@@ -371,7 +371,7 @@ function loginButtons() {
   return `<div class="login-btns">
     ${AUTH.can.apple ? `<button class="btn apple" data-a="login" data-p="apple">${ALOGO} Pokračovat s Apple</button>` : ''}
     ${AUTH.can.google ? `<button class="btn google" data-a="login" data-p="google">${GLOGO} Pokračovat s Googlem</button>` : ''}
-    <label class="news"><input type="checkbox" id="newsOpt"${S.news ? ' checked' : ''}> Chci dostávat e-mailem novinky a akce Ospalka (jde kdykoli zrušit)</label>
+    <label class="news"><input type="checkbox" id="newsOpt"${S.news ? ' checked' : ''}> Pošlete mi e-mail, když přibydou nové pohádky nebo bude nějaká akce (jde kdykoli zrušit)</label>
     <p class="err" id="loginErr" role="alert"></p>
   </div>`;
 }
