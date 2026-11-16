@@ -264,6 +264,11 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .top-btns { display: flex; gap: 8px; }
 .netnote { display: flex; align-items: center; gap: 10px; background: var(--sky); color: var(--on-pastel); border-radius: var(--radius-md); padding: 10px 14px; margin: -6px 0 14px; font-size: 14px; }
 .badge.off { bottom: 10px; left: 10px; background: var(--mint); color: var(--on-pastel); }
+/* stažená pohádka: jen kulatá fajfka bez textu (Nastavení → Poslech bez internetu) */
+.badge.off { width: 28px; height: 28px; padding: 0; justify-content: center; border-radius: 50%; }
+.badge.off .ico { width: 16px; height: 16px; stroke-dasharray: none; stroke-width: 3; }
+.off-pick .person .btn { flex-shrink: 0; white-space: nowrap; }
+.off-pick .av .cat-ico { width: 26px; height: 26px; }
 .badge.heard { bottom: 10px; right: 10px; }
 .card.dim { opacity: .45; filter: grayscale(.6); }
 .row-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -314,6 +319,7 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .shelf-row .card h3 { font-size: 15px; line-height: 19px; margin: 8px 10px 3px; }
 .shelf-row .card .meta { font-size: 12px; margin: 0 10px; }
 .shelf-row .badge { font-size: 10px; padding: 5px 7px; }
+.shelf-row .badge.off { padding: 0; width: 24px; height: 24px; }
 .card-w { position: relative; display: flex; }
 .card-w .card { width: 100%; }
 .badge.lock { right: auto; left: 10px; }

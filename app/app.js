@@ -65,6 +65,7 @@ const I = {
   star: ico('<path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z"/>'),
   music: ico('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
   down: ico('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'),
+  check: ico('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   hist: ico('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   bell: ico('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>'),
   mic: ico('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
@@ -279,7 +280,7 @@ const screens = {
     const rank = (list) => list.map((s, i) => [s, (fits(s) ? 0 : 2) + (heardCount(s.id) ? 1 : 0), i]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).map((x) => x[0]);
     const favs = favList();
     const banners = `
-      ${navigator.onLine ? '' : `<div class="netnote">${I.down}<span><b>Jste bez internetu.</b> Pustit jdou pohádky se značkou Offline.</span></div>`}`;
+      ${navigator.onLine ? '' : `<div class="netnote">${I.down}<span><b>Jste bez internetu.</b> Pustit jdou stažené pohádky a ty, které jste už poslouchali.</span></div>`}`;
     // stránka jedné poličky („vše ›“): mřížka se dvěma filtry
     if (ui.shelf) {
       const base = ui.shelf === 'fav' ? favs : ui.shelf === 'all' ? STORIES : ui.shelf === 'unheard' ? STORIES.filter((s) => !heardCount(s.id)) : STORIES.filter((s) => s.cats.includes(ui.shelf));
@@ -376,8 +377,8 @@ const screens = {
     ${SYNC.on && !IOS_APP ? '<p class="note" style="margin-top:6px">Máte kód nebo kupón? <a href="#" data-a="codeSheet">Uplatnit kód</a></p>' : ''}
     ${remindSettings()}
     <div class="section-t">Poslech bez internetu</div>
-    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Každá pohádka, kterou otevřete, se uloží do telefonu sama. Pustíte ji pak v autě nebo na chalupě bez signálu.</span></div></div>
-    <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
+    <div class="person"><div class="av mint">${I.check}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Vyberte pohádky, které chcete pustit i v autě nebo na chalupě bez signálu. V knihovně je poznáte podle zelené fajfky.</span></div></div>
+    <div class="row-btns"><button class="btn small" data-a="offlinePick">${I.down} Vybrat pohádky</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     ${SYNC.on ? `<div class="section-t">Statistiky</div>
     <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
     <p class="note" style="margin-top:6px"><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
@@ -527,8 +528,8 @@ function storyCard(s, c, hs, small = false) {
           ${s.cover.img ? `<img src="${coverImg(s, hs)}" alt="" loading="lazy">` : s.cover.emoji}
           ${s.free && !S.premium ? '<span class="badge free">Zdarma</span>' : ''}
           ${unlocked(s) ? '' : `<span class="badge lock">${I.lock}${small ? '<span class="sr-only">Zamčeno</span>' : 'Zamčeno'}</span>`}
-          <span class="badge off" hidden>${I.down}Offline</span>
-          ${n ? `<span class="badge heard">✓${small ? `${n > 1 ? ` ${n}×` : ''}<span class="sr-only"> slyšeno</span>` : ` Slyšeno${n > 1 ? ` ${n}×` : ''}`}</span>` : ''}
+          <span class="badge off" hidden>${I.check}<span class="sr-only">Staženo</span></span>
+          ${n ? `<span class="badge heard">✓${small ? `${n > 1 ? ` ${n}×` : ''}<span class="sr-only"> poslechnuto</span>` : ` Poslechnuto${n > 1 ? ` ${n}×` : ''}`}</span>` : ''}
         </div>
         <h3>${esc(s.title(c))}</h3>
         <div class="meta">${catIcon(s.cats[0], 'cat-ico sm')}${minutes(s.text(c))} min · ${s.ages[0]}–${s.ages[1]} let</div>
@@ -547,7 +548,7 @@ function todayCard(hs, c) {
       <div class="today-txt">
         <span class="today-tag">${I.star} Pohádka dne</span>
         <h2>${esc(st.title(c))}</h2>
-        <span class="meta">${catIcon(st.cats[0], 'cat-ico sm')}${minutes(st.text(c))} min · ${esc(catLabel(st))}${heardCount(st.id) ? ' · ✓ slyšeli jste' : ''}</span>
+        <span class="meta">${catIcon(st.cats[0], 'cat-ico sm')}${minutes(st.text(c))} min · ${esc(catLabel(st))}${heardCount(st.id) ? ' · ✓ poslechnuto' : ''}</span>
       </div>
       <span class="today-play" aria-hidden="true">${unlocked(st) ? I.play : I.lock}</span>
     </button>`;
@@ -932,30 +933,49 @@ async function pruneOffline() {
     await OFFLINE.remove([...(await OFFLINE.keys())].filter((k) => !need.has(k)));
   } catch (e) { /* příště znovu */ }
 }
-// značky Offline v knihovně; bez internetu nestažené pohádky zešednou
+// Stažení na cestu vybírá rodina sama v Nastavení → Poslech bez internetu (S.offline: id pohádek, jen v zařízení).
+// Zelená fajfka v knihovně je jen u nich. Otevřená pohádka se pro plynulý poslech uloží do telefonu taky,
+// ale značku nedostane; bez internetu zešednou jen pohádky, které v telefonu nejsou vůbec.
+const picked = (id) => (S.offline || []).includes(id);
 function markOffline() {
   const hs = heroes();
   document.querySelectorAll('.card[data-id]').forEach(async (card) => {
     const st = STORIES.find((s) => s.id === card.dataset.id);
     const ok = unlocked(st) && (await storyOffline(st, hs));
     const b = card.querySelector('.badge.off');
-    if (b) b.hidden = !ok;
+    if (b) b.hidden = !(ok && picked(st.id));
     card.classList.toggle('dim', !navigator.onLine && !ok);
   });
 }
 async function offlineStats() {
   const el = document.getElementById('offStat');
   if (!el) return;
-  const list = STORIES.filter(unlocked);
+  const list = STORIES.filter((st) => picked(st.id) && unlocked(st));
   const ok = (await Promise.all(list.map((st) => storyOffline(st)))).filter(Boolean).length;
-  if (el.dataset.busy) return;
-  el.textContent = `Staženo ${ok} z ${list.length} pohádek`;
+  el.textContent = ok ? `Staženo ${ok} ${ok === 1 ? 'pohádka' : ok < 5 ? 'pohádky' : 'pohádek'}` : 'Zatím nemáte nic staženo';
+}
+// výběr pohádek ke stažení: odemčené, stažené nahoře
+async function offlineSheet() {
+  const hs = heroes(), c = ctx(hs);
+  const list = STORIES.filter(unlocked);
+  const have = await Promise.all(list.map((st) => storyOffline(st, hs)));
+  const rows = list.map((st, i) => ({ st, on: picked(st.id) && have[i] })).sort((a, b) => b.on - a.on);
+  $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
+    <button class="icon-btn sheet-close" data-a="closeModal" aria-label="Zavřít">${I.close}</button>
+    <h2>Stáhnout na cestu</h2>
+    <p class="lead">Stažené pohádky pustíte i bez signálu. Každá zabere v telefonu pár MB, stahujte jen ty, které opravdu chcete mít s sebou.</p>
+    <div class="hist off-pick">${rows.map(({ st, on }) => `
+      <div class="person"><div class="av" style="background:${catColor(st)}">${catIcon(st.cats[0])}</div>
+        <div class="nm"><b>${esc(st.title(c))}</b><span>${minutes(st.text(c))} min · ${st.ages[0]}–${st.ages[1]} let</span></div>
+        <button class="btn small ${on ? 'ghost' : ''}" data-a="offlineToggle" data-id="${st.id}" data-on="${on ? 1 : 0}">${on ? `${I.check} Staženo` : `${I.down} Stáhnout`}</button></div>`).join('')}</div>
+    ${list.length < STORIES.length ? `<p class="note" style="margin-top:12px">Stáhnout jdou jen odemčené pohádky.</p>` : ''}
+  </div></div>`;
 }
 function notOffline() {
   $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
     <img class="sheet-mascot" src="${MASCOT.trip}" alt="">
     <h2 style="text-align:center">Tahle pohádka není stažená</h2>
-    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen pohádky se značkou Offline. Až budete zase online, stačí pohádku otevřít: uloží se do telefonu sama.</p>
+    <p class="lead" style="text-align:center">Bez internetu jdou pustit jen stažené pohádky a ty, které jste už poslouchali. Na cestu si je vyberete v Nastavení → Poslech bez internetu.</p>
     <button class="btn" data-a="closeModal">Rozumím</button>
   </div></div>`;
 }
@@ -1571,25 +1591,30 @@ const actions = {
   unheard: () => { ui.unheard = !ui.unheard; render(); },
   history: () => go('history'),
   clearHistory: () => { if (confirm('Smazat historii poslechu v tomhle zařízení?')) { S.history = []; store.set(S); render(); } },
-  downloadAll: async (el) => {
+  offlinePick: () => offlineSheet(),
+  // jedna pohádka: stáhnout (s průběhem na tlačítku) nebo odebrat ze stažených
+  offlineToggle: async (el) => {
     if (el.dataset.busy) return;
-    const stat = document.getElementById('offStat');
-    const todo = [];
-    for (const st of STORIES.filter(unlocked)) if (!(await storyOffline(st))) todo.push(st);
-    if (!todo.length) return offlineStats();
-    el.dataset.busy = stat.dataset.busy = '1';
+    const id = el.dataset.id, st = STORIES.find((s) => s.id === id);
+    if (!st) return;
+    if (el.dataset.on === '1') {
+      S.offline = (S.offline || []).filter((x) => x !== id); store.set(S);
+      el.dataset.on = '0'; el.classList.remove('ghost'); el.innerHTML = `${I.down} Stáhnout`; offlineStats();
+      return;
+    }
+    if (!navigator.onLine) { el.textContent = 'Bez internetu nejde'; return; }
+    el.dataset.busy = '1';
     try {
-      for (let i = 0; i < todo.length; i++) {
-        await downloadStory(todo[i], (d, n) => { stat.textContent = `Stahuji ${i + 1}. z ${todo.length}: ${Math.round((d / n) * 100)} %`; });
-      }
-      delete stat.dataset.busy; offlineStats();
+      await downloadStory(st, (d, n) => { el.textContent = `${Math.round((d / n) * 100)} %`; });
+      S.offline = [...new Set([...(S.offline || []), id])]; store.set(S);
+      el.dataset.on = '1'; el.classList.add('ghost'); el.innerHTML = `${I.check} Staženo`; offlineStats();
     } catch (e) {
-      stat.textContent = e.message || 'Stažení se nepovedlo.';
-    } finally { delete el.dataset.busy; delete stat.dataset.busy; }
+      el.textContent = 'Nepovedlo se, zkusit znovu';
+    } finally { delete el.dataset.busy; }
   },
   clearOffline: async () => {
     if (!confirm('Smazat pohádky stažené na cestu? Bez internetu pak nepůjdou pustit.')) return;
-    await OFFLINE.clear(); offlineMemo.clear(); render();
+    await OFFLINE.clear(); offlineMemo.clear(); S.offline = []; store.set(S); render();
   },
   paywall,
   subscribe: async (el) => {
