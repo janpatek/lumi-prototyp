@@ -6132,7 +6132,7 @@ window.STORIES = [
     cats: ['vanoce', 'noc'],
     ages: [3, 9],
     mood: 'lullaby',
-    cover: { emoji: '🐷', g1: '#3e2723', g2: '#ffca28' },
+    cover: { img: '../covers/zlate-prasatko.jpg', imgF: '../covers/zlate-prasatko-f.jpg', emoji: '🐷', g1: '#3e2723', g2: '#ffca28' },
     title: () => `Zlaté prasátko`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -6223,7 +6223,7 @@ window.STORIES = [
     cats: ['vanoce', 'sranda'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🐟', g1: '#0d47a1', g2: '#80deea' },
+    cover: { img: '../covers/kapr-bublinka.jpg', imgF: '../covers/kapr-bublinka-f.jpg', emoji: '🐟', g1: '#0d47a1', g2: '#80deea' },
     title: () => `Kapr Bublinka`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -6292,7 +6292,7 @@ window.STORIES = [
     cats: ['vanoce', 'zivot'],
     ages: [3, 9],
     mood: 'lullaby',
-    cover: { emoji: '🍽️', g1: '#7b1e1e', g2: '#d4a017' },
+    cover: { img: '../covers/talir-pro-pocestneho.jpg', imgF: '../covers/talir-pro-pocestneho-f.jpg', emoji: '🍽️', g1: '#7b1e1e', g2: '#d4a017' },
     title: () => `Talíř pro pocestného`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -6362,7 +6362,7 @@ window.STORIES = [
     cats: ['vanoce', 'noc'],
     ages: [2, 7],
     mood: 'lullaby',
-    cover: { emoji: '⛵', g1: '#0d2b45', g2: '#e8a13a' },
+    cover: { img: '../covers/lodicky-ze-skorapek.jpg', imgF: '../covers/lodicky-ze-skorapek-f.jpg', emoji: '⛵', g1: '#0d2b45', g2: '#e8a13a' },
     title: () => `Lodičky ze skořápek`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -6407,7 +6407,7 @@ window.STORIES = [
     cats: ['vanoce', 'zvidave'],
     ages: [3, 8],
     mood: 'lullaby',
-    cover: { emoji: '🍎', g1: '#b71c1c', g2: '#ffcc80' },
+    cover: { img: '../covers/hvezdicka-v-jablicku.jpg', imgF: '../covers/hvezdicka-v-jablicku-f.jpg', emoji: '🍎', g1: '#b71c1c', g2: '#ffcc80' },
     title: () => `Hvězdička v jablíčku`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -6450,7 +6450,7 @@ window.STORIES = [
     cats: ['vanoce', 'sranda'],
     ages: [3, 9],
     mood: 'adventure',
-    cover: { emoji: '🍪', g1: '#8d6e63', g2: '#ffe0b2' },
+    cover: { img: '../covers/rozbitky.jpg', imgF: '../covers/rozbitky-f.jpg', emoji: '🍪', g1: '#8d6e63', g2: '#ffe0b2' },
     title: () => `Rozbitky`,
     text: (c) => {
       const g = c.g, n = c.n;
@@ -6523,7 +6523,7 @@ window.STORIES = [
     cats: ['vanoce', 'noc'],
     ages: [3, 9],
     mood: 'lullaby',
-    cover: { emoji: '🦌', g1: '#1a2a4a', g2: '#5b7fa6' },
+    cover: { img: '../covers/zviratka-o-pulnoci.jpg', imgF: '../covers/zviratka-o-pulnoci-f.jpg', emoji: '🦌', g1: '#1a2a4a', g2: '#5b7fa6' },
     title: () => `Co si povídají zvířátka o půlnoci`,
     text: (c) => {
       const { g, n } = c;
@@ -6611,7 +6611,7 @@ window.STORIES = [
     cats: ['vanoce', 'sranda'],
     ages: [3, 8],
     mood: 'adventure',
-    cover: { emoji: '🔔', g1: '#7a1f2b', g2: '#e0a84f' },
+    cover: { img: '../covers/jak-chytit-jeziska.jpg', imgF: '../covers/jak-chytit-jeziska-f.jpg', emoji: '🔔', g1: '#7a1f2b', g2: '#e0a84f' },
     title: () => `Jak chytit Ježíška`,
     text: (c) => {
       const { g, n } = c;
@@ -6678,7 +6678,7 @@ window.STORIES = [
     cats: ['vanoce', 'zvirata'],
     ages: [2, 6],
     mood: 'lullaby',
-    cover: { emoji: '🐦', g1: '#1e3a5f', g2: '#a8d8ea' },
+    cover: { img: '../covers/stromecek-pro-ptacky.jpg', imgF: '../covers/stromecek-pro-ptacky-f.jpg', emoji: '🐦', g1: '#1e3a5f', g2: '#a8d8ea' },
     title: () => `Stromeček pro ptáčky`,
     text: (c) => {
       const { g, n } = c;
@@ -6717,7 +6717,7 @@ window.STORIES = [
     cats: ['vanoce', 'zvidave'],
     ages: [4, 9],
     mood: 'lullaby',
-    cover: { emoji: '🌸', g1: '#5d4157', g2: '#f6d6e0' },
+    cover: { img: '../covers/barborka.jpg', imgF: '../covers/barborka-f.jpg', emoji: '🌸', g1: '#5d4157', g2: '#f6d6e0' },
     title: (c) => `Barborka ${c.h.gen}`,
     text: (c) => {
       const { g, n } = c;
