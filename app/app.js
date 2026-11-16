@@ -1764,6 +1764,41 @@ pruneOffline();
 const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });
 refreshDaily();
 // návrat do aplikace (třeba druhý den večer): nová pohádka dne
+// potažení knihovny dolů (stránka úplně nahoře) → hned načíst katalog a pohádky z webu, knihovna se překreslí
+(() => {
+  const PULL = 110; // px prstem, od kdy se po puštění načítá
+  let y0 = null, dy = 0, busy = false;
+  const el = document.createElement('div');
+  el.className = 'ptr';
+  el.setAttribute('role', 'status');
+  document.body.append(el);
+  const show = (h, txt) => { el.textContent = txt; el.style.transform = `translate(-50%, ${h}px)`; el.classList.toggle('on', !!txt); };
+  const hide = () => show(-60, '');
+  hide();
+  addEventListener('touchstart', (e) => {
+    y0 = null;
+    if (busy || ui.screen !== 'lib' || window.scrollY > 0 || e.touches.length > 1 || document.getElementById('player') || $modal.childElementCount) return;
+    y0 = e.touches[0].clientY; dy = 0;
+  }, { passive: true });
+  addEventListener('touchmove', (e) => {
+    if (y0 === null) return;
+    dy = e.touches[0].clientY - y0;
+    if (dy <= 10 || window.scrollY > 0) { hide(); return; }
+    show(Math.min(dy * 0.45, 64), dy > PULL ? 'Pusťte a pohádky se načtou' : 'Potáhněte pro načtení');
+  }, { passive: true });
+  addEventListener('touchend', async () => {
+    if (y0 === null) return;
+    y0 = null;
+    if (dy <= PULL) { hide(); return; }
+    if (!navigator.onLine) { show(48, 'Bez internetu, zkuste to později'); setTimeout(hide, 1800); return; }
+    busy = true;
+    show(48, 'Načítám pohádky…');
+    try { await CATALOG.reload(); } catch (e) { /* nic */ }
+    busy = false;
+    hide();
+    if (ui.screen === 'lib' && !document.getElementById('player')) render();
+  });
+})();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshDaily(); if (S.premium) checkTrial(false); if (ui.screen === 'lib' && !document.getElementById('player')) render(); } });
 DAILY.check(S.notify === true);
 (() => {
