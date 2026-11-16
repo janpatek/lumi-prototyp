@@ -414,3 +414,7 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .fam-avs .av .ico { width: 16px; height: 16px; }
 /* druhé dítě jen s předplatným Plus */
 .add.plus span { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--honey); color: var(--on-pastel); font-size: 12px; }
+/* děti: plyšová ilustrace podle věku a pohlaví v pastelovém kolečku (obličej přiblížený, ať je vidět i v malém kolečku) */
+.av.kid { overflow: hidden; padding: 0; background: #fff; width: 52px; height: 52px; }
+.av.kid img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.55); transform-origin: 50% 40%; }
+.fam-avs .av.kid { width: 32px; height: 32px; }

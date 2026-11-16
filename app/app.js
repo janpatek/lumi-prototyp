@@ -99,10 +99,17 @@ const shelfCats = (d = new Date()) => {
   return [...first, ...now, ...cats.filter((k) => k.id !== 'noc' && !seasonOf(k)), ...off];
 };
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
-// avatar: první písmeno jména v pastelovém kolečku
+// avatar: u dětí plyšová ilustrace podle věku a pohlaví (brand/ikony/deti), u dospělých první písmeno v pastelovém kolečku
 const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
+// 1–2, 3–5, 6–9 let; ve školce dvě varianty, ať sourozenci stejného věku nevypadají stejně
+const kidImg = (k, i) => {
+  const g = k.gender === 'f' ? 'holka' : 'kluk', a = Number(k.age) || 0;
+  const band = a <= 2 ? '1-2' : a <= 5 ? '3-5' : '6-9';
+  return `../brand/ikony/deti/${g}-${band}${band === '3-5' ? (i % 2 ? 'b' : 'a') : ''}.webp`;
+};
 const avatar = (p, kind, i = 0) => {
   const tone = kind === 'child' ? AV_TONES.child[i % 4] : AV_TONES[p.role];
+  if (kind === 'child') return `<div class="av kid ${tone}" aria-hidden="true"><img src="${kidImg(p, i)}" alt=""></div>`;
   const letter = kind === 'child' || p.name ? (p.forms.nom || '?').charAt(0).toUpperCase() : ROLES[p.role].label.charAt(0);
   return `<div class="av ${tone}" aria-hidden="true">${esc(letter)}</div>`;
 };
