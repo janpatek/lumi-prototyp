@@ -269,6 +269,10 @@ p { margin: 0; }
 .foot-in { display: grid; gap: 8px; }
 .foot .wordmark { color: var(--night-ink); font-size: 22px; }
 .foot .brand { display: flex; align-items: center; gap: 8px; }
+/* Provozovatel: plný název firmy a údaje z obchodního rejstříku (vyžaduje Apple i zákon) */
+.foot-company { grid-column: 1 / -1; font-style: normal; line-height: 1.6; padding-top: 14px; border-top: 1px solid rgba(238, 235, 250, .1); }
+.foot-company b { color: var(--night-ink); }
+.foot-company a { color: var(--night-ink); }
 
 /* Lepicí výzva (mobil) */
 .sticky-cta { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--surface); box-shadow: 0 -8px 24px rgba(46, 49, 80, .12); transform: translateY(110%); transition: transform .25s ease; }
