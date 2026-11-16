@@ -1,20 +1,19 @@
-// ===== Nastavení landing page – vše, co se bude měnit, je tady =====
+// ===== Nastavení landing page =====
 // appName: název aplikace. Doplní se do všech prvků s atributem data-app-name a do titulku stránky.
-// tryUrl: kam vedou hlavní tlačítka „Vyzkoušet“ (zatím webový prototyp aplikace).
-// appStoreUrl / googlePlayUrl: odkazy do obchodů. Dokud jsou prázdné, tlačítka vedou na # a ukazují štítek „Již brzy“.
+// Odkazy do obchodů jsou v obchody.js (sdílí je i /stahnout/). Dokud jsou prázdné, tlačítka mají štítek „Již brzy“.
+// Web vede jen k instalaci mobilní aplikace, do webové verze (app/) už nic neodkazuje.
+const OBCHODY = window.OSPALEK_OBCHODY || {};
 const LANDING = {
   appName: 'Ospalek',
-  tryUrl: 'app/',
-  appStoreUrl: '',
-  googlePlayUrl: '',
+  appStoreUrl: OBCHODY.appStoreUrl || '',
+  googlePlayUrl: OBCHODY.googlePlayUrl || '',
 };
 
 // Název aplikace
 document.querySelectorAll('[data-app-name]').forEach((el) => { el.textContent = LANDING.appName; });
 document.title = document.title.replace(/^[^–]+/, LANDING.appName + ' ');
 
-// Tlačítka „Vyzkoušet“ a obchody
-document.querySelectorAll('[data-try]').forEach((a) => { a.href = LANDING.tryUrl; });
+// Obchody
 document.querySelectorAll('[data-store]').forEach((a) => {
   const url = LANDING[a.dataset.store + 'Url'];
   if (url) {
@@ -29,6 +28,8 @@ document.querySelectorAll('[data-store]').forEach((a) => {
 // Telefon: obchod pro jeho systém dáme dopředu, ten druhý na mobilu schováme (CSS .is-other).
 // iPad se hlásí jako Mac, proto ho nepoznáme a ukážeme oba.
 const PLATFORM = /iPhone|iPod/.test(navigator.userAgent) ? 'appStore' : /Android/.test(navigator.userAgent) ? 'googlePlay' : '';
+// Na telefonu QR kód nedává smysl (CSS .is-phone)
+if (PLATFORM) document.body.classList.add('is-phone');
 if (PLATFORM) {
   document.querySelectorAll('.stores').forEach((box) => {
     box.querySelectorAll('[data-store]').forEach((a) => {
@@ -139,34 +140,24 @@ if (townInput) {
 }
 render();
 
-// ===== Lepicí lišta s výzvou na mobilu: ukáže se, když hlavní tlačítko zmizí z obrazovky =====
-const sticky = document.getElementById('sticky-cta');
-// Aplikace je v obchodě: hlavní výzvou se stane stažení (v hero, v horní liště na mobilu i v lepicí liště).
+// ===== Výzva ke stažení: horní lišta na mobilu a lepicí lišta =====
+// Když je aplikace v obchodě, obchody přestanou mít „Již brzy“ (třída stores-live na <body>).
 // Náhled bez odkazů: ospalek.cz/?obchody=nahled
+const sticky = document.getElementById('sticky-cta');
 const preview = new URLSearchParams(location.search).get('obchody') === 'nahled';
 const liveStore = (k) => LANDING[k + 'Url'] || (preview ? '#' : '');
 const anyLive = liveStore('appStore') || liveStore('googlePlay');
-if (anyLive) {
-  document.body.classList.add('stores-live');
-  if (preview) document.querySelectorAll('[data-store]').forEach((a) => { a.classList.remove('is-soon'); a.removeAttribute('aria-disabled'); });
-  const myUrl = PLATFORM ? liveStore(PLATFORM) : '';
-  const label = PLATFORM === 'appStore' ? 'Stáhnout v App Store' : 'Stáhnout na Google Play';
-  const navBtn = document.querySelector('.nav .btn');
-  if (navBtn) {
-    navBtn.removeAttribute('data-try');
-    navBtn.href = myUrl || '#hero-cta';
-    navBtn.textContent = 'Stáhnout aplikaci';
-  }
-  if (sticky && myUrl) {
-    const a = sticky.querySelector('a');
-    a.removeAttribute('data-try');
-    a.href = myUrl;
-    a.textContent = label;
-  }
-}
+document.body.classList.toggle('stores-live', !!anyLive);
+if (preview) document.querySelectorAll('[data-store]').forEach((a) => { a.classList.remove('is-soon'); a.removeAttribute('aria-disabled'); });
+// Telefon s obchodem pro svůj systém: „Stáhnout aplikaci“ vede rovnou do obchodu, jinak na obchody v úvodu
+const myUrl = PLATFORM ? liveStore(PLATFORM) : '';
+const label = PLATFORM === 'appStore' ? 'Stáhnout v App Store' : 'Stáhnout na Google Play';
+document.querySelectorAll('[data-get]').forEach((a) => { if (myUrl) a.href = myUrl; });
+// Lepicí lišta jen tehdy, když jde aplikaci pro tenhle telefon opravdu stáhnout
 const heroCta = document.getElementById('hero-cta');
 const endCta = document.getElementById('end');
-if (sticky && heroCta) {
+if (sticky && heroCta && myUrl) {
+  sticky.querySelector('a').textContent = label;
   const onScreen = (el) => { const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
   const update = () => sticky.classList.toggle('show', !onScreen(heroCta) && !(endCta && onScreen(endCta)));
   addEventListener('scroll', update, { passive: true });

@@ -4,7 +4,7 @@ Klikací webový prototyp mobilní aplikace s personalizovanými pohádkami pro 
 Rodič zadá děti, rodiče a bydliště. Pohádky jsou pak o jeho dětech a odehrávají se v okolí, které znají.
 
 **Web pro rodiče:** https://ospalek.cz/  
-**Vyzkoušet aplikaci:** https://ospalek.cz/app/ (nejlépe na mobilu)
+**Stáhnout aplikaci:** https://ospalek.cz/stahnout/ (webová verze v prohlížeči skončila 16. 11. 2026, ospalek.cz/app/ v prohlížeči přesměruje sem; složka `app/` zůstává, staví se z ní mobilní aplikace)
 
 ## Struktura a nasazení
 - `index.html`, `landing.css`, `landing.js`, `img/`: landing page na `/`.

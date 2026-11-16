@@ -5,6 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#F7F5FC">
   <title>Ospalek – pohádky pro vaše dítě</title>
+  <script>
+    // Webová verze skončila (16. 11. 2026): Ospalek je jen mobilní aplikace, která se staví z této složky.
+    // Ve webovém prohlížeči zrušíme service worker, večerní připomínku a uložené soubory a pošleme rodinu na /stahnout/.
+    // V mobilní aplikaci (Capacitor, adresa localhost) a při vývoji na localhostu se nic neděje.
+    (function () {
+      var C = window.Capacitor;
+      if ((C && C.isNativePlatform && C.isNativePlatform()) || /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+      if (window.stop) window.stop(); // zbytek stránky se nenačte a aplikace se nespustí
+      var done = false;
+      var go = function () { if (!done) { done = true; location.replace('../stahnout/?z=app'); } };
+      setTimeout(go, 3000);
+      var jobs = [];
+      try {
+        if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+          return Promise.all(regs.map(function (r) {
+            return (r.pushManager ? r.pushManager.getSubscription() : Promise.resolve(null))
+              .then(function (s) { return s && s.unsubscribe(); }).catch(function () {})
+              .then(function () { return r.unregister(); });
+          }));
+        }));
+        if (window.caches) jobs.push(caches.keys().then(function (keys) {
+          return Promise.all(keys.filter(function (k) { return k.indexOf('ospalek-') === 0; }).map(function (k) { return caches.delete(k); }));
+        }));
+        if (window.indexedDB) indexedDB.deleteDatabase('ospalek');
+      } catch (e) {}
+      Promise.all(jobs).catch(function () {}).then(go);
+    })();
+  </script>
   <link rel="icon" href="../brand/maskot-3d/web/ospalek-mark-64.png" type="image/png">
   <link rel="apple-touch-icon" href="../brand/maskot-3d/web/ospalek-mark.png">
   <link rel="manifest" href="manifest.webmanifest">

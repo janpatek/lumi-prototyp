@@ -107,14 +107,13 @@ p { margin: 0; }
 .hero { padding: 32px 0 56px; overflow: hidden; }
 .hero-in { display: grid; grid-template-columns: minmax(0, 1fr); }
 .hero-copy { display: contents; }
-.hero-cta { order: 2; }
-/* na mobilu: nadpis, jméno, hned telefon (aby byla změna vidět), pak obchody */
+/* na mobilu: nadpis, obchody, ukázka poslechu, pak telefon */
 .hero-phone { order: 1; }
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 6px 14px 6px 10px; border-radius: var(--radius-pill); background: var(--lavender-soft); color: var(--lavender-ink); font-weight: 900; font-size: 14px; letter-spacing: .01em; }
 .eyebrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .hero h1 { font-size: clamp(40px, 11vw, 76px); line-height: 1.02; text-wrap: balance; }
 .hero-sub { font-size: 20px; color: var(--ink-muted); margin-top: 16px; font-weight: 600; }
-.namebox { margin-top: 24px; background: var(--surface-raised); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft); }
+.namebox { margin-top: 22px; background: var(--surface-raised); border-radius: var(--radius-lg); padding: 18px; box-shadow: var(--shadow-soft); }
 .namebox label { display: block; font-weight: 800; font-size: 15px; color: var(--ink-muted); margin-bottom: 10px; }
 .namebox-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .namebox input { flex: 1 1 180px; min-width: 0; font: 900 26px/1.2 var(--display); color: var(--ink); background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 12px 16px; }
@@ -123,22 +122,26 @@ p { margin: 0; }
 .gender { display: flex; background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-pill); padding: 4px; flex: 0 0 auto; }
 .gender button { font: 800 15px var(--body); color: var(--ink-muted); background: none; border: 0; border-radius: var(--radius-pill); padding: 10px 16px; cursor: pointer; }
 .gender button[aria-pressed="true"] { background: var(--lavender-ink); color: var(--on-lavender); }
-.hero-cta { margin-top: 8px; display: flex; flex-direction: column; align-items: stretch; }
-.hero-fine { margin-top: 12px; color: var(--ink-muted); font-size: 15px; font-weight: 700; text-align: center; }
-.hero-fine a { color: var(--lavender-ink); font-weight: 900; }
-/* Obchody v hero: dokud nejsou odkazy, jsou pod tlačítkem; s odkazy jdou nahoru a jsou velké */
-.hero-stores { order: 3; margin-top: 18px; }
-.hero-stores .store { min-width: 164px; height: 52px; }
-.hero-stores .store-txt b { font-size: 19px; }
-.hero-try { order: 1; }
-.hero-fine-soon { order: 2; }
+.hero-cta { margin-top: 26px; display: flex; flex-direction: column; align-items: stretch; }
+/* Obchody jsou hlavní výzva: velké, na telefonu jen ten pro jeho systém přes celou šířku */
+.get { display: flex; align-items: center; gap: 22px; }
+.hero-stores { flex: 1 1 auto; }
+.hero-stores .store { flex: 1 1 0; height: 62px; justify-content: center; }
+.hero-stores .store-txt b { font-size: 22px; }
+.hero-stores .store-logo { width: 30px; height: 30px; }
+/* QR kód jen na počítači */
+.qr { display: none; align-items: center; gap: 12px; flex: 0 0 auto; text-decoration: none; color: var(--ink-muted); font-weight: 800; font-size: 14px; line-height: 1.3; }
+.qr img { width: 96px; height: 96px; padding: 6px; background: #fff; border-radius: var(--radius-sm); }
+.hero-fine { margin-top: 14px; color: var(--ink-muted); font-size: 15px; font-weight: 700; text-align: center; }
 .hero-fine-live { display: none; }
-.stores-live .hero-stores { order: 0; margin-top: 0; }
-.stores-live .hero-stores .store { flex: 1 1 0; max-width: 240px; height: 60px; justify-content: center; }
-.stores-live .hero-stores .store-txt b { font-size: 22px; }
-.stores-live .hero-stores .store-logo { width: 30px; height: 30px; }
-.stores-live .hero-try, .stores-live .hero-fine-soon { display: none; }
-.stores-live .hero-fine-live { display: block; order: 1; margin-top: 16px; }
+.stores-live .hero-fine-live { display: block; }
+.stores-live .hero-fine-soon { display: none; }
+.listen-link { display: inline-flex; align-self: center; align-items: center; gap: 10px; margin-top: 18px; padding: 6px 18px 6px 6px; border-radius: var(--radius-pill); background: var(--lavender-soft); color: var(--lavender-ink); text-decoration: none; font-weight: 900; font-size: 16px; }
+.listen-link:hover { background: var(--lavender); color: var(--on-pastel); }
+.ll-play { width: 36px; height: 36px; border-radius: 50%; background: var(--lavender-ink); display: grid; place-items: center; flex: 0 0 auto; }
+.ll-play svg { width: 16px; height: 16px; fill: var(--on-lavender); }
+.ll-d { font-weight: 700; color: var(--ink-muted); }
+.ll-d::before { content: "·"; margin-right: 8px; }
 
 /* Telefon s ukázkou aplikace */
 .hero-phone { position: relative; display: flex; justify-content: center; margin: 26px -20px 0; padding: 0 20px; height: 340px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
@@ -191,7 +194,8 @@ p { margin: 0; }
 
 /* Stránka z pohádky */
 .page-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
-.town { display: block; font-weight: 800; font-size: 15px; color: var(--ink-muted); margin: 22px 0 8px; }
+.town { display: block; font-weight: 800; font-size: 15px; color: var(--ink-muted); margin: 18px 0 10px; }
+.namebox-note { color: var(--ink-muted); font-size: 13px; font-weight: 600; margin-top: 12px; }
 .town-input { width: 100%; max-width: 360px; font: 900 22px/1.2 var(--display); color: var(--ink); background: var(--surface-raised); border: 2px solid var(--line); border-radius: var(--radius-md); padding: 12px 16px; }
 .town-input::placeholder { color: var(--ink-muted); opacity: .55; }
 .town-input:focus { outline: none; border-color: var(--lavender-ink); }
@@ -222,7 +226,7 @@ p { margin: 0; }
 .price-row b { font-family: var(--display); font-weight: 900; font-size: 26px; }
 .price-row em { font-style: normal; font-size: 12px; font-weight: 900; letter-spacing: .04em; color: var(--on-pastel); background: var(--mint); border-radius: var(--radius-pill); padding: 3px 9px; margin-left: 6px; vertical-align: 2px; }
 .price-per { color: var(--ink-muted); font-size: 15px; margin: 10px 4px 14px; }
-.price-card .btn { width: 100%; }
+.price-stores { margin-top: 4px; }
 .price-note { color: var(--ink-muted); font-size: 13px; margin: 10px 4px 0; }
 
 /* FAQ */
@@ -237,12 +241,11 @@ p { margin: 0; }
 /* Závěr */
 .end { text-align: center; background: var(--night); color: var(--night-ink); }
 .end-mascot { width: 200px; height: 200px; object-fit: contain; margin: 0 auto 24px; background: #ECE9FA; border-radius: 50%; padding: 26px 20px 30px; }
-.end h2 { max-width: 14em; margin: 0 auto 28px; }
+.end h2 { max-width: 14em; margin: 0 auto 32px; }
 .end .kid { color: #F6D98B; background: rgba(246, 217, 139, .14); animation: none; }
-.end .btn-xl { width: auto; max-width: 100%; background: #C9C3EC; color: #1C1E33; }
-.btn .kid { color: inherit; background: rgba(255, 255, 255, .22); animation: none; }
-.end .btn .kid { background: rgba(28, 30, 51, .1); }
-.end-fine { color: var(--night-muted); font-size: 15px; font-weight: 700; margin: 22px 0 14px; }
+.end-stores .store { height: 60px; }
+.end-fine { color: var(--night-muted); font-size: 15px; font-weight: 700; margin: 20px 0 0; }
+.how-stores { margin-top: 40px; }
 
 /* Badge obchodů – černé jako oficiální */
 .stores { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
@@ -306,10 +309,14 @@ a:focus-visible, button:focus-visible, summary:focus-visible, .btn:focus-visible
   .hero h1 { font-size: clamp(44px, 4.6vw, 62px); }
   .hero-in { grid-template-columns: 1fr 1fr; align-items: center; gap: 48px; }
   .hero-copy { display: block; }
-  .hero-cta { align-items: flex-start; margin-top: 22px; }
+  .nav .nav-get { display: none; }
+  .hero-cta { align-items: flex-start; margin-top: 30px; }
   .hero-fine { text-align: left; }
-  .hero-stores .stores, .hero-stores { justify-content: flex-start; }
-  .stores-live .hero-stores .store { flex: 0 0 auto; min-width: 200px; }
+  .hero-stores { flex: 0 1 auto; flex-direction: column; justify-content: flex-start; }
+  .hero-stores .store { flex: 0 0 auto; width: 230px; }
+  .qr { display: flex; padding-left: 22px; border-left: 2px dashed var(--line); }
+  .is-phone .qr { display: none; }
+  .listen-link { align-self: flex-start; }
   .hero-phone { margin: 0; padding: 20px 0; height: auto; overflow: visible; -webkit-mask-image: none; mask-image: none; }
   .phone { width: 300px; height: 620px; transform: rotate(3deg); }
   .ph-h { font-size: 23px; }
