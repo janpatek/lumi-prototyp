@@ -32,7 +32,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
 ]);
 ```
 
-Kategorie: `noc` Na dobrou noc, `auto` Do auta, `dobro` Dobrodružství, `zivot` Ze života, `sranda` Srandovní, `lidove` Klasické pohádky, `hrdinove` Superhrdinové, `zvirata` O zvířátkách, a nové `svatky` Oslavy a svátky, `zvidave` Zvídavé (jak věci fungují).
+Kategorie: `noc` Na dobrou noc, `auto` Do auta, `dobro` Dobrodružství, `zivot` Ze života, `sranda` Srandovní, `lidove` Klasické pohádky, `hrdinove` Superhrdinové, `zvirata` O zvířátkách, `svatky` Oslavy a svátky, `vanoce` Vánoce (české: Ježíšek, žádný Santa), `zvidave` Zvídavé (jak věci fungují).
 sfx jen: sparkle, magic, car, horn, birds, owl, paper, wind, ding. Používej střídmě (2–5 na pohádku).
 `cap` a `listCz` jsou globální funkce ze `stories.cs.js`, můžeš je používat, nedeklaruj je znovu.
 

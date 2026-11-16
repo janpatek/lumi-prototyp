@@ -330,5 +330,45 @@
   "kouzelnik-ucen": {
     "kulisa": "lednice",
     "hudba": "ponozkozrout"
+  },
+  "zlate-prasatko": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "spani-u-babicky"
+  },
+  "kapr-bublinka": {
+    "kulisa": "lednice",
+    "hudba": "ponozkozrout"
+  },
+  "talir-pro-pocestneho": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "zlatovlaska"
+  },
+  "lodicky-ze-skorapek": {
+    "kulisa": "mesicni-lodka",
+    "hudba": "mesicni-lodka"
+  },
+  "hvezdicka-v-jablicku": {
+    "kulisa": "lednice",
+    "hudba": "hvezdicka"
+  },
+  "rozbitky": {
+    "kulisa": "lednice",
+    "hudba": "hrnecku-var"
+  },
+  "zviratka-o-pulnoci": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "noc-v-lese"
+  },
+  "jak-chytit-jeziska": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "kdo-to-dela"
+  },
+  "stromecek-pro-ptacky": {
+    "kulisa": "vyprava",
+    "hudba": "zachrana-zviratka"
+  },
+  "barborka": {
+    "kulisa": "dvanact-mesicku",
+    "hudba": "dvanact-mesicku"
   }
 }
