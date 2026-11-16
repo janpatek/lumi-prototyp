@@ -168,9 +168,6 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
       ];
     },
   },
-]);
-
-window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
   {
     id: 'talir-pro-pocestneho',
     delka: 10,
@@ -294,9 +291,6 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
       ];
     },
   },
-]);
-
-window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
   {
     id: 'hvezdicka-v-jablicku',
     delka: 5,
@@ -421,9 +415,6 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
       ];
     },
   },
-]);
-
-window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
   {
     id: 'zviratka-o-pulnoci',
     delka: 15,
@@ -587,9 +578,6 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
       ];
     },
   },
-]);
-
-window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
   {
     id: 'stromecek-pro-ptacky',
     delka: 5,
@@ -729,4 +717,3 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     },
   },
 ]);
-

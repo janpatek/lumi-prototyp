@@ -1030,6 +1030,106 @@
     "file": "ponozkozrout-hudba.mp3",
     "body": 26.25
    }
+  },
+  "zlate-prasatko": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "spani-u-babicky-hudba.mp3",
+    "body": 22.25
+   }
+  },
+  "kapr-bublinka": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "ponozkozrout-hudba.mp3",
+    "body": 26.25
+   }
+  },
+  "talir-pro-pocestneho": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zlatovlaska-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "lodicky-ze-skorapek": {
+   "kulisa": {
+    "file": "mesicni-lodka-kulisa.mp3",
+    "body": 27.75
+   },
+   "hudba": {
+    "file": "mesicni-lodka-hudba.mp3",
+    "body": 24.0
+   }
+  },
+  "hvezdicka-v-jablicku": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "hvezdicka-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "rozbitky": {
+   "kulisa": {
+    "file": "lednice-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "hrnecku-var-hudba.mp3",
+    "body": 27.75
+   }
+  },
+  "zviratka-o-pulnoci": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "noc-v-lese-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "jak-chytit-jeziska": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "kdo-to-dela-hudba.mp3",
+    "body": 24.75
+   }
+  },
+  "stromecek-pro-ptacky": {
+   "kulisa": {
+    "file": "vyprava-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "zachrana-zviratka-hudba.mp3",
+    "body": 23.25
+   }
+  },
+  "barborka": {
+   "kulisa": {
+    "file": "dvanact-mesicku-kulisa.mp3",
+    "body": 28.0
+   },
+   "hudba": {
+    "file": "dvanact-mesicku-hudba.mp3",
+    "body": 26.0
+   }
   }
  }
 }
