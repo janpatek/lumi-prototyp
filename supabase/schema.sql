@@ -282,7 +282,8 @@ declare uid uuid := auth.uid();
 begin
   if uid is null then return; end if;
   delete from public.families where id = uid;
-  delete from auth.users where id = uid;
+  -- člen týmu se do aplikace může přihlásit stejným Google účtem: smažou se jen data aplikace, přihlášení do administrace zůstane
+  delete from auth.users where id = uid and not exists (select 1 from staff where user_id = uid);
 end $$;
 
 -- ---------- Funkce pro administraci ----------
@@ -494,7 +495,7 @@ begin
   select id into uid from families where seq = fseq;
   if uid is null then return; end if;
   delete from public.families where id = uid;
-  delete from auth.users where id = uid;
+  delete from auth.users where id = uid and not exists (select 1 from staff where user_id = uid);  -- účet člena týmu zůstane
   insert into audit_log (actor, action, target, detail) values (auth.uid(), 'family.delete', 'f' || lpad(fseq::text, 5, '0'), 'Smazání rodiny (GDPR)');
 end $$;
 
