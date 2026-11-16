@@ -27,7 +27,7 @@ window.CATEGORIES = [
   { id: 'hrdinove', label: 'Superhrdinové' },
   { id: 'zvirata', label: 'O zvířátkách' },
   { id: 'svatky', label: 'Oslavy a svátky' },
-  { id: 'vanoce', label: 'Vánoce' },
+  { id: 'vanoce', label: 'Vánoce', season: { from: '11-15', to: '01-06' } }, // sezóna: v knihovně hned za Na dobrou noc, mimo ni na konci
   { id: 'zvidave', label: 'Zvídavé' },
 ];
 

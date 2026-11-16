@@ -81,12 +81,21 @@ const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
 // plyšové ikonky kategorií (brand/ikony)
 const CAT_ICONS = new Set(['noc', 'auto', 'dobro', 'zivot', 'sranda', 'lidove', 'hrdinove', 'zvirata', 'svatky', 'vanoce', 'zvidave']);
 const catIcon = (id, cls = 'cat-ico') => (CAT_ICONS.has(id) ? `<img class="${cls}" src="../brand/ikony/kat-${id}.webp" alt="">` : '');
-// Vánoce od 15. listopadu do Tří králů (6. 1.) jako první police, jindy až na konci
-const xmasTime = (d = new Date()) => (d.getMonth() === 10 && d.getDate() >= 15) || d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6);
-const shelfCats = () => {
-  const cats = CATEGORIES.filter((k) => k.id !== 'all' && k.id !== 'vanoce');
-  const x = CATEGORIES.find((k) => k.id === 'vanoce');
-  return !x ? cats : xmasTime() ? [x, ...cats] : [...cats, x];
+// Pořadí polic v knihovně: Na dobrou noc vždy první, hned za ní kategorie, které mají právě sezónu
+// (season: { from: 'MM-DD', to: 'MM-DD' } u kategorie v stories.cs.js, každý rok znovu; přes Nový rok taky),
+// pak ostatní a na konci sezónní kategorie mimo sezónu. Vánoce mají sezónu od 15. 11. do Tří králů (6. 1.).
+const SEASONS = { vanoce: { from: '11-15', to: '01-06' } }; // záloha, kdyby kategorie přišla bez season (katalog z webu)
+const seasonOf = (k) => k.season || SEASONS[k.id] || null;
+const inSeason = (sz, d = new Date()) => {
+  const md = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return sz.from <= sz.to ? md >= sz.from && md <= sz.to : md >= sz.from || md <= sz.to;
+};
+const shelfCats = (d = new Date()) => {
+  const cats = CATEGORIES.filter((k) => k.id !== 'all');
+  const first = cats.filter((k) => k.id === 'noc');
+  const now = cats.filter((k) => k.id !== 'noc' && seasonOf(k) && inSeason(seasonOf(k), d));
+  const off = cats.filter((k) => k.id !== 'noc' && seasonOf(k) && !inSeason(seasonOf(k), d));
+  return [...first, ...now, ...cats.filter((k) => k.id !== 'noc' && !seasonOf(k)), ...off];
 };
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
 // avatar: první písmeno jména v pastelovém kolečku
