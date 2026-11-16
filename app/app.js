@@ -195,25 +195,49 @@ const codeOn = () => !!(S.codeUntil && S.codeUntil > Date.now());
 const IOS_APP = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios');
 const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
+// úvodní obrazovka: jména se v kartě i nadpisu střídají (3. a 6. pád mají u těchto jmen stejný tvar)
+const LOGIN_NAMES = ['Toníkovi', 'Aničce', 'Emě', 'Vendelínovi'];
+let loginName = 0;
+setInterval(() => {
+  const els = document.querySelectorAll('.hero6 .h6-nm');
+  if (!els.length || document.hidden) return;
+  loginName++;
+  els.forEach((el) => { const c = el.cloneNode(); c.textContent = LOGIN_NAMES[loginName % LOGIN_NAMES.length]; el.replaceWith(c); });
+}, 2600);
+
 // ---------- Obrazovky ----------
 const screens = {
-  // úvodní obrazovka: noční obloha (návrh „Noční obloha“, 15. 11. 2026) – vždy tmavá, bez ohledu na režim Den/Noc
-  login: () => `
-    <div class="login night">
-      <div class="sky" aria-hidden="true">${[[70, 10, 0, 6], [110, 80, .8, 4], [190, 18, 1.6, 4], [50, 56, 2.1, 6], [260, 87, 1.1, 5], [330, 8, 2.6, 3], [150, 42, .4, 3], [400, 70, 1.9, 4]].map(([t, l, d, w]) => `<span class="star" style="top:${t}px;left:${l}%;animation-delay:${d}s;width:${w}px;height:${w}px"></span>`).join('')}<span class="shooting"></span></div>
-      <div class="moonbox" aria-hidden="true"><div class="halo"></div><img class="sleepy" src="${MASCOT.sleep}" alt=""><span class="z z1">z</span><span class="z z2">z</span><span class="z z3">Z</span></div>
-      <div class="night-txt">
-        <h1 class="wordmark">ospalek</h1>
-        <p class="night-tag">Pohádky, kde je hlavním hrdinou vaše dítě</p>
-        <p class="night-sub">Se jménem, rodinou a místy, která zná. Čte je ${NARRATOR}.</p>
+  // úvodní obrazovka „Pohádka o vašem dítěti + polička“ (varianta 6, 16. 11. 2026): nahoře jezdí obálky pohádek,
+  // přes ně karta pohádky, ve které se střídají jména dětí (LOGIN_NAMES). Vždy světlá, bez ohledu na režim Den/Noc.
+  login: () => {
+    const covers = [...new Set(STORIES.map((s) => s.cover && s.cover.img).filter(Boolean))].filter((x) => !/hvezdicka/.test(x));
+    const row = (list) => { const imgs = list.map((src) => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join(''); return imgs + imgs; };
+    const n = LOGIN_NAMES[loginName % LOGIN_NAMES.length];
+    return `
+    <div class="login hero6">
+      <div class="h6-top" aria-hidden="true">
+        <div class="h6-row"><div class="h6-track l">${row(covers.slice(0, 8))}</div></div>
+        <div class="h6-row"><div class="h6-track r">${row(covers.slice(8, 16).length >= 4 ? covers.slice(8, 16) : covers.slice(0, 8).reverse())}</div></div>
+        <div class="h6-cardbox"><div class="h6-card">
+          <img class="h6-cov" src="../covers/hvezdicka.jpg" alt="">
+          <div class="h6-ct">Hvězdička, která spadla k <span class="h6-nm">${n}</span></div>
+          <div class="h6-cm">6 min · Na dobrou noc</div>
+          <img class="h6-peek" src="${MASCOT.sleep}" alt="">
+        </div></div>
       </div>
-      <div class="night-foot">
-      ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
-      <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
-      <p class="fine">Přihlášení je dobrovolné. Pomůže, když budete potřebovat poradit nebo změníte telefon. První 3 pohádky jsou zdarma.<br>` : `<button class="btn" data-a="start">Začít</button>
-      <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br>`}<a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
+      <div class="h6-body">
+        <div class="h6-brand"><img src="${MASCOT.mark}" alt=""><span>ospalek</span></div>
+        <h1 class="h6-h">Dneska je pohádka<br>o <span class="h6-nm">${n}</span></h1>
+        <p class="h6-sub">Zadáte jméno, rodinu a vaše místa. Ospalek z nich každý večer udělá pohádku. Čte ji ${NARRATOR}.</p>
+        <div class="h6-foot">
+        ${AUTH.can.google || AUTH.can.apple ? `${loginButtons()}
+        <button class="linkbtn" data-a="start">Pokračovat bez přihlášení</button>
+        <p class="fine">Přihlášení je dobrovolné. Pomůže, když budete potřebovat poradit nebo změníte telefon. První 3 pohádky jsou zdarma.<br>` : `<button class="btn" data-a="start">Začít</button>
+        <p class="fine">Bez registrace a bez e-mailu. První 3 pohádky jsou zdarma.<br>`}<a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
+        </div>
       </div>
-    </div>`,
+    </div>`;
+  },
 
   onb: () => {
     const steps = onbSteps();

@@ -353,43 +353,44 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .login-btns .err { min-height: 0; margin: 0; color: var(--err); font-weight: 700; font-size: 14px; }
 .linkbtn { background: none; border: 0; color: var(--lavender-ink); font: 800 16px 'Nunito', system-ui, sans-serif; text-decoration: underline; padding: 8px; cursor: pointer; }
 
-/* úvodní obrazovka „Noční obloha“: vždy tmavá obloha přes celý displej, bez ohledu na režim Den/Noc */
-.login.night { position: fixed; inset: 0; z-index: 30; overflow-y: auto; overflow-x: hidden; justify-content: flex-start; gap: 0; min-height: 0;
-  padding: calc(40px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom));
-  background: radial-gradient(120% 70% at 50% 0%, #2E2C52 0%, #1C1E33 62%); color: #EEEBFA; }
-.login.night > * { position: relative; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; }
-.login.night .sky { position: absolute; inset: 0; max-width: none; pointer-events: none; }
-.login.night .star { position: absolute; border-radius: 50%; background: #F6D98B; box-shadow: 0 0 10px 2px rgba(246, 217, 139, .6); animation: n-tw 3.2s ease-in-out infinite; }
-.login.night .shooting { position: absolute; top: 120px; right: 30px; width: 90px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff); opacity: 0; animation: n-shoot 7s ease-out infinite 1.5s; }
-.login.night .moonbox { width: 280px; height: 280px; flex: none; display: flex; align-items: center; justify-content: center; }
-.login.night .halo { position: absolute; width: 250px; height: 250px; border-radius: 50%; background: radial-gradient(circle, rgba(201, 195, 236, .45) 0%, rgba(143, 134, 209, .18) 45%, rgba(28, 30, 51, 0) 70%); animation: n-glow 6s ease-in-out infinite; }
-.login.night .sleepy { position: relative; width: 240px; height: auto; filter: none; animation: n-float 6s ease-in-out infinite; }
-.login.night .z { position: absolute; top: 38px; right: 46px; font: 800 22px 'Nunito', system-ui, sans-serif; color: #C9C3EC; opacity: 0; animation: n-z 3.6s ease-out infinite; }
-.login.night .z2 { top: 28px; right: 26px; font-size: 16px; animation-delay: 1.2s; }
-.login.night .z3 { top: 50px; right: 68px; font-size: 28px; animation-delay: 2.4s; }
-.login.night .night-txt { display: flex; flex-direction: column; align-items: center; gap: 0; animation: n-rise .9s ease-out both .2s; }
-.login.night .wordmark { color: #EEEBFA; margin: 0; }
-.login.night .night-tag { margin: 16px 0 0; font-size: 26px; line-height: 32px; font-weight: 800; color: #EEEBFA; }
-.login.night .night-sub { margin: 10px 0 0; font-size: 16px; line-height: 24px; color: #B4B2CF; }
-.login.night .night-foot { margin-top: auto; padding-top: 28px; display: flex; flex-direction: column; gap: 10px; animation: n-rise .9s ease-out both .5s; }
-.login.night .login-btns { max-width: none; }
-.login.night .btn.google { background: #fff; color: #1f1f1f; outline-color: rgba(0, 0, 0, .12); }
-.login.night .btn.apple { background: #fff; color: #000; }
-.login.night .btn[data-a=start] { background: #C9C3EC; color: #1C1E33; }
-.login.night .news { color: #B4B2CF; }
-.login.night .news input { accent-color: #C9C3EC; }
-.login.night .login-btns .err { color: #FFCFB3; }
-.login.night .linkbtn { color: #C9C3EC; }
-.login.night .fine, .login.night .fine a { color: #B4B2CF; }
-@keyframes n-tw { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
-@keyframes n-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-12px) rotate(2deg); } }
-@keyframes n-glow { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: .85; transform: scale(1.08); } }
-@keyframes n-shoot { 0% { opacity: 0; transform: translate(0, 0) rotate(-28deg); } 8% { opacity: 1; } 22%, 100% { opacity: 0; transform: translate(-230px, 120px) rotate(-28deg); } }
-@keyframes n-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-@keyframes n-z { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(26px, -60px) scale(1.2); } }
-@media (prefers-reduced-motion: reduce) {
-  .login.night *, .login.night .shooting, .login.night .z { animation: none !important; }
-  .login.night .z, .login.night .shooting { display: none; }
-  .login.night .night-txt, .login.night .night-foot { opacity: 1; transform: none; }
-}
-@media (max-height: 700px) { .login.night .moonbox { width: 210px; height: 210px; } .login.night .sleepy { width: 180px; } .login.night .halo { width: 190px; height: 190px; } }
+/* úvodní obrazovka „Pohádka o vašem dítěti + polička“: vždy světlá přes celý displej, bez ohledu na režim Den/Noc */
+.login.hero6 { position: fixed; inset: 0; z-index: 30; overflow-y: auto; overflow-x: hidden; justify-content: flex-start; gap: 0; min-height: 0; padding: 0;
+  background: #F7F5FC; color: #2E3150; }
+.hero6 .h6-top { position: relative; flex: none; height: calc(390px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); box-sizing: border-box;
+  background: #C9C3EC; border-radius: 0 0 40px 40px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.hero6 .h6-row { overflow: hidden; transform: rotate(-6deg); margin: 0 -40px; opacity: .85; }
+.hero6 .h6-track { display: flex; gap: 12px; width: max-content; }
+.hero6 .h6-track.l { animation: h6-left 46s linear infinite; }
+.hero6 .h6-track.r { animation: h6-right 50s linear infinite; }
+.hero6 .h6-track img { width: 104px; height: 140px; border-radius: 16px; object-fit: cover; display: block; flex: none; box-shadow: 0 8px 24px rgba(46, 49, 80, .12); background: #ECE9FA; }
+.hero6 .h6-cardbox { position: absolute; inset: env(safe-area-inset-top) 0 0; display: flex; align-items: center; justify-content: center; padding-top: 14px; }
+.hero6 .h6-card { position: relative; width: 188px; border-radius: 22px; background: #fff; padding: 8px; box-sizing: border-box; text-align: left;
+  box-shadow: 0 14px 36px rgba(46, 49, 80, .28); animation: h6-bob 5s ease-in-out infinite; }
+.hero6 .h6-cov { width: 100%; height: 200px; object-fit: cover; border-radius: 16px; display: block; }
+.hero6 .h6-ct { padding: 10px 6px 4px; font-weight: 800; font-size: 15px; line-height: 19px; color: #2E3150; }
+.hero6 .h6-cm { padding: 0 6px 4px; font-size: 12px; font-weight: 600; color: #5E6180; }
+.hero6 .h6-peek { position: absolute; right: -58px; bottom: -14px; width: 84px; height: auto; animation: h6-peek 4s ease-in-out infinite; }
+.hero6 .h6-nm { display: inline-block; color: #5B4FB0; animation: h6-name .6s ease-out both; }
+.hero6 .h6-body { flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 400px; margin: 0 auto; box-sizing: border-box;
+  padding: 20px 24px calc(24px + env(safe-area-inset-bottom)); }
+.hero6 .h6-brand { display: flex; align-items: center; gap: 8px; font-family: var(--logo); font-weight: 600; font-size: 24px; line-height: 1; color: #2E3150; }
+.hero6 .h6-brand img { width: 30px; height: 30px; }
+.hero6 .h6-h { margin: 12px 0 0; font-size: 28px; line-height: 34px; font-weight: 800; color: #2E3150; }
+.hero6 .h6-sub { margin: 8px 0 0; font-size: 15px; line-height: 22px; color: #5E6180; }
+.hero6 .h6-foot { margin-top: auto; padding-top: 20px; width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.hero6 .login-btns { max-width: none; }
+.hero6 .btn.google { background: #fff; color: #1f1f1f; outline: 0; box-shadow: inset 0 0 0 2px #E3DFF2; }
+.hero6 .btn.apple { background: #000; color: #fff; }
+.hero6 .btn[data-a=start] { background: #5B4FB0; color: #fff; }
+.hero6 .news { color: #5E6180; font-size: 13px; }
+.hero6 .news input { accent-color: #5B4FB0; }
+.hero6 .login-btns .err { color: #B3261E; }
+.hero6 .linkbtn { color: #5B4FB0; }
+.hero6 .fine, .hero6 .fine a { color: #5E6180; }
+@keyframes h6-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes h6-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+@keyframes h6-bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(1deg); } }
+@keyframes h6-peek { 0%, 100% { transform: translate(0, 0) rotate(-6deg); } 50% { transform: translate(0, -6px) rotate(4deg); } }
+@keyframes h6-name { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero6 * { animation: none !important; } }
+@media (max-height: 800px) { .hero6 .h6-top { height: calc(310px + env(safe-area-inset-top)); } .hero6 .h6-track img { width: 88px; height: 118px; } .hero6 .h6-cov { height: 140px; } .hero6 .h6-card { width: 150px; } .hero6 .h6-ct { font-size: 14px; line-height: 18px; } .hero6 .h6-body { padding-top: 14px; } .hero6 .h6-sub { font-size: 14px; line-height: 20px; } .hero6 .h6-h { font-size: 24px; line-height: 30px; } }
