@@ -295,8 +295,11 @@ const screens = {
       </section>` : '';
     const heardAny = (S.history || []).some((x) => x.done);
     return `
-      <div class="top">
+      <div class="top lib-top">
         <h1>Pohádky pro ${esc(c.h.acc)}</h1>
+      </div>
+      <div class="lib-bar">
+        <button class="fam-pill" data-a="family" aria-label="Rodina: děti, rodiče a bydliště"><span class="fam-avs">${S.family.children.slice(0, 3).map((k, i) => avatar(k, 'child', i)).join('')}</span>Rodina</button>
         <div class="top-btns"><button class="icon-btn" data-a="history" aria-label="Co jsme už slyšeli">${I.hist}</button><button class="icon-btn" data-a="settings" aria-label="Nastavení">${I.gear}</button></div>
       </div>
       ${banners}
@@ -337,23 +340,32 @@ const screens = {
     : `<div class="empty"><img src="${MASCOT.head}" alt="">Zatím jste žádnou pohádku neposlouchali. Až nějakou pustíte, objeví se tady.</div>`}`;
   },
 
-  settings: () => `
+  // Rodina: všechno, co Ospalek používá v pohádkách (děti, rodiče a blízcí, bydliště)
+  family: () => `
     <div class="top">
-      <h1>Rodina a nastavení</h1>
+      <h1>Rodina</h1>
       <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
     </div>
+    <p class="note" style="margin:-8px 0 4px">Tohle všechno Ospalek používá v pohádkách.</p>
     <div class="section-t">Děti</div>${peopleList('child')}
     <div class="section-t">Rodiče a blízcí</div>${peopleList('parent')}
-    <div class="section-t">Bydliště</div>
-    <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>
-    <div class="section-t">Poslech bez internetu</div>
-    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Každá pohádka, kterou otevřete, se uloží do telefonu sama. Pustíte ji pak v autě nebo na chalupě bez signálu.</span></div></div>
-    <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
-    ${remindSettings()}
+    <div class="section-t">Kde bydlíte</div>
+    <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>`,
+
+  // Nastavení: účet, předplatné a technické věci (rodina má vlastní obrazovku)
+  settings: () => `
+    <div class="top">
+      <h1>Nastavení</h1>
+      <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
+    </div>
     ${accountSettings()}
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native || codeOn() ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.premium && codeOn() ? `Odemčeno kódem do ${new Date(S.codeUntil).toLocaleDateString('cs-CZ')}.` : BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
       ${S.premium ? (codeOn() ? '' : `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>`) : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    ${remindSettings()}
+    <div class="section-t">Poslech bez internetu</div>
+    <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Každá pohádka, kterou otevřete, se uloží do telefonu sama. Pustíte ji pak v autě nebo na chalupě bez signálu.</span></div></div>
+    <div class="row-btns"><button class="btn small" data-a="downloadAll" id="dlAll">${I.down} Stáhnout všechny</button><button class="btn small ghost" data-a="clearOffline">Smazat stažené</button></div>
     ${SYNC.on ? `<div class="section-t">Statistiky</div>
     <div class="person"><div class="nm"><b>Sdílet statistiky poslechu</b><span>${S.analytics ? 'Zapnuto: vidíme, které pohádky vaše rodina poslouchá a jak dlouho.' : 'Vypnuto: poslechy posíláme jen anonymně, bez vazby na vaši rodinu.'}</span></div><button class="btn small ${S.analytics ? 'ghost' : ''}" data-a="analytics" data-v="${S.analytics ? 0 : 1}">${S.analytics ? 'Vypnout' : 'Zapnout'}</button></div>` : ''}
     <p class="note" style="margin-top:6px"><a href="../obchodni-podminky/" target="_blank" rel="noopener">Obchodní podmínky</a> · <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">Ochrana osobních údajů</a></p>
@@ -1589,6 +1601,7 @@ const actions = {
   },
   unsub: () => { if (BILLING.native) { BILLING.manage(); return; } S.premium = false; save(); render(); },
   settings: () => go('settings'),
+  family: () => go('family'),
   // souhlas se statistikami poslechu (sync.js); vypnutí v databázi anonymizuje dosavadní poslechy
   analytics: (el) => { S.analytics = el.dataset.v === '1'; save(); render(); },
   theme: (el) => { S.theme = el.dataset.v === 'auto' ? null : el.dataset.v; save(); applyTheme(); render(); },
@@ -1620,7 +1633,7 @@ function applyTheme() {
 function go(screen) { ui.screen = screen; render(); window.scrollTo(0, 0); }
 
 function render() {
-  if ((ui.screen === 'lib' || ui.screen === 'settings' || ui.screen === 'history') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
+  if ((ui.screen === 'lib' || ui.screen === 'settings' || ui.screen === 'family' || ui.screen === 'history') && !S.family.children.length) { ui.screen = 'onb'; ui.step = 0; }
   const keep = [...document.querySelectorAll('.shelf-row[data-k]')].map((r) => [r.dataset.k, r.scrollLeft]);
   // otevřený přehrávač je uvnitř $app: překreslení obrazovky pod ním (cena, stav předplatného, pohádka dne)
   // ho nesmí smazat, jinak pohádka hraje dál bez ovládání
@@ -1674,7 +1687,7 @@ window.ospalekBack = () => {
     if ($modal.innerHTML) { closeModal(); return true; }
     if (document.getElementById('player')) { closePlayer(); return true; }
     if (ui.screen === 'lib' && ui.shelf) { actions.shelfBack(); return true; }
-    if (ui.screen === 'settings' || ui.screen === 'history') { ui.shelf = null; go('lib'); return true; }
+    if (ui.screen === 'settings' || ui.screen === 'family' || ui.screen === 'history') { ui.shelf = null; go('lib'); return true; }
     if (ui.screen === 'onb' && ui.step > 0) { actions.prev(); return true; }
   } catch (e) { /* zpět nesmí aplikaci shodit */ }
   return false;
