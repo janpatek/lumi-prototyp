@@ -403,3 +403,5 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .fam-avs .av { width: 32px; height: 32px; font-size: 14px; outline: none; box-shadow: 0 0 0 2px var(--surface-raised); }
 .fam-avs .av + .av { margin-left: -9px; }
 .fam-avs .av .ico { width: 16px; height: 16px; }
+/* druhé dítě jen s předplatným Plus */
+.add.plus span { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--honey); color: var(--on-pastel); font-size: 12px; }

@@ -12,8 +12,10 @@ const TTS_URL = (() => {
   return q && /^http:\/\/localhost(:\d+)?$/.test(q) ? q : TTS_URL_DEFAULT;
 })();
 // Limity formulářů: brání tomu, aby rodina (nebo skript) zbytečně pálila kredity za hlas. Worker má vlastní pojistky.
-const LIMIT = { children: 2, parents: 4, heroes: 2, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
+const LIMIT = { children: 2, freeChildren: 1, parents: 4, heroes: 2, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
 // jméno: jen písmena, mezera, spojovník a apostrof
+// zdarma jde přidat jedno dítě, s předplatným Plus dvě (kdo už má víc dětí z dřívějška, o ně nepřijde)
+const kidsMax = () => (S.premium ? LIMIT.children : LIMIT.freeChildren);
 const cleanName = (s, max = LIMIT.name) => String(s || '').replace(/[^\p{L}\s'’-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, max);
 const cleanText = (s, max) => String(s || '').replace(/[\u0000-\u001f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, max);
 // Změny údajů, které mění text pohádek (jméno, jídlo, zvíře, obec, nové dítě…), po dokončení úvodního nastavení:
@@ -449,15 +451,17 @@ function peopleList(kind) {
       <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
     </div>`).join('')}</div>
-    ${arr.length < LIMIT[kind === 'child' ? 'children' : 'parents']
+    ${arr.length < (kind === 'child' ? kidsMax() : LIMIT.parents)
       ? `<button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`
-      : `<p class="note">${kind === 'child' ? `Víc než ${LIMIT.children} děti přidat nejde.` : `Víc než ${LIMIT.parents} dospělé přidat nejde.`}</p>`}`;
+      : kind === 'child' && arr.length < LIMIT.children
+        ? `<button class="add plus" data-a="paywall">+ Přidat druhé dítě <span>s ${APP_NAME} Plus</span></button>`
+        : `<p class="note">${kind === 'child' ? `Víc než ${LIMIT.children} děti přidat nejde.` : `Víc než ${LIMIT.parents} dospělé přidat nejde.`}</p>`}`;
 }
 
 const stepKids = () => `
   <img class="onb-mascot" src="${MASCOT.head}" alt="">
   <h1>Kdo bude hlavní hrdina?</h1>
-  <p class="lead">Přidejte své děti, nejvýš ${LIMIT.children}. Pohádky budou o nich – s jejich jménem, oblíbeným jídlem i zvířátkem.</p>
+  <p class="lead">Přidejte své dítě. Pohádky budou o něm – s jeho jménem, oblíbeným jídlem i zvířátkem.${S.premium ? ` Můžete přidat až ${LIMIT.children} děti.` : ` Druhé dítě přidáte s ${APP_NAME} Plus.`}</p>
   ${peopleList('child')}
   <div class="footer-actions"><button class="btn" data-a="next" ${S.family.children.length ? '' : 'disabled'}>Pokračovat</button></div>`;
 
@@ -696,7 +700,7 @@ function savePerson() {
   if (name) forms.nom = name;
   const arr = isChild ? S.family.children : S.family.parents;
   let p = arr.find((x) => x.id === ui.edit.id);
-  if (!p && arr.length >= LIMIT[isChild ? 'children' : 'parents']) { closeModal(); return; }
+  if (!p && arr.length >= (isChild ? kidsMax() : LIMIT.parents)) { closeModal(); if (isChild && arr.length < LIMIT.children) paywall(); return; }
   const next = isChild
     ? { forms, gender: ui.edit.gender || 'm', age: +document.getElementById('pAge').value, food: cleanText(document.getElementById('pFood').value, LIMIT.item), animal: cleanText(document.getElementById('pAnimal').value, LIMIT.item) }
     : { forms, role: ui.edit.role, name: !!name };
@@ -749,7 +753,8 @@ function paywall() {
       <ul class="perks">
         <li>Všechny pohádky a pravidelně nové</li>
         <li>Pohádky na dobrou noc, do auta i ze života</li>
-        <li>Pro jeden účet, až ${LIMIT.children} děti, na všech vašich zařízeních</li>
+        <li>Až ${LIMIT.children} děti: pohádky o každém zvlášť i o obou spolu (zdarma jedno dítě)</li>
+        <li>Jeden účet na všech vašich zařízeních</li>
         <li>Poslech bez internetu: pohádky si stáhnete na cestu</li>
         <li>Brzy i časovač usínání</li>
       </ul>
