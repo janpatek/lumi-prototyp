@@ -195,14 +195,19 @@ const codeOn = () => !!(S.codeUntil && S.codeUntil > Date.now());
 const IOS_APP = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios');
 const yrs = (n) => `${n} ${n >= 2 && n <= 4 ? 'roky' : 'let'}`;
 
-// úvodní obrazovka: jména se v kartě i nadpisu střídají (3. a 6. pád mají u těchto jmen stejný tvar)
-const LOGIN_NAMES = ['Toníkovi', 'Aničce', 'Emě', 'Vendelínovi'];
+// úvodní obrazovka: jména se v kartě i nadpisu střídají (3. a 6. pád mají u těchto jmen stejný tvar);
+// u holčičích jmen se ukáže obálka s holčičkou (hvezdicka-f.jpg)
+const LOGIN_NAMES = [['Vendelínovi'], ['Mariánce', 1], ['Olivce', 1], ['Kubíkovi'], ['Nině', 1], ['Sebastianovi'], ['Tondovi'], ['Josefíně', 1], ['Frederikovi'], ['Matějovi'], ['Damianovi']];
+const LOGIN_COVER = (i) => `../covers/hvezdicka${LOGIN_NAMES[i % LOGIN_NAMES.length][1] ? '-f' : ''}.jpg`;
 let loginName = 0;
+if (!S.user) new Image().src = LOGIN_COVER(1);
 setInterval(() => {
   const els = document.querySelectorAll('.hero6 .h6-nm');
   if (!els.length || document.hidden) return;
   loginName++;
-  els.forEach((el) => { const c = el.cloneNode(); c.textContent = LOGIN_NAMES[loginName % LOGIN_NAMES.length]; el.replaceWith(c); });
+  els.forEach((el) => { const c = el.cloneNode(); c.textContent = LOGIN_NAMES[loginName % LOGIN_NAMES.length][0]; el.replaceWith(c); });
+  const cov = document.querySelector('.hero6 .h6-cov');
+  if (cov) cov.src = LOGIN_COVER(loginName);
 }, 2600);
 
 // ---------- Obrazovky ----------
@@ -212,14 +217,14 @@ const screens = {
   login: () => {
     const covers = [...new Set(STORIES.map((s) => s.cover && s.cover.img).filter(Boolean))].filter((x) => !/hvezdicka/.test(x));
     const row = (list) => { const imgs = list.map((src) => `<img src="${src}" alt="" loading="lazy" decoding="async">`).join(''); return imgs + imgs; };
-    const n = LOGIN_NAMES[loginName % LOGIN_NAMES.length];
+    const n = LOGIN_NAMES[loginName % LOGIN_NAMES.length][0];
     return `
     <div class="login hero6">
       <div class="h6-top" aria-hidden="true">
         <div class="h6-row"><div class="h6-track l">${row(covers.slice(0, 8))}</div></div>
         <div class="h6-row"><div class="h6-track r">${row(covers.slice(8, 16).length >= 4 ? covers.slice(8, 16) : covers.slice(0, 8).reverse())}</div></div>
         <div class="h6-cardbox"><div class="h6-card">
-          <img class="h6-cov" src="../covers/hvezdicka.jpg" alt="">
+          <img class="h6-cov" src="${LOGIN_COVER(loginName)}" alt="">
           <div class="h6-ct">Hvězdička, která spadla k <span class="h6-nm">${n}</span></div>
           <div class="h6-cm">6 min · Na dobrou noc</div>
           <img class="h6-peek" src="${MASCOT.sleep}" alt="">
