@@ -227,6 +227,22 @@ d=$(mktemp -d) && cd $d && printf '[mid]\nbasicConstraints=critical,CA:true\n1.2
   && cd - && node supabase/functions/store/test.mjs $d
 ```
 
+## Kupóny a kódy (bez RevenueCat)
+
+Rodina napíše kód do okna **Mám kód** (nabídka předplatného nebo Nastavení → Předplatné → Uplatnit kód; na iPhonu okno
+není kvůli pravidlu App Store 3.1.1). `app_redeem_code` nejdřív zkusí kódy pro recenzenty (`access_codes`, v databázi jen
+otisk), pak kupóny z administrace (**Kupony a partneři**: tabulky `coupons`, `coupon_codes`, `coupon_redemptions`).
+Přístup drží jen naše databáze: `access_grants.until` a `families.promo_until`, aplikace si datum přečte přes
+`app_code_until()` při spuštění, takže platí i na jiném telefonu se stejným přihlášeným účtem. Sloučení účtů
+(`app_merge_from`) přenese i kupóny. Žádná další služba ani edge funkce v tom není.
+
+- Pravidla: neznámý kód se počítá do limitu 10 pokusů za hodinu, jednorázový kód jen jednou, kupón jednou na účet,
+  „jen pro nové rodiny“, pozastavení, platnost od–do, limit uplatnění. Další kupón prodlouží odemčení od konce předchozího.
+  Slevové kupóny (procenta, částka) v aplikaci nejdou, slevu dává jen obchod.
+- Produkce: po `20261111_kupony.sql` spustit jednou `migrations/20261116_kupony_bez_revenuecat.sql`. Ta odstraní části pro
+  RevenueCat. Pak smazat edge funkci `coupon-grant` a secret `REVENUECAT_SECRET_KEY`, pokud existuje.
+- Test: `cd supabase && node test-kupony.mjs`. Lokálně (`dev-server.mjs`) jsou kupóny `TEST30`, `ZNAMI-TEST-0001`, `SLEVA20`.
+
 ## Lokální vyzkoušení bez účtu
 
 ```bash

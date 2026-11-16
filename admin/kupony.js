@@ -66,7 +66,14 @@ const CPN = (() => {
     { id: 'c8', name: 'Kompenzace z podpory', purpose: 'podpora', gives: 'months', value: 1, mode: 'unique', prefix: 'OMLUVA', count: 8, newOnly: false, from: ago(120), to: null, limit: null, created: ago(120), rate: 0.02 },
   ];
   if (D.live) demo.length = 0;
-  const campaigns = [...demo, ...st.campaigns.map(revive)];
+  // ostrý režim s databází: kampaně, kódy a uplatnění jsou v Supabase (admin_coupons), změny se tam hned ukládají
+  const DB = D.live && D.coupons ? D.coupons : null;
+  const fid = (seq) => (seq ? 'f' + String(seq).padStart(5, '0') : null);
+  const fromDb = (k) => ({ id: k.id, name: k.name, purpose: k.purpose, gives: k.gives, value: k.value, dur: k.dur || undefined, months: k.months || undefined,
+    mode: k.mode, code: k.code || undefined, prefix: k.prefix || undefined, newOnly: k.new_only, from: new Date(k.valid_from), to: k.valid_to ? new Date(k.valid_to) : null,
+    limit: k.max_uses, partner: k.partner || undefined, comm: k.comm || undefined, created: new Date(k.created_at), paused: k.paused, db: true });
+  const campaigns = DB ? DB.campaigns.map(fromDb) : [...demo, ...st.campaigns.map(revive)];
+  const fail = (e) => toast('Neuloženo do databáze: ' + ((e && e.message) || 'chyba'));
   const NOTES = ['sestra', 'kamarádka z práce', 'sousedi', 'kmotra', 'babička a děda', 'spolužák', 'rodiče z hřiště', 'švagrová', 'kolega', 'teta'];
 
   // jednorázové kódy ukázkových kampaní vznikají ze semínka, ať jsou pořád stejné
@@ -75,11 +82,13 @@ const CPN = (() => {
     const r = mk(4242 + k);
     codes[c.id] = Array.from({ length: c.count }, (_, i) => ({ c: `${c.prefix}-${rndChars(4, r)}-${rndChars(4, r)}`, note: c.purpose === 'znami' ? NOTES[i % NOTES.length] : '', used: null }));
   });
-  Object.entries(st.codes).forEach(([cid, list]) => { codes[cid] = [...(codes[cid] || []), ...list]; });
+  if (DB) DB.codes.forEach((x) => { (codes[x.coupon_id] = codes[x.coupon_id] || []).push({ c: x.code, note: x.note || '', used: fid(x.used) }); });
+  else Object.entries(st.codes).forEach(([cid, list]) => { codes[cid] = [...(codes[cid] || []), ...list]; });
+  campaigns.forEach((c) => { if (c.db && c.mode === 'unique') c.count = (codes[c.id] || []).length; });
 
   // Uplatnění: ukázkově se rodiny registrované v době kampaně přiřadí ke kódu (deterministicky podle čísla rodiny)
-  const red = [];
-  const byFam = new Map();
+  const red = DB ? DB.redemptions.map((x) => ({ cid: x.coupon_id, fam: fid(x.fseq), code: x.code, at: new Date(x.at) })) : [];
+  const byFam = new Map(red.filter((x) => x.fam).map((x) => [x.fam, x]));
   const fams = D.families.filter((f) => f.email).slice().sort((a, b) => a.created - b.created);
   fams.forEach((f) => {
     const r = mk(f.n * 31 + 7);
@@ -97,7 +106,7 @@ const CPN = (() => {
   });
 
   const save = () => {
-    st.campaigns = campaigns.filter((c) => c.local);
+    st.campaigns = campaigns.filter((c) => c.local && !c.db);
     st.partners = partners.filter((p) => p.local);
     ls.set(st);
   };
@@ -107,7 +116,7 @@ const CPN = (() => {
     while (out.length < n) { const c = `${prefix}-${rndChars(4)}-${rndChars(4)}`; if (!taken.has(c)) { taken.add(c); out.push(c); } }
     return out;
   }
-  const status = (c) => (st.paused[c.id] ? 'paused' : c.from > NOW ? 'planned' : c.to && c.to < NOW ? 'ended' : c.limit && stats(c).uses >= c.limit ? 'full' : 'active');
+  const status = (c) => (st.paused[c.id] || c.paused ? 'paused' : c.from > NOW ? 'planned' : c.to && c.to < NOW ? 'ended' : c.limit && stats(c).uses >= c.limit ? 'full' : 'active');
   const STATUS = { active: ['Aktivní', 'mint'], planned: ['Naplánováno', 'sky'], paused: ['Pozastaveno', 'honey'], ended: ['Skončilo', 'line'], full: ['Vyčerpáno', 'line'] };
 
   const statCache = new Map();
@@ -162,19 +171,30 @@ const CPN = (() => {
       campaigns.unshift(c);
       if (c.mode === 'unique') {
         const list = generate(c.prefix, c.count).map((x, i) => ({ c: x, note: notes[i] || '', used: null }));
-        st.codes[c.id] = list; codes[c.id] = list;
+        if (!DB) st.codes[c.id] = list;
+        codes[c.id] = list;
+      }
+      if (DB) {
+        c.db = true;
+        D.couponApi.save({ ...c, from: c.from.toISOString(), to: c.to ? c.to.toISOString() : null, created: undefined, local: undefined }, (codes[c.id] || []).map((x) => ({ c: x.c, note: x.note })))
+          .then(() => toast('Uloženo do databáze, kód jde uplatnit v aplikaci')).catch(fail);
+        return c;
       }
       save(); API.log('coupon.create', c.code || c.prefix, `${c.name} · ${describe(c)}${c.mode === 'unique' ? ` · ${c.count} kódů` : ''}`);
       return c;
     },
     addCodes(cid, n, notes = []) {
       const c = this.get(cid), list = generate(c.prefix, n).map((x, i) => ({ c: x, note: notes[i] || '', used: null }));
-      st.codes[cid] = [...(st.codes[cid] || []), ...list]; codes[cid] = [...(codes[cid] || []), ...list];
+      if (!DB) st.codes[cid] = [...(st.codes[cid] || []), ...list];
+      codes[cid] = [...(codes[cid] || []), ...list];
       c.count = codes[cid].length; save(); invalidate();
+      if (DB) D.couponApi.addCodes(cid, list.map((x) => ({ c: x.c, note: x.note }))).catch(fail);
       API.log('coupon.codes', c.prefix, `+${n} kódů do „${c.name}“`);
     },
     togglePause(cid) {
-      const c = this.get(cid); st.paused[cid] = !st.paused[cid]; if (!st.paused[cid]) delete st.paused[cid];
+      const c = this.get(cid);
+      if (DB) { c.paused = !c.paused; D.couponApi.pause(cid, c.paused).catch(fail); return; }
+      st.paused[cid] = !st.paused[cid]; if (!st.paused[cid]) delete st.paused[cid];
       save(); API.log('coupon.pause', c.code || c.prefix, st.paused[cid] ? 'Pozastaveno' : 'Obnoveno');
     },
     addPartner(p) { p.id = 'p' + Date.now(); p.local = true; partners.push(p); save(); API.log('partner.create', p.name, p.handle || ''); return p; },

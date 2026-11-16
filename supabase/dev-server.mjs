@@ -8,7 +8,7 @@
 //
 // Aplikace: http://localhost:5174/app/?db=http://localhost:54321
 // Administrace: http://localhost:5174/admin/?db=http://localhost:54321  (přihlášení admin@example.cz / ospalek-test)
-// Kód pro odemčení Plus: OSPALEK-TEST (Odemknout → Mám kód)
+// Kód pro odemčení Plus: OSPALEK-TEST (Odemknout → Mám kód), kupóny z administrace: TEST30, ZNAMI-TEST-0001, SLEVA20
 // Generátor pohádek v administraci: bez klíče nabídne simulaci; se skutečným textem `ANTHROPIC_API_KEY=… node dev-server.mjs`
 // (klíč jen v proměnné prostředí, nikdy do souboru v repozitáři).
 
@@ -37,6 +37,14 @@ await db.query(`insert into auth.users (id, email, password) values ($1, $2, $3)
 await db.query(`insert into public.staff (user_id, name, role) values ($1, $2, 'owner')`, [staffId, STAFF.name]);
 // kód pro odemčení Plus jen pro lokální zkoušky (v aplikaci: Odemknout → Mám kód → OSPALEK-TEST)
 await db.query(`insert into public.access_codes (code_hash, label, days) values (encode(sha256(convert_to('OSPALEK-TEST', 'UTF8')), 'hex'), 'Jen lokálně', 30)`);
+// testovací kupóny (Mám kód): TEST30 (30 dní zdarma, jen nové rodiny), ZNAMI-TEST-0001 a -0002 (2 měsíce, jednorázové), SLEVA20 (sleva = v aplikaci nejde)
+await db.exec(`
+  insert into public.coupons (id, name, purpose, gives, value, mode, code, new_only, valid_from) values
+    ('ctest1', 'Test: 30 dní', 'marketing', 'trial', 30, 'shared', 'TEST30', true, now() - interval '1 day'),
+    ('ctest3', 'Test: sleva', 'marketing', 'percent', 20, 'shared', 'SLEVA20', true, now() - interval '1 day');
+  insert into public.coupons (id, name, purpose, gives, value, mode, prefix, new_only, valid_from) values ('ctest2', 'Test: známí', 'znami', 'months', 2, 'unique', 'ZNAMI', false, now() - interval '1 day');
+  insert into public.coupon_codes (code, coupon_id, note) values ('ZNAMI-TEST-0001', 'ctest2', 'test'), ('ZNAMI-TEST-0002', 'ctest2', 'test');
+`);
 
 // popis funkcí: názvy a typy argumentů, jestli vrací tabulku
 const fns = new Map((await db.query(`

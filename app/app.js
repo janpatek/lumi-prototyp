@@ -373,6 +373,7 @@ const screens = {
     <div class="section-t">Předplatné</div>
     <div class="person"><div class="av ${S.premium ? 'honey' : ''}">${S.premium ? I.star : I.lock}</div><div class="nm"><b>${S.premium ? `${APP_NAME} Plus${BILLING.native || codeOn() ? '' : ' (demo)'}` : 'Zdarma – 3 pohádky'}</b><span>${S.premium && codeOn() ? `Odemčeno kódem do ${new Date(S.codeUntil).toLocaleDateString('cs-CZ')}.` : BILLING.native ? (S.premium ? 'Spravujete ho v nastavení předplatných App Store nebo Google Play.' : 'Koupili jste ho už na jiném zařízení? Klepněte na Odemknout → Obnovit nákupy.') : 'Předplatné se kupuje v mobilní aplikaci.'}</span></div>
       ${S.premium ? (codeOn() ? '' : `<button class="btn small ghost" data-a="unsub">${BILLING.native ? 'Spravovat' : 'Zrušit'}</button>`) : '<button class="btn small" data-a="paywall">Odemknout</button>'}</div>
+    ${SYNC.on && !IOS_APP ? '<p class="note" style="margin-top:6px">Máte kód nebo kupón? <a href="#" data-a="codeSheet">Uplatnit kód</a></p>' : ''}
     ${remindSettings()}
     <div class="section-t">Poslech bez internetu</div>
     <div class="person"><div class="av sky">${I.down}</div><div class="nm"><b id="offStat">Zjišťuji, co je staženo…</b><span>Každá pohádka, kterou otevřete, se uloží do telefonu sama. Pustíte ji pak v autě nebo na chalupě bez signálu.</span></div></div>
@@ -777,14 +778,15 @@ function paywall() {
     </div></div>`;
 }
 
-// Kód, který odemkne Plus bez platby (recenzenti Google Play a App Store, dárky). Ověří ho server, v aplikaci žádný kód není.
+// Kód, který odemkne Plus bez platby: kód pro recenzenty obchodů nebo kupón z administrace (Kupony a partneři).
+// Ověří ho server (app_redeem_code), v aplikaci žádný kód není. Přístup drží jen naše databáze.
 function codeSheet() {
   $modal.innerHTML = `
     <div class="overlay" data-a="closeModal"><div class="sheet" data-stop>
       <button class="icon-btn sheet-close" data-a="closeModal" aria-label="Zavřít">${I.close}</button>
       <img class="sheet-mascot" src="${MASCOT.mark}" alt="">
       <h2 style="text-align:center">Máte kód?</h2>
-      <p class="lead" style="text-align:center">Kód od nás odemkne ${APP_NAME} Plus na několik dní, bez platby a bez předplatného.</p>
+      <p class="lead" style="text-align:center">Kód nebo kupón od nás odemkne ${APP_NAME} Plus na určitou dobu, bez platby a bez předplatného. Po skončení se nic samo neplatí.</p>
       <input id="codeIn" maxlength="40" placeholder="Kód" autocomplete="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;text-align:center">
       <p class="fine" style="text-align:center" id="codeMsg"></p>
       <button class="btn" data-a="redeem">Uplatnit kód</button>
@@ -1608,10 +1610,12 @@ const actions = {
     const r = await SYNC.call('app_redeem_code', { code }).catch(() => undefined);
     el.disabled = false;
     if (r && r.ok && r.until) {
-      S.codeUntil = r.until; S.premium = true; save(); closeModal(); render();
+      S.codeUntil = Math.max(r.until, S.codeUntil || 0); S.premium = true; save(); closeModal(); render();
+      toast(r.msg || `Odemčeno do ${new Date(S.codeUntil).toLocaleDateString('cs-CZ')}.`);
       return;
     }
-    msg.innerHTML = `<span class="err">${r === undefined ? 'Kód se teď nepodařilo ověřit. Zkontrolujte připojení k internetu a zkuste to znovu.' : r && r.error === 'tries' ? 'Moc pokusů. Zkuste to prosím za hodinu.' : 'Tenhle kód neznáme nebo už neplatí.'}</span>`;
+    // r.msg: kupón existuje, ale teď ho uplatnit nejde (už použitý, jen pro nové rodiny, slevový…), text posílá server
+    msg.innerHTML = `<span class="err">${esc(r === undefined ? 'Kód se teď nepodařilo ověřit. Zkontrolujte připojení k internetu a zkuste to znovu.' : r && r.error === 'tries' ? 'Moc pokusů. Zkuste to prosím za hodinu.' : (r && r.msg) || 'Tenhle kód neznáme nebo už neplatí.')}</span>`;
   },
   unsub: () => { if (BILLING.native) { BILLING.manage(); return; } S.premium = false; save(); render(); },
   settings: () => go('settings'),
@@ -1723,6 +1727,13 @@ render();
 if (!BILLING.native && !WEB_DEMO && S.premium && !codeOn()) { S.premium = false; store.set(S); }
 // odemčení kódem platí vedle předplatného z obchodu; po vypršení kódu rozhoduje jen obchod
 const billingChecked = BILLING.status().then((v) => { if (v === null) return; const p = v || codeOn(); if (p !== S.premium) { S.premium = p; save(); render(); } }).catch(() => {});
+// odemčení kódem nebo kupónem podle databáze: platí i na jiném telefonu po přihlášení do stejného účtu (jen prodlužuje, nikdy nezkracuje)
+if (SYNC.on) billingChecked.then(() => SYNC.call('app_code_until')).then((ms) => {
+  if (!ms || ms <= (S.codeUntil || 0)) return;
+  S.codeUntil = ms;
+  if (!S.premium && codeOn()) { S.premium = true; if (!document.getElementById('player')) render(); }
+  save();
+}).catch(() => {});
 checkTrial(false);
 pruneOffline();
 const refreshDaily = () => DAILY.refresh(() => { if (['lib', 'settings'].includes(ui.screen) && !document.getElementById('player') && !$modal.innerHTML) render(); });

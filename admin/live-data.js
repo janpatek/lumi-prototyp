@@ -355,6 +355,14 @@ const LIVE = (() => {
         return j;
       },
     };
+    // Kupóny z databáze (supabase/migrations/20261111_kupony.sql a 20261116_kupony_bez_revenuecat.sql). Role bez práva na kupóny nebo databáze bez migrace = null,
+    // administrace pak kupóny drží jen v prohlížeči jako dřív.
+    D.coupons = me && ['owner', 'support', 'finance'].includes(me.role) ? await rpc('admin_coupons').catch(() => null) : null;
+    D.couponApi = {
+      save: (p, codes) => rpc('admin_coupon_save', { p, codes }),
+      addCodes: (cid, codes) => rpc('admin_coupon_add_codes', { cid, codes }),
+      pause: (cid, pause) => rpc('admin_coupon_pause', { cid, pause }),
+    };
     D.deleteFamily = (f) => rpc('admin_delete_family', { fseq: f.n });
     D.log = (action, target, detail) => rpc('admin_log', { action, target: String(target || ''), detail: String(detail || '') }).catch(() => {});
     return D;

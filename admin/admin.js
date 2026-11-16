@@ -277,7 +277,11 @@ const legend = () => '<div class="legend"><span><i class="key" style="--c:var(--
 const LIVE_GAPS = {
   navstevy: 'Návštěvy webu zatím neměříme (doplní se Plausible), proto jsou nulové.',
   hlas: 'Kredity jsou skutečná spotřeba z ElevenLabs (přes tts-worker), Kč odhad podle tarifu a kurzu ČNB.',
-  kupony: 'Kódy zatím nejde uplatnit v aplikaci; kampaně, které tu založíš, se drží jen v tomhle prohlížeči.',
+  get kupony() {
+    return D.coupons
+      ? 'Kampaně a kódy jsou v databázi a rodiny je uplatní v aplikaci přes „Mám kód“ (Android a web, na iPhonu to App Store nedovoluje). Přístup drží jen naše databáze. Slevy z ceny jdou jen přes obchod, v aplikaci se neuplatní. Partneři a výplaty provizí zatím jen v tomhle prohlížeči.'
+      : 'Kupóny nejsou v databázi (chybí migrace supabase/migrations/20261116_kupony_bez_revenuecat.sql nebo na ně nemáš právo); kampaně, které tu založíš, se drží jen v tomhle prohlížeči.';
+  },
   helpdesk: 'Helpdesk zatím nepřijímá e-maily ani zprávy z aplikace.',
   prehled: 'Přehrání a hodiny poslechu zahrnují i anonymní poslechy; aktivní uživatelé jen uživatelé se souhlasem se statistikami. Tržby a MRR jsou platby z App Store a Google Play (stránka Předplatné).',
   pouzivani: 'Přehrání, pohádky a heatmapa zahrnují i anonymní poslechy; aktivní uživatelé a retence jen uživatelé se souhlasem se statistikami.',
