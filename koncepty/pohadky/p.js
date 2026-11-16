@@ -11,7 +11,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     ages: [3, 9],
     mood: 'lullaby',
     cover: { emoji: '🐷', g1: '#3e2723', g2: '#ffca28' },
-    title: () => `Zlaté prasátko`,
+    title: (c) => `Uvidí ${c.H} zlaté prasátko?`,
     text: (c) => {
       const g = c.g, n = c.n;
       // vaří obvykle maminka; když v profilu není, vaří ten rodič, který tam je
@@ -106,7 +106,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     ages: [3, 8],
     mood: 'adventure',
     cover: { emoji: '🐟', g1: '#0d47a1', g2: '#80deea' },
-    title: () => `Kapr Bublinka`,
+    title: (c) => `Kapr Bublinka ve vaně u ${c.h.gen}`,
     text: (c) => {
       const g = c.g, n = c.n;
       const m = [c.p1, c.p2].find((p) => p && p.nom === 'maminka') || c.p1;
@@ -302,7 +302,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     ages: [3, 8],
     mood: 'lullaby',
     cover: { emoji: '🍎', g1: '#b71c1c', g2: '#ffcc80' },
-    title: () => `Hvězdička v jablíčku`,
+    title: (c) => `${c.H} ${c.n('hledá', 'hledají')} hvězdičku v jablíčku`,
     text: (c) => {
       const g = c.g, n = c.n;
       const m = [c.p1, c.p2].find((p) => p && p.g(false, true)) || c.p1;
@@ -518,7 +518,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     ages: [3, 8],
     mood: 'adventure',
     cover: { emoji: '🔔', g1: '#7a1f2b', g2: '#e0a84f' },
-    title: () => `Jak chytit Ježíška`,
+    title: (c) => `Jak ${c.H} ${c.g('chytal', 'chytala', 'chytali', 'chytaly')} Ježíška`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -589,7 +589,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     ages: [2, 6],
     mood: 'lullaby',
     cover: { emoji: '🐦', g1: '#1e3a5f', g2: '#a8d8ea' },
-    title: () => `Stromeček pro ptáčky`,
+    title: (c) => `${c.H} ${c.n('zdobí', 'zdobí')} stromeček pro ptáčky`,
     text: (c) => {
       const { g, n } = c;
       return [
@@ -632,7 +632,7 @@ window.STORIES_DRAFT = (window.STORIES_DRAFT || []).concat([
     ages: [4, 9],
     mood: 'lullaby',
     cover: { emoji: '🌸', g1: '#5d4157', g2: '#f6d6e0' },
-    title: (c) => `Barborka ${c.h.gen}`,
+    title: (c) => `${c.H} ${c.n('jde', 'jdou')} s dědou pro barborku`,
     text: (c) => {
       const { g, n } = c;
       return [
