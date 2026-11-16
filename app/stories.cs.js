@@ -27,6 +27,7 @@ window.CATEGORIES = [
   { id: 'hrdinove', label: 'Superhrdinové' },
   { id: 'zvirata', label: 'O zvířátkách' },
   { id: 'svatky', label: 'Oslavy a svátky' },
+  { id: 'vanoce', label: 'Vánoce' },
   { id: 'zvidave', label: 'Zvídavé' },
 ];
 

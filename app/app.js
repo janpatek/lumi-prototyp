@@ -74,11 +74,18 @@ const I = {
 };
 const MASCOT = { mark: '../brand/maskot-3d/web/ospalek-mark.webp', head: '../brand/maskot-3d/web/ospalek-hlava.webp', sleep: '../brand/maskot-3d/web/ospalek-spi.webp', trip: '../brand/maskot-3d/web/ospalek-vyprava.webp' };
 // každá kategorie má svou pastelovou barvu (brand manuál)
-const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)', sranda: 'var(--honey)', lidove: 'var(--peach)', hrdinove: 'var(--sky)', zvirata: 'var(--mint)', svatky: 'var(--peach)', zvidave: 'var(--sky)' };
+const CAT_COLOR = { noc: 'var(--lavender)', auto: 'var(--sky)', dobro: 'var(--peach)', zivot: 'var(--mint)', sranda: 'var(--honey)', lidove: 'var(--peach)', hrdinove: 'var(--sky)', zvirata: 'var(--mint)', svatky: 'var(--peach)', vanoce: 'var(--honey)', zvidave: 'var(--sky)' };
 const catColor = (st) => CAT_COLOR[st.cats[0]] || 'var(--lavender)';
 // plyšové ikonky kategorií (brand/ikony)
 const CAT_ICONS = new Set(['noc', 'auto', 'dobro', 'zivot', 'sranda', 'lidove', 'hrdinove', 'zvirata', 'svatky', 'zvidave']);
 const catIcon = (id, cls = 'cat-ico') => (CAT_ICONS.has(id) ? `<img class="${cls}" src="../brand/ikony/kat-${id}.webp" alt="">` : '');
+// Vánoce od 15. listopadu do Tří králů (6. 1.) jako první police, jindy až na konci
+const xmasTime = (d = new Date()) => (d.getMonth() === 10 && d.getDate() >= 15) || d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6);
+const shelfCats = () => {
+  const cats = CATEGORIES.filter((k) => k.id !== 'all' && k.id !== 'vanoce');
+  const x = CATEGORIES.find((k) => k.id === 'vanoce');
+  return !x ? cats : xmasTime() ? [x, ...cats] : [...cats, x];
+};
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
 // avatar: první písmeno jména v pastelovém kolečku
 const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
@@ -274,7 +281,7 @@ const screens = {
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžete nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změnit to můžete kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       ${shelf('fav', 'Oblíbené', favs, `<span class="shelf-star">${I.star}</span>`)}
       ${heardAny ? shelf('unheard', 'Ještě neslyšené', rank(STORIES.filter((s) => !heardCount(s.id)))) : ''}
-      ${CATEGORIES.filter((k) => k.id !== 'all').map((k) => shelf(k.id, k.label, rank(STORIES.filter((s) => s.cats.includes(k.id))), catIcon(k.id))).join('')}
+      ${shelfCats().map((k) => shelf(k.id, k.label, rank(STORIES.filter((s) => s.cats.includes(k.id))), catIcon(k.id))).join('')}
       <button class="btn ghost all-btn" data-a="shelf" data-id="all">Všechny pohádky (${STORIES.length})</button>`;
   },
 

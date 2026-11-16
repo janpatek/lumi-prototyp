@@ -3,7 +3,7 @@
 // Pravidla vycházejí z tools/pohadky/ZADANI.md; když se tam změní, uprav i SYSTEM níže.
 
 export const MODEL = 'claude-opus-5-5';
-export const CATS = { noc: 'Na dobrou noc', auto: 'Do auta', dobro: 'Dobrodružství', zivot: 'Ze života', sranda: 'Srandovní', lidove: 'Klasické pohádky', hrdinove: 'Superhrdinové', zvirata: 'O zvířátkách', svatky: 'Oslavy a svátky', zvidave: 'Zvídavé' };
+export const CATS = { noc: 'Na dobrou noc', auto: 'Do auta', dobro: 'Dobrodružství', zivot: 'Ze života', sranda: 'Srandovní', lidove: 'Klasické pohádky', hrdinove: 'Superhrdinové', zvirata: 'O zvířátkách', svatky: 'Oslavy a svátky', vanoce: 'Vánoce', zvidave: 'Zvídavé' };
 export const LENGTHS = { 5: [520, 600, '15–22'], 10: [1050, 1150, '25–35'], 15: [1600, 1750, '35–50'] };
 // Šablona se v aplikaci i administraci spouští jako kód: nic mimo kontext pohádky (stejná kontrola je v admin/generator.js).
 export const UNSAFE = /\b(window|document|globalThis|self|top|parent|frames|opener|fetch|XMLHttpRequest|WebSocket|EventSource|localStorage|sessionStorage|indexedDB|caches|cookie|eval|Function|constructor|prototype|__proto__|import|require|location|navigator|setTimeout|setInterval|postMessage|Worker|alert)\b|\\u|\\x/;
