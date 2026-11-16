@@ -19,6 +19,7 @@ const SHELL = [
   '../brand/maskot-3d/web/ospalek-vyprava.webp', '../brand/maskot-3d/web/ospalek-mark-64.png', '../brand/maskot-3d/web/ospalek-mark.png',
   '../brand/ikony/kat-auto.webp', '../brand/ikony/kat-dobro.webp', '../brand/ikony/kat-noc.webp', '../brand/ikony/kat-zivot.webp',
   ...['holka-1-2', 'holka-3-5a', 'holka-3-5b', 'holka-6-9', 'kluk-1-2', 'kluk-3-5a', 'kluk-3-5b', 'kluk-6-9'].map((n) => `../brand/ikony/deti/${n}.webp`),
+  ...['mama', 'tata', 'babi', 'deda', 'teta', 'strejda', 'bratr', 'sestra', 'pes', 'kocka'].map((n) => `../brand/ikony/rodina/${n}.webp`),
   '../brand/hodnoceni/srdce.webp', '../brand/hodnoceni/hvezda.webp', '../brand/hodnoceni/mracek.webp',
   '../covers/drak.jpg', '../covers/hadanky.jpg', '../covers/hvezdicka.jpg', '../covers/hvezdicka-f.jpg', '../covers/lednice.jpg',
   '../covers/vyprava.jpg', '../covers/vyprava-f.jpg', '../covers/zubar.jpg', '../covers/zubar-f.jpg',

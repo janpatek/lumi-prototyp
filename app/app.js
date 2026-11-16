@@ -12,7 +12,7 @@ const TTS_URL = (() => {
   return q && /^http:\/\/localhost(:\d+)?$/.test(q) ? q : TTS_URL_DEFAULT;
 })();
 // Limity formulářů: brání tomu, aby rodina (nebo skript) zbytečně pálila kredity za hlas. Worker má vlastní pojistky.
-const LIMIT = { children: 2, freeChildren: 1, parents: 4, heroes: 2, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
+const LIMIT = { children: 2, freeChildren: 1, parents: 6, heroes: 2, changes: 10, name: 20, cases: 24, item: 30, place: 40, spots: 10 };
 // jméno: jen písmena, mezera, spojovník a apostrof
 // zdarma jde přidat jedno dítě, s předplatným Plus dvě (kdo už má víc dětí z dřívějška, o ně nepřijde)
 const kidsMax = () => (S.premium ? LIMIT.children : LIMIT.freeChildren);
@@ -99,20 +99,19 @@ const shelfCats = (d = new Date()) => {
   return [...first, ...now, ...cats.filter((k) => k.id !== 'noc' && !seasonOf(k)), ...off];
 };
 const catLabel = (st) => (CATEGORIES.find((k) => k.id === st.cats[0]) || {}).label || '';
-// avatar: u dětí plyšová ilustrace podle věku a pohlaví (brand/ikony/deti), u dospělých první písmeno v pastelovém kolečku
-const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'], mama: 'peach', tata: 'sky', babi: 'mint', deda: 'honey' };
+// avatar: plyšová ilustrace v pastelovém kolečku – u dětí podle věku a pohlaví (brand/ikony/deti),
+// u blízkých podle role (brand/ikony/rodina)
+const AV_TONES = { child: ['peach', 'mint', 'sky', 'honey'] };
 // 1–2, 3–5, 6–9 let; ve školce dvě varianty, ať sourozenci stejného věku nevypadají stejně
 const kidImg = (k, i) => {
   const g = k.gender === 'f' ? 'holka' : 'kluk', a = Number(k.age) || 0;
   const band = a <= 2 ? '1-2' : a <= 5 ? '3-5' : '6-9';
   return `../brand/ikony/deti/${g}-${band}${band === '3-5' ? (i % 2 ? 'b' : 'a') : ''}.webp`;
 };
-const avatar = (p, kind, i = 0) => {
-  const tone = kind === 'child' ? AV_TONES.child[i % 4] : AV_TONES[p.role];
-  if (kind === 'child') return `<div class="av kid ${tone}" aria-hidden="true"><img src="${kidImg(p, i)}" alt=""></div>`;
-  const letter = kind === 'child' || p.name ? (p.forms.nom || '?').charAt(0).toUpperCase() : ROLES[p.role].label.charAt(0);
-  return `<div class="av ${tone}" aria-hidden="true">${esc(letter)}</div>`;
-};
+const roleImg = (role) => `../brand/ikony/rodina/${ROLES[role] ? role : 'mama'}.webp`;
+const avatar = (p, kind, i = 0) => kind === 'child'
+  ? `<div class="av kid ${AV_TONES.child[i % 4]}" aria-hidden="true"><img src="${kidImg(p, i)}" alt=""></div>`
+  : `<div class="av kid" aria-hidden="true"><img src="${roleImg(p.role)}" alt=""></div>`;
 
 // ---------- Skloňování ----------
 const CASES = [['nom', '1. pád – kdo'], ['gen', '2. pád – bez koho'], ['dat', '3. pád – komu'], ['acc', '4. pád – koho vidím'], ['voc', '5. pád – oslovení'], ['ins', '7. pád – s kým']];
@@ -157,7 +156,15 @@ const ROLES = {
   tata: { label: 'Tatínek', g: 'm', forms: { nom: 'tatínek', gen: 'tatínka', dat: 'tatínkovi', acc: 'tatínka', voc: 'tatínku', ins: 'tatínkem' } },
   babi: { label: 'Babička', g: 'f', forms: { nom: 'babička', gen: 'babičky', dat: 'babičce', acc: 'babičku', voc: 'babičko', ins: 'babičkou' } },
   deda: { label: 'Dědeček', g: 'm', forms: { nom: 'dědeček', gen: 'dědečka', dat: 'dědečkovi', acc: 'dědečka', voc: 'dědečku', ins: 'dědečkem' } },
+  teta: { label: 'Teta', g: 'f', forms: { nom: 'teta', gen: 'tety', dat: 'tetě', acc: 'tetu', voc: 'teto', ins: 'tetou' } },
+  strejda: { label: 'Strýček', g: 'm', forms: { nom: 'strýček', gen: 'strýčka', dat: 'strýčkovi', acc: 'strýčka', voc: 'strýčku', ins: 'strýčkem' } },
+  // sourozenci a mazlíčci: v Rodině s ilustrací, do pohádek zatím ne (šablony počítají s dospělým, který řídí, vaří, ukládá ke spaní)
+  bratr: { label: 'Bratr', g: 'm', only: 'family', forms: { nom: 'bratr', gen: 'bratra', dat: 'bratrovi', acc: 'bratra', voc: 'bratře', ins: 'bratrem' } },
+  sestra: { label: 'Sestra', g: 'f', only: 'family', forms: { nom: 'sestra', gen: 'sestry', dat: 'sestře', acc: 'sestru', voc: 'sestro', ins: 'sestrou' } },
+  pes: { label: 'Pejsek', g: 'm', only: 'family', forms: { nom: 'pejsek', gen: 'pejska', dat: 'pejskovi', acc: 'pejska', voc: 'pejsku', ins: 'pejskem' } },
+  kocka: { label: 'Kočička', g: 'f', only: 'family', forms: { nom: 'kočička', gen: 'kočičky', dat: 'kočičce', acc: 'kočičku', voc: 'kočičko', ins: 'kočičkou' } },
 };
+const inStories = (p) => ROLES[p.role] && !ROLES[p.role].only;
 
 function inTownGuess(town) {
   const t = town.trim();
@@ -188,7 +195,7 @@ function ctx(heroes) {
     const full = r.forms.nom + (name ? ' ' + name.nom : '');
     return { ...r.forms, full, name, g: (m, f) => (r.g === 'f' ? f : m) };
   };
-  const ps = fam.parents.map(mkParent);
+  const ps = fam.parents.filter(inStories).map(mkParent);
   return {
     H: h.nom,
     h,
@@ -466,14 +473,14 @@ function peopleList(kind) {
     <div class="person">
       ${avatar(p, kind, i)}
       <div class="nm"><b>${esc(kind === 'child' ? p.forms.nom : ROLES[p.role].label + (p.name ? ' ' + p.forms.nom : ''))}</b>
-      <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
+      <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : inStories(p) ? 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“' : 'do pohádek zatím ne'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
     </div>`).join('')}</div>
     ${arr.length < (kind === 'child' ? kidsMax() : LIMIT.parents)
-      ? `<button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'rodiče nebo prarodiče'}</button>`
+      ? `<button class="add" data-a="addPerson" data-kind="${kind}">+ Přidat ${kind === 'child' ? 'dítě' : 'člena rodiny nebo mazlíčka'}</button>`
       : kind === 'child' && arr.length < LIMIT.children
         ? `<button class="add plus" data-a="paywall">+ Přidat druhé dítě <span>s ${APP_NAME} Plus</span></button>`
-        : `<p class="note">${kind === 'child' ? `Víc než ${LIMIT.children} děti přidat nejde.` : `Víc než ${LIMIT.parents} dospělé přidat nejde.`}</p>`}`;
+        : `<p class="note">${kind === 'child' ? `Víc než ${LIMIT.children} děti přidat nejde.` : `Víc než ${LIMIT.parents} blízkých přidat nejde.`}</p>`}`;
 }
 
 const stepKids = () => `
@@ -685,10 +692,10 @@ function personSheet(kind, id) {
         <input id="pAnimal" maxlength="${LIMIT.item}" value="${esc(p.animal || '')}" placeholder="např. liška">
       ` : `
         <label>Kdo to je</label>
-        <div class="seg" id="rSeg">${Object.entries(ROLES).map(([k, r]) => `<button data-a="role" data-v="${k}" class="${p.role === k ? 'on' : ''}">${r.label}</button>`).join('')}</div>
-                <label for="pName">Jméno (nepovinné)</label>
-        <input id="pName" maxlength="${LIMIT.name}" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra">
-        <p class="note">V pohádce pak zazní třeba „maminka Petra“. Bez jména jen „maminka“.</p>
+        <div class="roles" id="rSeg">${Object.entries(ROLES).map(([k, r]) => `<button data-a="role" data-v="${k}" class="${p.role === k ? 'on' : ''}"><img src="${roleImg(k)}" alt="">${r.label}</button>`).join('')}</div>
+        <label for="pName">Jméno (nepovinné)</label>
+        <input id="pName" maxlength="${LIMIT.name}" value="${esc(p.name ? p.forms.nom : '')}" placeholder="např. Petra, Rex, Micka">
+        <p class="note" id="rNote">${roleNote(p.role)}</p>
       `}
       ${changesNote()}
       <details><summary>Skloňování jména (zkontrolujte)</summary>
@@ -702,6 +709,12 @@ function personSheet(kind, id) {
   const nameInput = document.getElementById('pName');
   nameInput.addEventListener('input', refreshCases);
   if (!p.id) nameInput.focus();
+}
+function roleNote(role) {
+  const r = ROLES[role];
+  return r.only
+    ? `${r.label} bude u vás v Rodině. Do pohádek sourozence a mazlíčky zatím nepřidáváme, chystáme to.`
+    : `V pohádce pak zazní třeba „${r.forms.nom} Petra“. Bez jména jen „${r.forms.nom}“.`.replace('Petra', r.g === 'f' ? 'Petra' : 'Honza');
 }
 function editGender() { return ui.edit.kind === 'child' ? ui.edit.gender || 'm' : ROLES[ui.edit.role].g; }
 function refreshCases() {
@@ -1539,7 +1552,7 @@ const actions = {
   addPerson: (el) => personSheet(el.dataset.kind),
   editPerson: (el) => personSheet(el.dataset.kind, el.dataset.id),
   gender: (el) => { ui.edit.gender = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); refreshCases(); },
-  role: (el) => { ui.edit.role = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); refreshCases(); },
+  role: (el) => { ui.edit.role = el.dataset.v; el.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === el)); document.getElementById('rNote').textContent = roleNote(ui.edit.role); refreshCases(); },
   savePerson,
   deletePerson: () => {
     const k = ui.edit.kind === 'child' ? 'children' : 'parents';

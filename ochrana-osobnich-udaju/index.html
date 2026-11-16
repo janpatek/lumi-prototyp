@@ -43,14 +43,14 @@
   <main class="terms">
     <div class="wrap wrap-narrow">
       <h1>Ochrana osobních údajů</h1>
-      <p class="meta">Verze 3.8 · účinné od 16. 11. 2026</p>
+      <p class="meta">Verze 3.9 · účinné od 16. 11. 2026</p>
 
       <section class="summary" aria-labelledby="kratce">
         <h2 id="kratce">Krátce a lidsky</h2>
         <ul>
           <li>Chceme jen to, co pohádka potřebuje: křestní jméno, věk, pár oblíbených věcí a obec. Příjmení, přesnou adresu ani fotky nechceme.</li>
           <li>Obec můžete nechat najít podle polohy telefonu (tlačítko <i>Podle polohy</i>). Teprve po klepnutí a s vaším povolením si aplikace zjistí přibližnou polohu, zaokrouhlí ji asi na 100 metrů a pošle ji jen OpenStreetMap, aby zjistila název obce. Polohu neukládáme, zůstane jen obec.</li>
-          <li>Na našem serveru v EU vedeme váš účet: křestní jména a věk dětí a obec, abychom vám mohli pomoct, když napíšete podpoře. Oblíbené věci, jména blízkých a místa v okolí zůstávají jen v aplikaci ve vašem telefonu. Z nastavení aplikace k účtu ukládáme jen volby a počty (třeba vzhled, zda máte zapnutou připomínku, kolik máte blízkých), ne jejich obsah.</li>
+          <li>Na našem serveru v EU vedeme váš účet: křestní jména a věk dětí a obec, abychom vám mohli pomoct, když napíšete podpoře. Oblíbené věci, jména blízkých a domácích mazlíčků a místa v okolí zůstávají jen v aplikaci ve vašem telefonu. Z nastavení aplikace k účtu ukládáme jen volby a počty (třeba vzhled, zda máte zapnutou připomínku, kolik máte blízkých), ne jejich obsah.</li>
           <li>Statistiky poslechu (které pohádky posloucháte, jak dlouho a jak se vám líbily, pokud je po dohrání ohodnotíte) přiřazujeme k vaší rodině jen s vaším souhlasem. Bez něj je počítáme jen anonymně. Souhlas zapnete a vypnete v nastavení aplikace.</li>
           <li>Aby pohádku přečetl hlas, posíláme její text (i se jménem dítěte) poskytovateli syntetického hlasu. Namluvené věty ukládáme bez vazby na účet a použijeme je znovu pro každou rodinu, kde zazní stejná věta, třeba „Dobrou noc, Toníku.“ K účtu si zapisujeme jen to, kolik vět se kvůli vám nově namluvilo a kolikrát jste změnili jména dětí nebo obec, abychom znali náklady na hlas.</li>
           <li>Předplatné platíte jen přes App Store nebo Google Play. Číslo karty ani jiné platební údaje nevidíme, od obchodu dostáváme přímo (bez dalších prostředníků) jen informace o nákupu a stavu předplatného.</li>
@@ -95,7 +95,7 @@
           <thead><tr><th>Údaje</th><th>Proč</th><th>Právní základ</th></tr></thead>
           <tbody>
             <tr><td>Křestní jméno dítěte a jeho tvary pro skloňování, pohlaví, věk, oblíbené jídlo a zvíře</td><td>Aby pohádka byla o vašem dítěti a hodila se k jeho věku</td><td>Plnění smlouvy (čl.&nbsp;6 odst.&nbsp;1 písm.&nbsp;b GDPR)</td></tr>
-            <tr><td>Role a případně křestní jména rodičů a blízkých (např. „maminka Petra“)</td><td>Aby v pohádce vystupovala vaše rodina</td><td>Plnění smlouvy</td></tr>
+            <tr><td>Role a případně křestní jména rodičů, sourozenců a dalších blízkých a jména domácích mazlíčků (např. „maminka Petra“, „pejsek Rex“)</td><td>Aby v pohádce vystupovala vaše rodina (sourozence a mazlíčky zatím jen ukazujeme v přehledu rodiny)</td><td>Plnění smlouvy</td></tr>
             <tr><td>Obec bydliště a vybraná místa v okolí</td><td>Aby se pohádka odehrávala v místech, která dítě zná</td><td>Plnění smlouvy</td></tr>
             <tr><td>Přibližná poloha telefonu, jen když klepnete na <i>Podle polohy</i> a polohu v telefonu povolíte. Zaokrouhlí se asi na 100 metrů, neukládáme ji.</td><td>Zjištění názvu vaší obce, abyste ji nemuseli psát</td><td>Plnění smlouvy na vaši žádost</td></tr>
             <tr><td>Anonymní identifikátor účtu. Vytvoří ho aplikace sama, bez e-mailu, jména a hesla.</td><td>Uložení údajů rodiny na serveru, spárování s předplatným</td><td>Plnění smlouvy</td></tr>
@@ -197,6 +197,7 @@
         <table class="tbl">
           <thead><tr><th>Verze</th><th>Datum</th><th>Co se změnilo</th></tr></thead>
           <tbody>
+            <tr><td>3.9</td><td>16. 11. 2026</td><td>Do rodiny v aplikaci jde přidat i tetu, strýčka, sourozence a domácího mazlíčka (pejska, kočičku), volitelně se jménem. Jména zůstávají jen v aplikaci v telefonu, na server jde dál jen počet blízkých.</td></tr>
             <tr><td>3.8</td><td>16. 11. 2026</td><td>Ospalek je jen mobilní aplikace, webová verze v prohlížeči skončila. Údaje o rodině leží v aplikaci v telefonu, ne v prohlížeči. Upozornění doručují jen Google a Apple, Mozilla a Microsoft vypadávají ze seznamu příjemců. Web ospalek.cz na GitHub Pages do zařízení nic neukládá. Kdo otevře starou adresu webové verze, tomu prohlížeč zruší odběr upozornění a smaže stažené pohádky a nabídne smazání údajů o rodině.</td></tr>
             <tr><td>3.7</td><td>16. 11. 2026</td><td>Kupóny z našich kampaní se uplatňují ve stejném okně <i>Mám kód</i> a ověřujeme je jen v naší databázi Supabase, bez další služby. U kupónu ukládáme kód, kampaň a do kdy platí. Po smazání účtu zůstane záznam o uplatnění bez vazby na vás kvůli vyúčtování s partnery. Při přihlášení přejde kupón z dosavadního účtu v telefonu do přihlášeného účtu.</td></tr>
             <tr><td>3.6</td><td>16. 11. 2026</td><td>Údaje o rodině (děti, blízcí, bydliště) mají v aplikaci vlastní obrazovku <i>Rodina</i>; souhlasy, stažené pohádky a smazání účtu jsou v části <i>Nastavení</i>. Upravili jsme jen odkazy, zpracování údajů se nemění.</td></tr>

@@ -418,3 +418,8 @@ input, select { box-shadow: inset 0 3px 8px rgba(46, 49, 80, .06); }
 .av.kid { overflow: hidden; padding: 0; background: #fff; width: 52px; height: 52px; }
 .av.kid img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.55); transform-origin: 50% 40%; }
 .fam-avs .av.kid { width: 32px; height: 32px; }
+/* výběr role blízkého: mřížka s plyšovými ilustracemi (rodiče, prarodiče, teta, strýček, sourozenci, mazlíčci) */
+.roles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.roles button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px 8px; border-radius: 16px; background: var(--surface-raised); border: 2px solid var(--line); font-weight: 700; font-size: 13px; color: inherit; min-width: 0; }
+.roles button img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; background: #fff; }
+.roles button.on { border-color: var(--lavender-ink); background: var(--lavender); }
