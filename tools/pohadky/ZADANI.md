@@ -56,6 +56,11 @@ Odstavec drž na 1–4 větách. Validátor hlídá, aby vyšlo 5 přesně, 10 �
 - Pozor na tvary: c.food je seznam v 1. pádě („palačinky“, „jahody a knedlíky“), c.animal taky („liška“, „koník“). Nepoužívej je v jiných pádech – piš je za dvojtečku nebo do vazby, která 1. pád snese („to nejlepší jídlo na světě: …“, „zvíře, které má nejradši – …“).
 - c.near jsou názvy obcí v 1. pádě. Nevkládej je do pádových vazeb typu „do …“, „v …“; použij výčet nebo „místo, kterému se říká …“.
 - Rodiče: c.p1.full („maminka Petra“), c.p1.nom/gen/dat/acc/ins, c.p1.g(m, f). Druhý rodič c.p2 může chybět.
+- Další členové Rodiny (každý může chybět, pak null; ve starších verzích aplikace undefined, takže vždy jen `c.pet ? … : …`):
+  - c.sib – sourozenec: druhé dítě z profilu, jinak bratr/sestra z Rodiny (jméno, bez jména „bratr“/„sestra“); věk neznáme.
+  - c.pet – pejsek nebo kočička: .full („pejsek Rex“), .nom/gen/dat/acc/ins („pejsek“), .g(m, f), .kind 'pes' | 'kocka'.
+  - c.babi, c.deda, c.teta, c.strejda – ti členové kdekoli v Rodině: .full („babička Jarmila“), tvary, .g(m, f).
+  Mazlíčka dej do pohádky odehrávající se doma nebo při usínání (1–2 krátké věty), sourozence tam, kde je rodina spolu, tetu a strýčka k oslavám a návštěvám. Bez člena musí text dávat smysl i beze změny.
 - Hrdinů může být 1–3: každé sloveso a přídavné jméno vztažené k hrdinovi přes c.g(m, f, mpl, fpl) a c.n(jedno, víc). Oslovení c.h.voc, „ty/vy“ přes c.n. Projdi to pečlivě – validátor zkouší kluka, holku, dvě děti, dvě holky a rodinu bez okolí, ale gramatiku za tebe nezkontroluje; přečti si výstup `--text` aspoň pro „holka“ a „dvě děti“.
 
 ## Obsah a tón

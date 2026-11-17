@@ -24,7 +24,8 @@ function variants(one) {
   const out = [];
   const kid = (n, g) => app.person(mk(n), g, { food: mk('jídlo' + n), animal: mk('zvíře' + n) });
   const real = (g) => app.person(one.name, g, { food: mk('jídlo'), animal: mk('zvíře') });
-  const par = (role, named) => ({ role, name: named ? mk('rodič') : '', forms: app.person(named ? mk('rodič') : '', role === 'mama' || role === 'babi' ? 'f' : 'm').forms });
+  const FEM = ['mama', 'babi', 'teta', 'sestra', 'kocka'];
+  const par = (role, named) => ({ role, name: named ? mk('rodič') : '', forms: app.person(named ? mk('rodič') : '', FEM.includes(role) ? 'f' : 'm').forms });
   const heroSets = one ? (one.as === 'hero' ? [[one.gender]] : [['m'], ['f']]) : [['m'], ['f'], ['m', 'f'], ['f', 'f']];
   const sibSets = one ? (one.as === 'sib' ? [one.gender] : [null, 'm', 'f']) : [null, 'm', 'f'];
   for (const heroes of heroSets)
@@ -44,6 +45,20 @@ function variants(one) {
                 heroes: heroes.map((_, i) => i),
               });
             }
+  // noví členové Rodiny (mazlíček, bratr/sestra bez profilu dítěte, babička, dědeček, teta, strýček) bez jména:
+  // každý zvlášť k rodičům bez jména a bez obce – věty jen s „pejsek“, „teta“… jsou společné
+  if (!one) for (const heroes of heroSets)
+    for (const extra of ['pes', 'kocka', 'bratr', 'sestra', 'babi', 'deda', 'teta', 'strejda'])
+      for (const sib of extra === 'bratr' || extra === 'sestra' ? [null] : sibSets)
+        for (const p1 of ['mama', 'tata', 'babi', 'deda'])
+          for (const p2 of [null, 'mama', 'tata']) {
+            const children = heroes.map((g, i) => kid('dítě' + i, g));
+            if (sib) children.push(kid('sourozenec', sib));
+            out.push({
+              family: { children, parents: [par(p1, false), ...(p2 ? [par(p2, false)] : []), par(extra, false)], home: { town: '', inTown: '', near: [], attr: [] } },
+              heroes: heroes.map((_, i) => i),
+            });
+          }
   return out;
 }
 
