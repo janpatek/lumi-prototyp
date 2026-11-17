@@ -335,7 +335,7 @@ const screens = {
         <div class="section-t">Hlavní hrdinové <span class="hint">– vyberte jednoho nebo víc</span></div>
         <div class="chips">${S.family.children.map((k) => `<button class="chip ${hs.includes(k) ? 'on' : ''}" data-a="hero" data-id="${k.id}" aria-pressed="${hs.includes(k)}">${hs.includes(k) ? '✓ ' : ''}${esc(k.forms.nom)}</button>`).join('')}</div>` : ''}
       ${S.premium && ui.trial && ui.trial.renews ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Zkušební doba končí ${trialWhen(ui.trial.end)}</b><span>Pak ${PRICE.text} měsíčně. Když nechcete pokračovat, zrušte předplatné nejpozději ${trialWhen(new Date(ui.trial.end - 24 * 3600e3))}.</span></div><button class="btn small ghost" data-a="unsub">Spravovat</button></div>` : ''}
-      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkněte všechny pohádky</b><span>3 dny zdarma, pak ${PRICE.text} měsíčně</span></div></button>`}
+      ${S.premium ? '' : `<button class="promo" data-a="paywall"><img src="${MASCOT.mark}" alt=""><div><b>Odemkněte všechny pohádky</b><span>${PRICE.trial ? `${dny(PRICE.days)} zdarma, pak ${PRICE.text} měsíčně` : `${PRICE.text} měsíčně, zrušit můžete kdykoli`}</span></div></button>`}
       ${SYNC.on && S.analytics === undefined ? `<div class="person" style="margin-bottom:12px"><div class="nm"><b>Pomůžete nám zlepšovat pohádky?</b><span>Uvidíme, které pohádky posloucháte a jak dlouho. Bez souhlasu jen anonymně. Změnit to můžete kdykoli v nastavení.</span></div><button class="btn small" data-a="analytics" data-v="1">Ano</button><button class="btn small ghost" data-a="analytics" data-v="0">Ne, díky</button></div>` : ''}
       ${shelf('fav', 'Oblíbené', favs, `<span class="shelf-star">${I.star}</span>`)}
       ${heardAny ? shelf('unheard', 'Ještě neslyšené', rank(STORIES.filter((s) => !heardCount(s.id)))) : ''}
@@ -746,9 +746,33 @@ function savePerson() {
 
 // ---------- Předplatné ----------
 // cena předplatného: z obchodu (App Store / Google Play), jinak česká cena; slovenská je v textu u plánu
-const PRICE = { text: '129 Kč', store: false };
+// trial: má účet nárok na zkušební dobu zdarma? Říká to obchod (kdo ji už vyčerpal, platí hned). Dokud to v aplikaci
+// nevíme, zkušební dobu neslibujeme. Na webu se nic nekupuje, tam text jen popisuje nabídku pro nové rodiny.
+const PRICE = { text: '129 Kč', store: false, trial: !BILLING.native, days: 3 };
 const WEB_DEMO = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-BILLING.price().then((p) => { if (p) { PRICE.text = p; PRICE.store = true; render(); } });
+const dny = (n) => `${n} ${n === 1 ? 'den' : n < 5 ? 'dny' : 'dní'}`;
+const poDnech = (n) => (n === 1 ? 'Po 1 dni' : `Po ${n} dnech`);
+// text chyby nákupu pro rodiče: bez názvů produktů a technických podrobností
+function buyError(e) {
+  const code = e && e.code, m = (e && e.message) || '';
+  if (!code) return m || 'Nákup se nepovedl. Zkuste to prosím znovu.'; // naše vlastní hlášky (platba čeká na schválení)
+  if (['NOT_FOUND', 'ITEM_UNAVAILABLE', 'DEVELOPER_ERROR', 'INVALID_ARGUMENT', 'FEATURE_NOT_SUPPORTED'].includes(code)) return 'Předplatné teď v obchodě není k dispozici. Zkuste to prosím později.';
+  if (code === 'ITEM_ALREADY_OWNED') return 'Předplatné už máte. Klepněte dole na Obnovit nákupy.';
+  if (['SERVICE_TIMEOUT', 'SERVICE_DISCONNECTED', 'SERVICE_UNAVAILABLE', 'NETWORK_ERROR'].includes(code)) return 'Obchod teď neodpovídá. Zkontrolujte připojení k internetu a zkuste to znovu.';
+  if (code === 'BILLING_UNAVAILABLE') return 'Platby v obchodě nejsou na tomto zařízení dostupné. Zkontrolujte, že jste v obchodě přihlášeni ke svému účtu.';
+  if (code === 'BUSY') return 'Jiný nákup právě probíhá. Chvilku počkejte a zkuste to znovu.';
+  return 'Nákup se nepovedl. Zkuste to prosím znovu.';
+}
+async function loadOffer() {
+  const o = await BILLING.offer();
+  if (!o) return;
+  const was = JSON.stringify(PRICE);
+  if (o.price) { PRICE.text = o.price; PRICE.store = true; }
+  PRICE.trial = o.trial && o.days > 0; if (PRICE.trial) PRICE.days = o.days;
+  if (JSON.stringify(PRICE) === was) return;
+  if (document.querySelector('#modal [data-a="subscribe"]')) paywall(); else if (!document.getElementById('modal')?.firstElementChild && !document.getElementById('player')) render();
+}
+loadOffer();
 // zkušební doba 3 dny: v knihovně je vidět její konec a telefon den předem připomene, že se začne platit
 const trialWhen = (d) => `${d.getDate()}. ${d.getMonth() + 1}. v ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
 async function checkTrial(ask) {
@@ -773,6 +797,7 @@ function libraryStat() {
   return libraryStats;
 }
 function paywall() {
+  if (!document.querySelector('#modal [data-a="subscribe"]')) loadOffer(); // nárok na zkušební dobu se mění (po vyčerpání), při otevření ho ověříme znovu
   const lib = libraryStat();
   const many = lib.n >= 100 ? `více než ${Math.floor(lib.n / 50) * 50} pohádkám` : `${lib.n} pohádkám`;
   $modal.innerHTML = `
@@ -792,8 +817,9 @@ function paywall() {
       <div class="plans">
         <div class="plan on"><div><b>Měsíčně</b><small>${PRICE.text} / měsíc${PRICE.store ? '' : ' (na Slovensku 4,99 €)'} · zrušit můžete kdykoli</small></div></div>
       </div>
-      ${BILLING.native || WEB_DEMO ? `<button class="btn cta2" data-a="subscribe"><span>Vyzkoušet 3 dny zdarma,</span><span>pak ${PRICE.text} měsíčně</span></button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
-      <p class="fine" style="text-align:center">Po 3 dnech zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte. Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
+      <p class="fine err" id="buyMsg" role="alert" style="text-align:center" hidden></p>
+      ${BILLING.native || WEB_DEMO ? `<button class="btn cta2" data-a="subscribe">${PRICE.trial ? `<span>Vyzkoušet ${dny(PRICE.days)} zdarma,</span><span>pak ${PRICE.text} měsíčně</span>` : `<span>Předplatit</span><span>za ${PRICE.text} měsíčně</span>`}</button>` : '<a class="btn" href="../#end">Stáhnout aplikaci Ospalek</a>'}
+      <p class="fine" style="text-align:center">${PRICE.trial ? `${poDnech(PRICE.days)} zdarma ${PRICE.text} měsíčně, dokud předplatné nezrušíte.` : `${PRICE.text} měsíčně, dokud předplatné nezrušíte. Platí se hned při objednání.`} Pohádky se odemknou hned, proto po zaplacení nelze od smlouvy odstoupit do 14 dnů. Pokračováním souhlasíte s <a href="../obchodni-podminky/" target="_blank" rel="noopener">obchodními podmínkami</a>. Jak chráníme vaše údaje, popisují <a href="../ochrana-osobnich-udaju/" target="_blank" rel="noopener">zásady ochrany osobních údajů</a>.</p>
       ${BILLING.native ? '<p class="fine" style="text-align:center">Platbu vyřizuje App Store nebo Google Play. Zrušit můžete kdykoli v nastavení předplatných svého účtu, nejpozději 24 hodin před koncem období. <a href="#" data-a="restore">Obnovit nákupy</a></p>' : '<p class="fine" style="text-align:center">Na webu se předplatné koupit nedá. Kupuje se v mobilní aplikaci Ospalek pro iPhone a Android přes App Store nebo Google Play. Tady si zatím pustíte 3 pohádky zdarma.</p>'}
       ${SYNC.on && !IOS_APP ? '<p class="fine" style="text-align:center"><a href="#" data-a="codeSheet">Mám kód</a></p>' : ''}
     </div></div>`;
@@ -919,9 +945,10 @@ function storyOffline(st, hs = heroes()) {
   return offlineMemo.get(k);
 }
 // stáhne vše, co pohádka potřebuje; věty rodiny jdou přes cloudClip, takže se zaplatí jen jednou
-async function downloadStory(st, onprog) {
+// filesOnly = jen hotové soubory (nahrávky, obálka, hudba), ty nic nestojí; věty rodiny se namlouvají až po stisku Přehrát
+async function downloadStory(st, onprog, filesOnly) {
   const n = await storyNeeds(st);
-  const jobs = [...n.family.map((t) => () => cloudClip(t, st.mood)), ...n.files.map((f) => () => OFFLINE.saveFile(f))];
+  const jobs = [...(filesOnly ? [] : n.family.map((t) => () => cloudClip(t, st.mood))), ...n.files.map((f) => () => OFFLINE.saveFile(f))];
   const run = async (job) => {
     for (let a = 1; ; a++) {
       try { return await job(); } catch (e) {
@@ -1088,6 +1115,8 @@ function showTime() {
 // zadrhne, a hraje to i se zhasnutým displejem, kdy Android přístup k internetu omezuje.
 // Stažené zůstane v zařízení (proto přehrávač nemá vlastní tlačítko Stáhnout), příště se pohádka otevře hned
 // a pustí se i bez internetu.
+// Po otevření se stáhnou jen hotové soubory. Věty se jménem dítěte, které se teprve namlouvají (a platí se za ně),
+// se připraví až po stisku Přehrát (P.wanted): prohlížení knihovny tak nestojí nic.
 const PREP_MSG = 'Připravuji celou pohádku, aby se nikde nezadrhla…';
 async function prepareStory() {
   const p = P;
@@ -1096,6 +1125,7 @@ async function prepareStory() {
   const live = () => P === p;
   const w = () => document.getElementById('waiting');
   p.loadErr = false;
+  p.prepIdle = false;
   const finish = (saved) => {
     if (!live()) return;
     p.ready = true;
@@ -1110,6 +1140,11 @@ async function prepareStory() {
   const beds = Promise.race([ambience.bedsReady(st), new Promise((r) => setTimeout(r, 15000))]);
   if (await storyOffline(st)) { await beds; return finish(true); }
   if (!live()) return;
+  if (!p.wanted) {
+    try { await downloadStory(st, null, true); } catch (e) { /* zkusí se znovu po stisku Přehrát */ }
+    if (!live()) return;
+    if (!p.wanted) { p.prepIdle = true; return; } // čeká na stisk Přehrát
+  }
   if (w()) w().textContent = PREP_MSG;
   highlight();
   try {
@@ -1126,7 +1161,7 @@ async function prepareStory() {
 }
 // tlačítko Přehrát během přípravy: průběh v procentech, po chybě Zkusit znovu
 function playBtnPrep(b) {
-  if (P.ready) { b.disabled = false; b.classList.remove('loading'); return false; }
+  if (P.ready || !P.wanted) { b.disabled = false; b.classList.remove('loading'); return false; } // před stiskem Přehrát obyčejné tlačítko
   b.classList.add('loading');
   if (P.loadErr) {
     b.disabled = false;
@@ -1370,7 +1405,11 @@ function playPause() {
   if (!P) return;
   if (!P.ready && !P.playing) {
     // po chybě klepnutí zkusí načíst znovu; jinak (zamčená obrazovka, další pohádka) se spustí po načtení
-    if (P.loadErr) { P.autoplay = true; prepareStory(); } else P.autoplay = true;
+    const first = !P.wanted;
+    P.wanted = true;
+    P.autoplay = true;
+    if (P.loadErr) prepareStory();
+    else if (first) { if (P.prepIdle) prepareStory(); else highlight(); }
     // Android: služba přehrávání se spustí hned po klepnutí, ne až po načtení. Rodič často zhasne
     // displej dřív, než se pohádka připraví; bez služby by Android aplikaci na pozadí omezil
     // (příprava stála) a službu by pak už spustit nedovolil (pohádka by nehrála, chyběl by přehrávač
@@ -1640,12 +1679,32 @@ const actions = {
   subscribe: async (el) => {
     // web: jen simulace (platí se jen v mobilní aplikaci přes App Store a Google Play, app/billing.js)
     if (!BILLING.native) { if (WEB_DEMO) { S.premium = true; save(); closeModal(); render(); } return; }
-    el.disabled = true;
+    // během čekání na obchod tlačítko říká, co se děje; chyba se ukáže nad ním (jedna, lidsky) a je vidět bez posouvání
+    const label = el.innerHTML, msg = document.getElementById('buyMsg');
+    const back = () => { el.disabled = false; el.innerHTML = label; };
+    el.disabled = true; el.innerHTML = '<span>Otevírám obchod…</span>';
+    if (msg) { msg.hidden = true; msg.textContent = ''; }
     try {
-      if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); checkTrial(true); } else el.disabled = false;
-    } catch (e) { el.disabled = false; el.insertAdjacentHTML('afterend', `<p class="fine err" style="text-align:center">Nákup se nepovedl. ${esc(e && e.message || '')}</p>`); }
+      if (await BILLING.buy()) { S.premium = true; save(); closeModal(); render(); checkTrial(true); loadOffer(); } else back();
+    } catch (e) {
+      back();
+      if (msg) { msg.textContent = buyError(e); msg.hidden = false; msg.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    }
   },
-  restore: async () => { const v = await BILLING.restore().catch(() => null); if (v !== null) { S.premium = v || codeOn(); save(); } closeModal(); render(); },
+  // obnovení nákupů vždy řekne, jak dopadlo
+  restore: async (el, e) => {
+    if (e) e.preventDefault();
+    if (el.dataset.busy) return;
+    el.dataset.busy = '1';
+    let v, failed = false;
+    try { v = await BILLING.restore(); } catch (er) { failed = true; }
+    delete el.dataset.busy;
+    if (failed) { toast('Nákupy se nepodařilo obnovit. Zkontrolujte připojení a zkuste to znovu.'); return; }
+    if (v === null) return;
+    S.premium = v || codeOn(); save();
+    if (v) { closeModal(); render(); checkTrial(false); toast('Předplatné je obnovené. Všechny pohádky jsou odemčené.'); }
+    else toast('V tomto účtu obchodu jsme žádné předplatné nenašli.');
+  },
   codeSheet: (el, e) => { e.preventDefault(); codeSheet(); },
   redeem: async (el) => {
     const code = (document.getElementById('codeIn')?.value || '').trim();

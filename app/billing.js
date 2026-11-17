@@ -91,6 +91,12 @@ const BILLING = (() => {
       if (!on) return null;
       try { return (await call('product', product)).price || null; } catch (e) { return null; }
     },
+    // Nabídka z obchodu: cena a jestli má tenhle účet nárok na zkušební dobu zdarma (kdo ji už vyčerpal, platí hned).
+    // null = nevíme (web, chyba, bez připojení). Aplikace pak zkušební dobu neslibuje.
+    async offer() {
+      if (!on) return null;
+      try { const p = await call('product', product); return { price: p.price || null, trial: !!p.trial, days: p.trialDays || 0 }; } catch (e) { return null; }
+    },
     async restore() {
       if (!on) return null;
       await call('restore', product);
