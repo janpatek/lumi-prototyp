@@ -251,7 +251,7 @@ function pageCoupons() {
 }
 function campaignsTable(all) {
   return `<div class="table-wrap"><table class="clickable"><thead><tr><th>Kampaň</th><th>Co dává</th><th>Kód</th><th class="r">Uplatněno</th><th class="r">Platí</th><th class="r">Tržby</th><th>Platnost</th><th>Stav</th></tr></thead><tbody>
-    ${all.map(({ c, s }) => `<tr data-a="cpnOpen" data-v="${c.id}"><td><a class="link" href="#kupony/${c.id}">${esc(c.name)}</a><div style="margin-top:3px">${cPurpose(c)}${c.partner ? ` <span class="muted" style="font-size:12px">${esc(CPN.partner(c.partner)?.handle || '')}</span>` : ''}</div></td>
+    ${all.map(({ c, s }) => `<tr data-a="cpnOpen" data-v="${esc(c.id)}"><td><a class="link" href="#kupony/${esc(c.id)}">${esc(c.name)}</a><div style="margin-top:3px">${cPurpose(c)}${c.partner ? ` <span class="muted" style="font-size:12px">${esc(CPN.partner(c.partner)?.handle || '')}</span>` : ''}</div></td>
       <td style="white-space:normal;min-width:180px">${esc(CPN.describe(c))}</td><td>${cCodes(c)}</td>
       <td class="r num">${fmt(s.uses)}${c.limit ? ` / ${fmt(c.limit)}` : c.mode === 'unique' ? ` / ${fmt((CPN.codes[c.id] || []).length)}` : ''}</td><td class="r num">${fmt(s.paying)} <span class="muted">${s.uses ? pct(s.paying, s.uses) : ''}</span></td><td class="r num">${kc(s.revenue)}</td>
       <td class="num">${fdate(c.from)}${c.to ? ` – ${fdate(c.to)}` : ' – bez konce'}</td><td>${cStatus(c)}</td></tr>`).join('')}
@@ -261,9 +261,9 @@ function partnersTable() {
   return `<div class="panel-head"><h2>Partneři a provize</h2>${canC() ? `<button class="btn white sm" data-a="partnerNew">${I.plus}Nový partner</button>` : ''}</div>
   <div class="table-wrap"><table><thead><tr><th>Partner</th><th>Kanál</th><th>Kódy</th><th class="r">Registrace</th><th class="r">Platí</th><th class="r">Tržby</th><th class="r">Provize</th><th class="r">Vyplaceno</th><th class="r">K výplatě</th><th></th></tr></thead><tbody>
   ${CPN.partners.map((p) => { const s = partnerStats(p); return `<tr><td><b>${esc(p.name)}</b><div class="muted" style="font-size:12px">${esc(p.handle || '')}</div></td><td>${esc(p.channel || '')}</td>
-    <td>${s.campaigns.map((c) => `<a class="link mono" href="#kupony/${c.id}">${esc(c.code || c.prefix)}</a>`).join(', ') || '<span class="muted">zatím žádný</span>'}</td>
+    <td>${s.campaigns.map((c) => `<a class="link mono" href="#kupony/${esc(c.id)}">${esc(c.code || c.prefix)}</a>`).join(', ') || '<span class="muted">zatím žádný</span>'}</td>
     <td class="r num">${fmt(s.uses)}</td><td class="r num">${fmt(s.paying)}</td><td class="r num">${kc(s.revenue)}</td><td class="r num">${kc(s.comm)}</td><td class="r num">${kc(s.paid)}</td><td class="r num"><b>${kc(s.owed)}</b></td>
-    <td class="r">${API.can('billing.refund') && s.owed > 0 ? `<button class="btn white sm" data-a="partnerPaid" data-v="${p.id}">Vyplaceno</button>` : ''}${canC() && !s.campaigns.length ? `<button class="btn white sm" data-a="cpnNew" data-v="partner" data-p="${p.id}">Vytvořit kód</button>` : ''}</td></tr>`; }).join('')}
+    <td class="r">${API.can('billing.refund') && s.owed > 0 ? `<button class="btn white sm" data-a="partnerPaid" data-v="${esc(p.id)}">Vyplaceno</button>` : ''}${canC() && !s.campaigns.length ? `<button class="btn white sm" data-a="cpnNew" data-v="partner" data-p="${esc(p.id)}">Vytvořit kód</button>` : ''}</td></tr>`; }).join('')}
   </tbody></table></div>
   <p class="hint" style="margin-top:8px">Provize se počítá z uživatelů, kteří se registrovali s kódem partnera nebo přes jeho odkaz (atribuce 30 dní). Pevná částka za platícího uživatele, nebo procento z jejích plateb za prvních 12 měsíců.</p>`;
 }
@@ -277,9 +277,9 @@ function pageCampaign(c) {
   return `
     <div class="head"><div class="fam-head"><a class="btn white sm" href="#kupony">${I.back}Kupony</a><div><h1>${esc(c.name)}</h1><p>${cPurpose(c)} ${cStatus(c)} ${p ? `· partner <b>${esc(p.name)}</b> ${esc(p.handle || '')}` : ''}</p></div></div>
       <div class="head-actions">
-        ${c.mode === 'shared' ? `<button class="btn white sm" data-a="cpnCopy" data-v="${esc(shareLink(c.code))}">${I.copy}Kopírovat odkaz</button>` : `<button class="btn white sm" data-a="cpnCsv" data-v="${c.id}">${I.down}Kódy do CSV</button>`}
-        ${canC() && c.mode === 'unique' ? `<button class="btn white sm" data-a="cpnMore" data-v="${c.id}">${I.plus}Další kódy</button>` : ''}
-        ${canC() && ['active', 'paused', 'full'].includes(CPN.status(c)) ? `<button class="btn ${CPN.status(c) === 'paused' ? '' : 'danger'} sm" data-a="cpnPause" data-v="${c.id}">${CPN.status(c) === 'paused' ? 'Obnovit' : 'Pozastavit'}</button>` : ''}
+        ${c.mode === 'shared' ? `<button class="btn white sm" data-a="cpnCopy" data-v="${esc(shareLink(c.code))}">${I.copy}Kopírovat odkaz</button>` : `<button class="btn white sm" data-a="cpnCsv" data-v="${esc(c.id)}">${I.down}Kódy do CSV</button>`}
+        ${canC() && c.mode === 'unique' ? `<button class="btn white sm" data-a="cpnMore" data-v="${esc(c.id)}">${I.plus}Další kódy</button>` : ''}
+        ${canC() && ['active', 'paused', 'full'].includes(CPN.status(c)) ? `<button class="btn ${CPN.status(c) === 'paused' ? '' : 'danger'} sm" data-a="cpnPause" data-v="${esc(c.id)}">${CPN.status(c) === 'paused' ? 'Obnovit' : 'Pozastavit'}</button>` : ''}
       </div></div>
     ${demoBar()}
     <div class="grid21" style="margin-top:0">
@@ -290,7 +290,7 @@ function pageCampaign(c) {
           ${c.mode === 'shared' ? `<dt>Odkaz</dt><dd class="mono">${esc(shareLink(c.code))}</dd>` : ''}
           <dt>Platnost</dt><dd>${fdate(c.from)} – ${c.to ? fdate(c.to) : 'bez konce'}</dd>
           <dt>Limit</dt><dd>${c.limit ? `${fmt(c.limit)} uplatnění` : c.mode === 'unique' ? 'každý kód jednou' : 'bez limitu'}${c.newOnly ? ' · jen noví uživatelé' : ''}</dd>
-          ${c.comm ? `<dt>Provize</dt><dd>${c.comm.kind === 'fixed' ? `${kc(c.comm.value)} za platícího uživatele` : `${c.comm.value} % z plateb za 12 měsíců`}</dd>` : ''}
+          ${c.comm ? `<dt>Provize</dt><dd>${c.comm.kind === 'fixed' ? `${kc(c.comm.value)} za platícího uživatele` : `${esc(c.comm.value)} % z plateb za 12 měsíců`}</dd>` : ''}
           <dt>Založeno</dt><dd>${fdate(c.created)}</dd>
         </dl>
       </section>
@@ -326,7 +326,7 @@ function openCouponWizard(presetKey, partnerId) {
   $('#nkForm input[data-nk="name"]').focus();
 }
 function nkForm() {
-  const o = (v, l, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${l}</option>`;
+  const o = (v, l, cur) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${esc(l)}</option>`;
   const notesN = NK.notes.split('\n').map((x) => x.trim()).filter(Boolean).length;
   $('#nkForm').innerHTML = `
     <label>Pro koho</label>
@@ -334,20 +334,20 @@ function nkForm() {
     <label for="nkName">Název (vidí jen tým)</label><input id="nkName" data-nk="name" value="${esc(NK.name)}">
     ${NK.purpose === 'partner' ? `<div class="fields2">
       <div><label for="nkPartner">Partner</label><select id="nkPartner" data-nk="partner">${o('', 'Vyber partnera…', NK.partner)}${CPN.partners.map((p) => o(p.id, p.name, NK.partner)).join('')}</select></div>
-      <div><label>Provize</label><div style="display:flex;gap:6px"><select data-nk="commKind" style="width:auto">${o('fixed', 'Kč za platícího uživatele', NK.comm.kind)}${o('percent', '% z plateb 12 měsíců', NK.comm.kind)}</select><input data-nk="commValue" type="number" min="0" value="${NK.comm.value}" style="width:90px"></div></div>
+      <div><label>Provize</label><div style="display:flex;gap:6px"><select data-nk="commKind" style="width:auto">${o('fixed', 'Kč za platícího uživatele', NK.comm.kind)}${o('percent', '% z plateb 12 měsíců', NK.comm.kind)}</select><input data-nk="commValue" type="number" min="0" value="${esc(NK.comm.value)}" style="width:90px"></div></div>
     </div><p class="hint">Nového partnera přidáš v záložce Partneři.</p>` : ''}
     <div class="fields2">
       <div><label for="nkGives">Co kód dává</label><select id="nkGives" data-nk="gives">${Object.entries(CPN.GIVES).map(([k, v]) => o(k, v.label, NK.gives)).join('')}</select></div>
-      <div><label for="nkValue">${NK.gives === 'trial' ? 'Počet dní' : NK.gives === 'months' ? 'Počet měsíců' : NK.gives === 'percent' ? 'Sleva v %' : 'Sleva v Kč'}</label><input id="nkValue" data-nk="value" type="number" min="1" max="${NK.gives === 'percent' ? 90 : 9999}" value="${NK.value}"></div>
+      <div><label for="nkValue">${NK.gives === 'trial' ? 'Počet dní' : NK.gives === 'months' ? 'Počet měsíců' : NK.gives === 'percent' ? 'Sleva v %' : 'Sleva v Kč'}</label><input id="nkValue" data-nk="value" type="number" min="1" max="${NK.gives === 'percent' ? 90 : 9999}" value="${esc(NK.value)}"></div>
     </div>
-    ${NK.gives === 'percent' || NK.gives === 'amount' ? `<div class="fields2"><div><label for="nkDur">Na jak dlouho</label><select id="nkDur" data-nk="dur">${o('first', 'První platba', NK.dur)}${o('months', 'Několik měsíců', NK.dur)}${o('year', 'Prvních 12 měsíců', NK.dur)}</select></div>${NK.dur === 'months' ? `<div><label for="nkMonths">Měsíců</label><input id="nkMonths" data-nk="months" type="number" min="1" max="12" value="${NK.months}"></div>` : '<div></div>'}</div>` : ''}
+    ${NK.gives === 'percent' || NK.gives === 'amount' ? `<div class="fields2"><div><label for="nkDur">Na jak dlouho</label><select id="nkDur" data-nk="dur">${o('first', 'První platba', NK.dur)}${o('months', 'Několik měsíců', NK.dur)}${o('year', 'Prvních 12 měsíců', NK.dur)}</select></div>${NK.dur === 'months' ? `<div><label for="nkMonths">Měsíců</label><input id="nkMonths" data-nk="months" type="number" min="1" max="12" value="${esc(NK.months)}"></div>` : '<div></div>'}</div>` : ''}
     <label>Kódy</label>
     <div class="seg"><button type="button" data-a="nkMode" data-v="shared" class="${NK.mode === 'shared' ? 'on' : ''}">Jeden společný kód</button><button type="button" data-a="nkMode" data-v="unique" class="${NK.mode === 'unique' ? 'on' : ''}">Jednorázové kódy pro každého</button></div>
     ${NK.mode === 'shared' ? `<div class="fields2"><div><label for="nkCode">Kód</label><input id="nkCode" data-nk="code" value="${esc(NK.code)}" placeholder="např. VECERNI" style="text-transform:uppercase" autocomplete="off"></div><div><label for="nkLimit">Limit uplatnění (nepovinné)</label><input id="nkLimit" data-nk="limit" type="number" min="1" value="${esc(NK.limit)}"></div></div>`
     : `<div class="fields2"><div><label for="nkPrefix">Začátek kódu</label><input id="nkPrefix" data-nk="prefix" value="${esc(NK.prefix)}" style="text-transform:uppercase" autocomplete="off"></div><div><label for="nkCount">Počet kódů</label><input id="nkCount" data-nk="count" type="number" min="1" max="5000" value="${notesN || NK.count}" ${notesN ? 'disabled' : ''}></div></div>
       <label for="nkNotes">Pro koho jsou (nepovinné, jeden řádek = jeden kód)</label><textarea id="nkNotes" data-nk="notes" rows="4" style="font-family:var(--body);font-size:13px" placeholder="sestra\nsousedi\nkamarádka z práce">${esc(NK.notes)}</textarea>
       <p class="hint">Poznámka je jen pro tebe, ať víš, komu jsi který kód poslal. Kódy jsou náhodné (31 znaků bez 0/O a 1/I/L), nedají se uhodnout.</p>`}
-    <div class="fields2"><div><label for="nkFrom">Platí od</label><input id="nkFrom" data-nk="from" type="date" value="${NK.from}"></div><div><label for="nkTo">Platí do</label><input id="nkTo" data-nk="to" type="date" value="${NK.to}"></div></div>
+    <div class="fields2"><div><label for="nkFrom">Platí od</label><input id="nkFrom" data-nk="from" type="date" value="${esc(NK.from)}"></div><div><label for="nkTo">Platí do</label><input id="nkTo" data-nk="to" type="date" value="${esc(NK.to)}"></div></div>
     <label class="check"><input type="checkbox" data-nk="newOnly" ${NK.newOnly ? 'checked' : ''}> Jen pro nové uživatele (při registraci)</label>`;
 }
 function nkPreview() {
@@ -415,7 +415,7 @@ Object.assign(ACTIONS, {
   cpnMore: (v) => modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="mkT">
     <div class="dialog-head"><h2 id="mkT">Další kódy</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body"><label for="mkN">Kolik</label><input id="mkN" type="number" min="1" max="5000" value="10"><label for="mkNotes">Pro koho (nepovinné, jeden řádek = jeden kód)</label><textarea id="mkNotes" rows="4" style="font-family:var(--body);font-size:13px"></textarea></div>
-    <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zrušit</button><button class="btn" data-a="cpnMoreSave" data-v="${v}">Vygenerovat</button></div></div></div>`),
+    <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zrušit</button><button class="btn" data-a="cpnMoreSave" data-v="${esc(v)}">Vygenerovat</button></div></div></div>`),
   cpnMoreSave: (v) => {
     const notes = $('#mkNotes').value.split('\n').map((x) => x.trim()).filter(Boolean);
     const n = notes.length || Math.max(1, Math.min(5000, Number($('#mkN').value) || 0));
@@ -467,7 +467,7 @@ document.addEventListener('input', (ev) => {
     const stt = CPN.status(r.c);
     const ok = stt === 'active' && !r.used;
     el.innerHTML = `<p class="${ok ? 'status-ok' : 'status-bad'}">${ok ? 'Kód je platný.' : r.used ? 'Kód už byl použitý.' : `Kód teď nejde uplatnit: ${CPN.STATUS[stt][0].toLowerCase()}.`}</p>
-      <dl class="kv" style="margin-top:8px"><dt>Kampaň</dt><dd><a class="link" href="#kupony/${r.c.id}">${esc(r.c.name)}</a></dd><dt>Dává</dt><dd>${esc(CPN.describe(r.c))}</dd><dt>Platnost</dt><dd>${fdate(r.c.from)} – ${r.c.to ? fdate(r.c.to) : 'bez konce'}</dd>${r.note ? `<dt>Pro koho</dt><dd>${esc(r.note)}</dd>` : ''}${r.used ? `<dt>Použila</dt><dd>${famLink(API.families.get(r.used))}</dd>` : ''}</dl>`;
+      <dl class="kv" style="margin-top:8px"><dt>Kampaň</dt><dd><a class="link" href="#kupony/${esc(r.c.id)}">${esc(r.c.name)}</a></dd><dt>Dává</dt><dd>${esc(CPN.describe(r.c))}</dd><dt>Platnost</dt><dd>${fdate(r.c.from)} – ${r.c.to ? fdate(r.c.to) : 'bez konce'}</dd>${r.note ? `<dt>Pro koho</dt><dd>${esc(r.note)}</dd>` : ''}${r.used ? `<dt>Použila</dt><dd>${famLink(API.families.get(r.used))}</dd>` : ''}</dl>`;
   }
 });
 document.addEventListener('click', (ev) => { if (ev.target.closest('#ckRes a')) closeModal(); });

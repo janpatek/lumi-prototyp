@@ -64,6 +64,7 @@ function pagePush() {
       : `${top}<section class="panel"><p class="muted">Načítám…</p></section>`;
   }
   const d = PUSHS.data, s = { ...PUSH_DEF, ...d.settings }, sub = d.subs || {};
+  s.hour = num(s.hour, 23); // hodina z databáze jde do HTML jen jako číslo
   const rotation = s.rotation && s.rotation.length ? s.rotation : STORIES.map((x) => x.id);
   const today = d.plan[0];
   const lastDaily = d.log.find((l) => l.kind === 'daily');
@@ -108,7 +109,7 @@ function pagePush() {
       ${d.plan.map((p, i) => {
         const auto = rotPick(rotation, p.day);
         return `<tr><td><b>${dayLabel(p.day, i)}</b> <span class="muted">${fshort(parseIso(p.day))}</span></td>
-          <td><select data-f="pushDay" data-day="${p.day}" style="width:auto;max-width:100%;padding:4px 8px">
+          <td><select data-f="pushDay" data-day="${esc(p.day)}" style="width:auto;max-width:100%;padding:4px 8px">
             <option value="">Střídání: ${esc(storyName(auto))}</option>
             ${STORIES.map((x) => `<option value="${esc(x.id)}" ${p.manual && p.story === x.id ? 'selected' : ''}>${esc(safeTitle(x))}</option>`).join('')}
           </select></td>

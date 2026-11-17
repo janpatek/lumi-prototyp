@@ -14,7 +14,11 @@ MODEL_ID = "eleven_v4"
 STABILITY = "0.75"
 # Nejdelší text v jednom požadavku. Aplikace posílá po větách, nejdelší věta v pohádkách má ~190 znaků.
 MAX_CHARS = "400"
-# Databáze administrace: GET /naklady podle ní pozná přihlášeného člena týmu. Publishable klíč je veřejný (je i v config.js).
+# Nová věta (ta, co stojí kredity) se namluví jen přihlášené rodině a v mezích limitů v databázi (tabulka tts_limits,
+# funkce app_tts_allow – supabase/migrations/20261117_zabezpeceni.sql). Věty z mezipaměti hrají všem jako dřív.
+# "off" = bez ověření jako před 17. 11. 2026 (kdokoli s podvrženou hlavičkou Origin může čerpat kredity) – jen nouzově.
+TTS_AUTH = "required"
+# Databáze: POST /tts podle ní ověří přihlášení rodiny a limity, GET /naklady pozná člena týmu. Publishable klíč je veřejný (je i v config.js).
 SUPABASE_URL = "https://imiujppjewddeldjifkl.supabase.co"
 SUPABASE_KEY = "sb_publishable_uX729wkKmJ4vtTQaWcWzig_dGjzNaJC"
 

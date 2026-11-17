@@ -145,7 +145,7 @@ function pageCal(top, tabs) {
   const ev = (r) => {
     const [, cls] = CAL_STAV[r.stav] || CAL_STAV.naplanovano, it = socItem(r.polozka);
     const rucne = r.vysledky && r.vysledky.tiktok && r.vysledky.tiktok.stav === 'rucne';
-    return `<button class="cal-ev ${cls}" data-a="calOpen" data-v="${r.id}" title="${esc(calTitle(it))}"><b>${calTime(new Date(r.kdy))}</b> ${esc(it ? it.title : r.polozka)}<span class="s">${r.site.map((s) => CAL_SITE[s]).join(' · ')}${rucne ? ' · TikTok ručně!' : ''}</span></button>`;
+    return `<button class="cal-ev ${cls}" data-a="calOpen" data-v="${esc(r.id)}" title="${esc(calTitle(it))}"><b>${calTime(new Date(r.kdy))}</b> ${esc(it ? it.title : r.polozka)}<span class="s">${esc(r.site.map((s) => CAL_SITE[s]).join(' · '))}${rucne ? ' · TikTok ručně!' : ''}</span></button>`;
   };
   let cells = CAL_DNY.map((d) => `<div class="cal-dn">${d}</div>`).join('');
   for (let i = 0; i < 42; i++) {
@@ -158,7 +158,7 @@ function pageCal(top, tabs) {
     .filter((r) => r.stav !== 'hotovo' || Date.now() - Date.parse(r.kdy) < 14 * 864e5);
   const row = (r) => {
     const [lbl, cls] = CAL_STAV[r.stav] || CAL_STAV.naplanovano, rucne = r.vysledky && r.vysledky.tiktok && r.vysledky.tiktok.stav === 'rucne';
-    return `<div class="cal-row"><span class="w">${esc(calWhen(r.kdy))}</span><span class="t">${esc(calTitle(socItem(r.polozka)))}<br><span class="muted" style="font-size:13px">${r.site.map((s) => CAL_SITE[s]).join(' · ')}</span></span><span class="tag ${cls}">${lbl}</span>${rucne ? '<span class="tag peach">TikTok nahrát ručně</span>' : ''}<button class="btn white sm" data-a="calOpen" data-v="${r.id}">Otevřít</button></div>`;
+    return `<div class="cal-row"><span class="w">${esc(calWhen(r.kdy))}</span><span class="t">${esc(calTitle(socItem(r.polozka)))}<br><span class="muted" style="font-size:13px">${esc(r.site.map((s) => CAL_SITE[s]).join(' · '))}</span></span><span class="tag ${cls}">${lbl}</span>${rucne ? '<span class="tag peach">TikTok nahrát ručně</span>' : ''}<button class="btn white sm" data-a="calOpen" data-v="${esc(r.id)}">Otevřít</button></div>`;
   };
   const planned = CAL.rows.filter((r) => r.stav === 'naplanovano').length;
   return `${top(`${planned} naplánovaných příspěvků${socStorage() ? ' · zveřejňuje se automaticky v zadaný čas' : ' · ukázková data, nic se nezveřejní'}`)}${tabs}
@@ -187,12 +187,12 @@ const calCount = (id) => CAL.rows.filter((x) => x.polozka === id && x.stav !== '
 function calCard(it, on, big) {
   const [typ, cls] = CAL_TYP[it.ig.typ] || ['', 'line'], n = calCount(it.id);
   const tags = [
-    `<span class="tag ${cls}">${typ}${it.ig.typ === 'CAROUSEL' ? ` · ${it.ig.obrazky.length}` : ''}</span>`,
+    `<span class="tag ${cls}">${typ}${it.ig.typ === 'CAROUSEL' ? ` · ${num(it.ig.obrazky.length)}` : ''}</span>`,
     SOC.used[it.id] ? '<span class="tag line">použito</span>' : '',
     n ? `<span class="tag line">v kalendáři ${n}×</span>` : '',
     it.pozor ? '<span class="tag peach">doplnit</span>' : '',
   ].join('');
-  const inner = `<span class="th"><img src="${socUrl(it.nahled)}" alt="" loading="lazy">${it.video ? '<span class="play"></span>' : ''}${it.ig.typ === 'CAROUSEL' ? '<span class="stack"></span>' : ''}</span>
+  const inner = `<span class="th"><img src="${socSrc(it.nahled)}" alt="" loading="lazy">${it.video ? '<span class="play"></span>' : ''}${it.ig.typ === 'CAROUSEL' ? '<span class="stack"></span>' : ''}</span>
     <span class="tx"><span class="tg">${tags}</span><span class="nm">${esc(calTitle(it))}</span></span>`;
   return big ? `<div class="cal-card big">${inner}</div>` : `<button type="button" class="cal-card${on ? ' on' : ''}" data-pick="${esc(it.id)}" aria-pressed="${!!on}">${inner}</button>`;
 }
@@ -210,15 +210,15 @@ function calForm(r, day) {
   };
   const res = r && r.stav !== 'naplanovano' ? `<div class="cal-res">${r.site.map((s) => {
     const v = (r.vysledky || {})[s] || { stav: 'ceka' };
-    return `<div><b>${CAL_SITE[s]}:</b> ${esc(CAL_SIT_STAV[v.stav] || v.stav)}${v.odkaz && typeof v.odkaz === 'string' ? ` · <a href="${esc(v.odkaz)}" target="_blank" rel="noopener">otevřít ↗</a>` : ''}${v.chyba ? `<br><span class="err">${esc(v.chyba)}</span>` : ''}</div>`;
+    return `<div><b>${esc(CAL_SITE[s])}:</b> ${esc(CAL_SIT_STAV[v.stav] || v.stav)}${v.odkaz && typeof v.odkaz === 'string' && safeUrl(v.odkaz) ? ` · <a href="${esc(safeUrl(v.odkaz))}" target="_blank" rel="noopener">otevřít ↗</a>` : ''}${v.chyba ? `<br><span class="err">${esc(v.chyba)}</span>` : ''}</div>`;
   }).join('')}</div>` : '';
   const rucne = r && r.vysledky && r.vysledky.tiktok && r.vysledky.tiktok.stav === 'rucne';
-  const tik = rucne && it0 && it0.video ? `<a class="btn white" href="${socDl(it0.soubory[0])}" download="${esc(it0.soubory[0].nazev)}">${I.down}Video pro TikTok</a><button class="btn white" data-a="calCopyTik" data-v="${r.id}">${I.copy}Popisek pro TikTok</button><button class="btn" data-a="calTikDone" data-v="${r.id}">TikTok hotovo</button>` : '';
+  const tik = rucne && it0 && it0.video ? `<a class="btn white" href="${socHref(it0.soubory[0])}" download="${esc(it0.soubory[0].nazev)}">${I.down}Video pro TikTok</a><button class="btn white" data-a="calCopyTik" data-v="${esc(r.id)}">${I.copy}Popisek pro TikTok</button><button class="btn" data-a="calTikDone" data-v="${esc(r.id)}">TikTok hotovo</button>` : '';
   modal(`<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="calT">
-    <div class="dialog-head"><h2 id="calT">${edit ? (editable ? 'Upravit naplánovaný příspěvek' : calTitle(it0)) : 'Naplánovat příspěvek'}</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
+    <div class="dialog-head"><h2 id="calT">${edit ? (editable ? 'Upravit naplánovaný příspěvek' : esc(calTitle(it0))) : 'Naplánovat příspěvek'}</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body cal-form">
       ${r && !editable && it0 ? `<div class="cal-sel">${calCard(it0, false, true)}</div>` : ''}
-      ${r && !editable ? `<p><span class="tag ${CAL_STAV[r.stav][1]}">${CAL_STAV[r.stav][0]}</span> <span class="muted">${esc(calWhen(r.kdy))} · ${r.site.map((s) => CAL_SITE[s]).join(', ')}</span></p>${res}` : ''}
+      ${r && !editable ? `<p><span class="tag ${CAL_STAV[r.stav][1]}">${CAL_STAV[r.stav][0]}</span> <span class="muted">${esc(calWhen(r.kdy))} · ${esc(r.site.map((s) => CAL_SITE[s]).join(', '))}</span></p>${res}` : ''}
       <div${editable ? '' : ' hidden'}>
         <label class="f">Materiál z knihovny</label>
         <input type="hidden" id="calItem" value="${r ? esc(r.polozka) : ''}">
@@ -229,7 +229,7 @@ function calForm(r, day) {
         </div>
         <div class="cal-pick" id="calPick">${cards}<p class="muted cal-none" hidden>Nic neodpovídá filtru.</p></div>
         <label class="f">Kdy</label>
-        <div class="cal-when"><input type="date" id="calDate" value="${d ? calDay(d) : day || calDay(new Date(Date.now() + 864e5))}"><input type="time" id="calTime" value="${d ? calTime(d) : '20:00'}" step="300"></div>
+        <div class="cal-when"><input type="date" id="calDate" value="${esc(d ? calDay(d) : day || calDay(new Date(Date.now() + 864e5)))}"><input type="time" id="calTime" value="${d ? calTime(d) : '20:00'}" step="300"></div>
         <label class="f">Sítě</label>
         <div class="cal-nets">${Object.keys(CAL_SITE).map(net).join('')}</div>
       </div>
@@ -238,10 +238,10 @@ function calForm(r, day) {
       <div class="ig-count"><span id="calProb" class="bad"></span><span id="calCount"></span></div>
     </div>
     <div class="dialog-foot"><div id="calStatus" class="muted"></div><div class="r">
-      ${edit && r.stav !== 'zpracovava' ? `<button class="btn white" data-a="calDel" data-v="${r.id}">${r.stav === 'naplanovano' ? 'Smazat' : 'Odebrat z kalendáře'}</button>` : ''}
-      ${r && r.stav === 'chyba' ? `<button class="btn white" data-a="calRetry" data-v="${r.id}">Zkusit znovu teď</button>` : ''}
+      ${edit && r.stav !== 'zpracovava' ? `<button class="btn white" data-a="calDel" data-v="${esc(r.id)}">${r.stav === 'naplanovano' ? 'Smazat' : 'Odebrat z kalendáře'}</button>` : ''}
+      ${r && r.stav === 'chyba' ? `<button class="btn white" data-a="calRetry" data-v="${esc(r.id)}">Zkusit znovu teď</button>` : ''}
       ${tik}
-      ${editable ? `<button class="btn" id="calGo" data-a="calSave" data-v="${r ? r.id : ''}">${edit ? 'Uložit' : 'Naplánovat'}</button>` : '<button class="btn white" data-a="close">Zavřít</button>'}
+      ${editable ? `<button class="btn" id="calGo" data-a="calSave" data-v="${r ? esc(r.id) : ''}">${edit ? 'Uložit' : 'Naplánovat'}</button>` : '<button class="btn white" data-a="close">Zavřít</button>'}
     </div></div>
   </div>`);
   if (!editable) return;

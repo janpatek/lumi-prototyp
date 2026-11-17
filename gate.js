@@ -5,5 +5,7 @@
   const script = document.currentScript;
   if (!script || script.dataset.page !== 'brzy') return;
   const z = new URLSearchParams(location.search).get('zpet') || '/';
-  location.replace(/^\/(?!\/)/.test(z) && !z.startsWith('/brzy') ? z : '/');
+  // jen cesta na tomhle webu: začíná jedním lomítkem a nemá zpětné lomítko ani řídicí znaky
+  // (prohlížeč čte „/\\cizi.web“ jako „//cizi.web“, tedy cizí adresu)
+  location.replace(/^\/(?![\/\\])[^\\\u0000-\u001f]*$/.test(z) && !z.startsWith('/brzy') ? z : '/');
 })();

@@ -21,7 +21,7 @@ let chars = 0, i = 0;
 async function worker() {
   while (i < jobs.length) {
     const j = jobs[i++];
-    const r = await fetch(url.replace(/\/$/, '') + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5174' }, body: JSON.stringify({ text: j.text, voice: 'jana', mood: j.mood }) }).catch(() => null);
+    const r = await fetch(url.replace(/\/$/, '') + '/tts', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5174', ...(process.env.OSPALEK_TOOLS_KEY ? { 'X-Ospalek-Tools': process.env.OSPALEK_TOOLS_KEY } : {}) }, body: JSON.stringify({ text: j.text, voice: 'jana', mood: j.mood }) }).catch(() => null);
     if (!r || !r.ok) { count.chyba++; console.error('Chyba:', r ? r.status : 'spojení', j.text.slice(0, 50)); continue; }
     await r.arrayBuffer();
     const c = r.headers.get('X-Ospalek-Cache') || 'miss';

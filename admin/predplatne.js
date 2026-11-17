@@ -71,8 +71,8 @@ function pageSubscriptions() {
       cols: [
         { k: 'at', label: 'Kdy', w: '130px', html: (e) => `<span class="num">${fdate(e.at)} <span class="muted">${e.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></span>` },
         { k: 'fam', label: 'Uživatel', w: 'minmax(160px, 1.2fr)', html: (e) => (e.fam ? famLink(API.families.get(e.fam)) : '<span class="muted">nespárováno</span>') },
-        { k: 'type', label: 'Událost', w: 'minmax(170px, 1fr)', html: (e) => `<span class="tag ${TYPE_TAG[e.type] || 'line'}">${TYPE_LABEL[e.type] || e.type}</span>${e.refunded ? ' <span class="muted">vráceno</span>' : ''}` },
-        { k: 'platform', label: 'Obchod', w: '110px', html: (e) => S.STORE[e.platform] || e.platform },
+        { k: 'type', label: 'Událost', w: 'minmax(170px, 1fr)', html: (e) => `<span class="tag ${Object.hasOwn(TYPE_TAG, e.type) ? TYPE_TAG[e.type] : 'line'}">${esc(Object.hasOwn(TYPE_LABEL, e.type) ? TYPE_LABEL[e.type] : e.type)}</span>${e.refunded ? ' <span class="muted">vráceno</span>' : ''}` },
+        { k: 'platform', label: 'Obchod', w: '110px', html: (e) => esc(S.STORE[e.platform] || e.platform) },
         { k: 'period', label: 'Období', w: '150px', html: (e) => (e.start && e.end ? `<span class="num muted">${fshort(e.start)} – ${fshort(e.end)}</span>` : '') },
         { k: 'amount', label: 'Částka', w: '110px', cls: 'r', html: (e) => (e.amount ? `<span class="num">${e.currency === 'EUR' ? `${dec(e.amount, 2)} €` : kc(e.czk)}</span>` : '<span class="muted">–</span>') },
         { k: 'net', label: 'Do kapsy', w: '100px', cls: 'r', html: (e) => (e.net ? `<span class="num">${kc(e.net)}</span>` : '') },
@@ -128,7 +128,7 @@ function pageSubscriptions() {
     <div class="grid2">
       <section class="panel"><div class="panel-head"><h2>Konverze zkušební doby</h2><span class="hint">podle týdne, kdy zkušební doba začala</span></div>${trialTable}</section>
       <section class="panel"><div class="panel-head"><h2>Problém s platbou</h2></div>
-        ${issues.length ? `<div class="table-wrap"><table><tbody>${issues.slice(0, 10).map((s) => `<tr><td>${s.fam ? famLink(API.families.get(s.fam)) : '<span class="muted">nespárováno</span>'}</td><td>${S.STORE[s.platform]}</td><td class="muted">${s.status === 'grace' ? 'odklad, pořád poslouchá' : 'přístup pozastavený'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Žádný.</p>'}
+        ${issues.length ? `<div class="table-wrap"><table><tbody>${issues.slice(0, 10).map((s) => `<tr><td>${s.fam ? famLink(API.families.get(s.fam)) : '<span class="muted">nespárováno</span>'}</td><td>${esc(S.STORE[s.platform] || s.platform)}</td><td class="muted">${s.status === 'grace' ? 'odklad, pořád poslouchá' : 'přístup pozastavený'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Žádný.</p>'}
         <p class="hint" style="margin-top:8px">Kartu zkouší obchod sám a uživateli posílá e-mail. Vrácení peněz vyřizuje Apple (uživatel žádá na reportaproblem.apple.com) nebo Google Play Console → Objednávky.</p></section>
     </div>
     <div class="grid3">

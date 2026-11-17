@@ -21,6 +21,9 @@ const socStorage = () => !!(D.live && !D.dev);
 const socUrl = (p) => (SOC.urls ? SOC.urls[p] || '' : SOC_LOCAL + p.split('/').map(encodeURIComponent).join('/'));
 // odkaz ke stažení: z úložiště s ?download= (jiný původ, atribut download by prohlížeč ignoroval)
 const socDl = (f) => (SOC.urls ? `${socUrl(f.cesta)}&download=${encodeURIComponent(f.nazev)}` : socUrl(f.cesta));
+// totéž pro vložení do HTML (src, href, poster): katalog i podepsané odkazy jsou data ze sítě, projde jen https: a relativní cesta
+const socSrc = (p) => esc(safeUrl(socUrl(p)));
+const socHref = (f) => esc(safeUrl(socDl(f)));
 const socMB = (b) => (b >= 1e6 ? `${(b / 1e6).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(b / 1e3))} kB`);
 const socItem = (id) => SOC.k.polozky.find((x) => x.id === id);
 // všechny soubory položek k nahrání do úložiště, včetně JPG pro Instagram
@@ -150,7 +153,7 @@ function loadIg() {
     .then(() => { if (route() === 'socialni' && !$('#modal .dialog')) render(); });
 }
 const igUsed = (id) => (SOC.used[id] && typeof SOC.used[id].ig === 'string' ? SOC.used[id].ig : '');
-const igLink = (id, cls) => (igUsed(id) ? `<a class="${cls}" href="${esc(igUsed(id))}" target="_blank" rel="noopener">na Instagramu ↗</a>` : '');
+const igLink = (id, cls) => (safeUrl(igUsed(id)) ? `<a class="${cls}" href="${esc(safeUrl(igUsed(id)))}" target="_blank" rel="noopener">na Instagramu ↗</a>` : '');
 function igBar() {
   if (!socStorage()) return '';
   const d = IG.d, uri = d ? `<span>Adresa pro přesměrování v aplikaci Meta: <code>${esc(d.presmerovani)}</code></span><button class="btn white sm" data-a="igCopyUri">${I.copy}Zkopírovat</button>` : '';
@@ -173,11 +176,11 @@ function igCompose(id) {
   const it = socItem(id);
   if (!it || !it.ig) return;
   const ig = it.ig, u = SOC.used[id];
-  const thumbs = (ig.typ === 'REELS' ? [it.nahled] : it.obrazky).map((p) => `<img src="${socUrl(p)}" alt="">`).join('');
+  const thumbs = (ig.typ === 'REELS' ? [it.nahled] : it.obrazky).map((p) => `<img src="${socSrc(p)}" alt="">`).join('');
   modal(`<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="igT">
     <div class="dialog-head"><h2 id="igT">Zveřejnit na Instagramu</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body">
-      <p class="muted" style="margin-bottom:10px">${esc(`${it.n ? it.n + '. ' : ''}${it.title}`)} · ${IG_TYP[ig.typ]}${ig.typ === 'CAROUSEL' ? `, ${ig.obrazky.length} snímků` : ''} · účet @${esc(IG.d.username)}</p>
+      <p class="muted" style="margin-bottom:10px">${esc(`${it.n ? it.n + '. ' : ''}${it.title}`)} · ${esc(IG_TYP[ig.typ])}${ig.typ === 'CAROUSEL' ? `, ${num(ig.obrazky.length)} snímků` : ''} · účet @${esc(IG.d.username)}</p>
       <div class="ig-sum">${thumbs}</div>
       ${u ? `<div class="soc-warn">Tenhle materiál už je označený jako použitý (${esc(socUsedLabel(u))}${igUsed(id) ? ', zveřejněný přes administraci' : ''}). Zveřejněním vznikne další příspěvek.</div>` : ''}
       <label for="igText" style="font-weight:800;font-size:13px;display:block;margin-bottom:6px">Popisek</label>
@@ -220,7 +223,7 @@ async function igPublish(id) {
     modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="igOk">
       <div class="dialog-head"><h2 id="igOk">Zveřejněno na Instagramu</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
       <div class="dialog-body"><p>${esc(it.title)} je venku a v seznamu je označený jako použitý.</p></div>
-      <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zavřít</button>${r.permalink ? `<a class="btn" href="${esc(r.permalink)}" target="_blank" rel="noopener">Otevřít na Instagramu ↗</a>` : ''}</div></div></div>`);
+      <div class="dialog-foot"><div class="r"><button class="btn white" data-a="close">Zavřít</button>${safeUrl(r.permalink) ? `<a class="btn" href="${esc(safeUrl(r.permalink))}" target="_blank" rel="noopener">Otevřít na Instagramu ↗</a>` : ''}</div></div></div>`);
     toast('Zveřejněno na Instagramu');
   } catch (e) {
     IG.busy = false;
@@ -295,8 +298,8 @@ function socStyle() {
   </style>`);
 }
 
-const socPlan = (p) => (p ? `Týden ${p.week} · ${p.day} ${p.time}` : '');
-const socTexts = (texty, pre) => texty.map((t, i) => `<div class="soc-text"><div class="lbl"><span>${esc(t.nazev)}</span><button class="btn white sm" data-a="socCopy" data-v="${pre}:${i}">${I.copy}Zkopírovat</button></div><pre>${esc(t.text)}</pre></div>`).join('');
+const socPlan = (p) => (p ? `Týden ${p.week} · ${p.day} ${p.time}` : ''); // čistý text, do HTML přes esc()
+const socTexts = (texty, pre) => texty.map((t, i) => `<div class="soc-text"><div class="lbl"><span>${esc(t.nazev)}</span><button class="btn white sm" data-a="socCopy" data-v="${esc(pre)}:${i}">${I.copy}Zkopírovat</button></div><pre>${esc(t.text)}</pre></div>`).join('');
 
 function pageSoc() {
   socStyle();
@@ -317,11 +320,11 @@ function pageSoc() {
   const seg = `<div class="seg">${[['vse', `Vše ${all.length}`], ...Object.entries(SOC_KANAL).map(([k, l]) => [k, `${l} ${counts[k]}`])].map(([v, l]) => `<button data-a="socFilter" data-v="${v}" class="${SOC.f === v ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   const profile = SOC.f === 'profil' ? `<section class="panel" style="margin-top:16px"><div class="panel-head"><h2>Texty profilu</h2><span class="muted">${esc(K.profil.handle)} na Instagramu, TikToku i Facebooku</span></div><div class="soc-profile">${socTexts(K.profil.texty, 'profil')}</div></section>` : '';
   const card = (it) => `<article class="panel soc-card${SOC.used[it.id] ? ' used' : ''}">
-      <button class="soc-thumb${it.kanal === 'google-play' || it.id.includes('facebook-cover') ? ' w' : ''}" data-a="socOpen" data-v="${esc(it.id)}" aria-label="Detail: ${esc(it.title)}"><img src="${socUrl(it.nahled)}" alt="" loading="lazy">${it.video ? '<span class="play"></span>' : ''}</button>
-      <div class="meta"><span class="tag ${SOC_TAG[it.format] || 'line'}">${esc(it.format)}</span>${it.plan ? `<span>${socPlan(it.plan)}</span>` : ''}${it.pozor ? '<span class="tag peach">doplnit</span>' : ''}${igLink(it.id, 'tag mint')}</div>
-      <h3>${it.n ? `${it.n}. ` : ''}${esc(it.title)}</h3>
-      <div class="meta">${it.site.map((s) => SOC_SITE[s]).join(' · ')}</div>
-      <div class="acts"><button class="btn sm" data-a="socOpen" data-v="${esc(it.id)}">Detail a texty</button><a class="btn white sm" href="${socDl(it.soubory[0])}" download="${esc(it.soubory[0].nazev)}">${I.down}${it.video ? 'MP4' : 'Stáhnout'}</a></div>
+      <button class="soc-thumb${it.kanal === 'google-play' || it.id.includes('facebook-cover') ? ' w' : ''}" data-a="socOpen" data-v="${esc(it.id)}" aria-label="Detail: ${esc(it.title)}"><img src="${socSrc(it.nahled)}" alt="" loading="lazy">${it.video ? '<span class="play"></span>' : ''}</button>
+      <div class="meta"><span class="tag ${Object.hasOwn(SOC_TAG, it.format) ? SOC_TAG[it.format] : 'line'}">${esc(it.format)}</span>${it.plan ? `<span>${esc(socPlan(it.plan))}</span>` : ''}${it.pozor ? '<span class="tag peach">doplnit</span>' : ''}${igLink(it.id, 'tag mint')}</div>
+      <h3>${it.n ? `${esc(it.n)}. ` : ''}${esc(it.title)}</h3>
+      <div class="meta">${esc(it.site.map((s) => SOC_SITE[s]).join(' · '))}</div>
+      <div class="acts"><button class="btn sm" data-a="socOpen" data-v="${esc(it.id)}">Detail a texty</button><a class="btn white sm" href="${socHref(it.soubory[0])}" download="${esc(it.soubory[0].nazev)}">${I.down}${it.video ? 'MP4' : 'Stáhnout'}</a></div>
       <label class="soc-check" title="Zaškrtněte, až materiál zveřejníte"><input type="checkbox" data-soc-used="${esc(it.id)}"${SOC.used[it.id] ? ' checked' : ''}>${esc(socUsedLabel(SOC.used[it.id]))}</label>
     </article>`;
   return `${top(`${all.length} materiálů · použito ${usedN} · ${socMB(total)} · katalog z ${new Date(K.vygenerovano).toLocaleDateString('cs-CZ')}`)}
@@ -337,11 +340,11 @@ function socOpen(id) {
   const it = socItem(id);
   if (!it) return;
   const media = it.video
-    ? `<video src="${socUrl(it.video)}" poster="${socUrl(it.nahled)}" controls playsinline preload="metadata"></video>`
-    : `<img id="socBig" src="${socUrl(it.obrazky[0] || it.nahled)}" alt="">${it.obrazky.length > 1 ? `<div class="soc-strip">${it.obrazky.map((p, i) => `<button class="${i ? '' : 'on'}" data-a="socSlide" data-v="${esc(p)}" aria-label="Snímek ${i + 1}"><img src="${socUrl(p)}" alt=""></button>`).join('')}</div>` : ''}`;
-  const all = it.soubory.length > 1 ? `<button class="btn sm" data-a="socAll" data-v="${esc(it.id)}">${I.down}Stáhnout vše (${it.soubory.length})</button>` : '';
+    ? `<video src="${socSrc(it.video)}" poster="${socSrc(it.nahled)}" controls playsinline preload="metadata"></video>`
+    : `<img id="socBig" src="${socSrc(it.obrazky[0] || it.nahled)}" alt="">${it.obrazky.length > 1 ? `<div class="soc-strip">${it.obrazky.map((p, i) => `<button class="${i ? '' : 'on'}" data-a="socSlide" data-v="${esc(p)}" aria-label="Snímek ${i + 1}"><img src="${socSrc(p)}" alt=""></button>`).join('')}</div>` : ''}`;
+  const all = it.soubory.length > 1 ? `<button class="btn sm" data-a="socAll" data-v="${esc(it.id)}">${I.down}Stáhnout vše (${num(it.soubory.length)})</button>` : '';
   modal(`<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="socT">
-    <div class="dialog-head"><h2 id="socT">${it.n ? `${it.n}. ` : ''}${esc(it.title)}</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
+    <div class="dialog-head"><h2 id="socT">${it.n ? `${esc(it.n)}. ` : ''}${esc(it.title)}</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body"><div class="soc-detail">
       <div class="soc-media">${media}</div>
       <div>
@@ -350,7 +353,7 @@ function socOpen(id) {
         ${socTexts(it.texty, it.id)}
         ${it.tip ? `<p style="margin-bottom:14px"><b>Tip:</b> ${esc(it.tip)}</p>` : ''}
         <div class="panel-head" style="margin-bottom:8px"><h2>Soubory</h2>${all}</div>
-        <div class="soc-files">${it.soubory.map((f) => `<a href="${socDl(f)}" download="${esc(f.nazev)}">${esc(f.nazev)}<span>${socMB(f.velikost)}</span></a>`).join('')}</div>
+        <div class="soc-files">${it.soubory.map((f) => `<a href="${socHref(f)}" download="${esc(f.nazev)}">${esc(f.nazev)}<span>${socMB(f.velikost)}</span></a>`).join('')}</div>
       </div>
     </div></div>
     <div class="dialog-foot"><label class="soc-check" style="border:0;padding:0"><input type="checkbox" data-soc-used="${esc(it.id)}"${SOC.used[it.id] ? ' checked' : ''}>${esc(socUsedLabel(SOC.used[it.id]))}</label>${igLink(it.id, 'link')}<div class="r"><button class="btn white" data-a="close">Zavřít</button>${it.ig && PAGES.socialniKalendar ? `<button class="btn white" data-a="calSchedule" data-v="${esc(it.id)}">Naplánovat</button>` : ''}${it.ig && socStorage() ? `<button class="btn" data-a="igCompose" data-v="${esc(it.id)}"${IG.d && IG.d.propojeno ? '' : ' disabled title="Nejdřív propojte Instagram (nad seznamem materiálů)"'}>Zveřejnit na Instagramu</button>` : ''}</div></div>
@@ -366,7 +369,12 @@ Object.assign(ACTIONS, {
   igReload: () => { IG.state = 'idle'; render(); },
   igCopyUri: () => copy(IG.d.presmerovani, 'Adresa pro přesměrování: zkopírováno'),
   igConnect: async () => {
-    try { location.href = (await igCall('propojit', { navrat: location.origin + location.pathname })).url; } catch (e) { toast(e.message); }
+    try {
+      // přesměrování na přihlášení Instagramu: adresu vrací funkce, pustí se jen https:
+      const to = String((await igCall('propojit', { navrat: location.origin + location.pathname })).url || '');
+      if (!/^https:\/\//i.test(to)) throw new Error('Funkce instagram vrátila neplatnou adresu.');
+      location.href = to;
+    } catch (e) { toast(e.message); }
   },
   igDisconnect: () => confirmBox('Odpojit Instagram?', 'Administrace zapomene přihlášení k účtu @' + esc(IG.d.username) + '. Zveřejněné příspěvky zůstanou, znovu propojit jde kdykoli.', 'Odpojit', async () => {
     try { await igCall('odpojit'); toast('Instagram odpojený'); } catch (e) { toast(e.message); }
@@ -375,7 +383,7 @@ Object.assign(ACTIONS, {
   igCompose: (v) => igCompose(v),
   igGo: (v) => igPublish(v),
   socOpen: (v) => socOpen(v),
-  socSlide: (v, t) => { $('#socBig').src = socUrl(v); t.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === t)); },
+  socSlide: (v, t) => { $('#socBig').src = safeUrl(socUrl(v)); t.parentNode.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === t)); },
   socCopy: (v) => {
     const [id, i] = [v.slice(0, v.lastIndexOf(':')), Number(v.slice(v.lastIndexOf(':') + 1))];
     const t = id === 'profil' ? SOC.k.profil.texty[i] : socItem(id).texty[i];
@@ -385,7 +393,7 @@ Object.assign(ACTIONS, {
   socAll: async (v) => {
     const it = socItem(v);
     for (const f of it.soubory) {
-      const a = document.createElement('a'); a.href = socDl(f); a.download = f.nazev; document.body.append(a); a.click(); a.remove();
+      const a = document.createElement('a'); a.href = safeUrl(socDl(f)); a.download = f.nazev; document.body.append(a); a.click(); a.remove();
       await new Promise((r) => setTimeout(r, 400));
     }
     toast(`Stahuje se ${it.soubory.length} souborů`);

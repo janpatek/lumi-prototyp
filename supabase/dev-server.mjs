@@ -266,7 +266,7 @@ http.createServer(async (req, res) => {
     const code = /forbidden|permission denied/.test(e.message) ? 403 : /not signed in/.test(e.message) ? 401 : 400;
     send(res, code, { message: e.message });
   }
-}).listen(PORT, () => console.log(`Ospalek – testovací Supabase na http://localhost:${PORT}  (administrace: ${STAFF.email} / ${STAFF.password})`));
+}).listen(PORT, process.env.HOST || '127.0.0.1', () => console.log(`Ospalek – testovací Supabase na http://localhost:${PORT}  (administrace: ${STAFF.email} / ${STAFF.password})`));
 
 // Vymyšlené rodiny pro vyzkoušení grafů (jména jsou náhodné kombinace, e-maily na example.cz)
 if (seedN) await serial(async () => {
