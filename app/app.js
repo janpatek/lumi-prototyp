@@ -158,7 +158,8 @@ const ROLES = {
   deda: { label: 'Dědeček', g: 'm', forms: { nom: 'dědeček', gen: 'dědečka', dat: 'dědečkovi', acc: 'dědečka', voc: 'dědečku', ins: 'dědečkem' } },
   teta: { label: 'Teta', g: 'f', forms: { nom: 'teta', gen: 'tety', dat: 'tetě', acc: 'tetu', voc: 'teto', ins: 'tetou' } },
   strejda: { label: 'Strýček', g: 'm', forms: { nom: 'strýček', gen: 'strýčka', dat: 'strýčkovi', acc: 'strýčka', voc: 'strýčku', ins: 'strýčkem' } },
-  // sourozenci a mazlíčci: v Rodině s ilustrací, do pohádek zatím ne (šablony počítají s dospělým, který řídí, vaří, ukládá ke spaní)
+  // sourozenci a mazlíčci: nejsou c.p1/c.p2 (šablony počítají s dospělým, který řídí, vaří, ukládá ke spaní).
+  // Do pohádek jdou zvlášť: bratr/sestra jako c.sib (když chybí druhé dítě v profilu), pejsek/kočička jako c.pet.
   bratr: { label: 'Bratr', g: 'm', only: 'family', forms: { nom: 'bratr', gen: 'bratra', dat: 'bratrovi', acc: 'bratra', voc: 'bratře', ins: 'bratrem' } },
   sestra: { label: 'Sestra', g: 'f', only: 'family', forms: { nom: 'sestra', gen: 'sestry', dat: 'sestře', acc: 'sestru', voc: 'sestro', ins: 'sestrou' } },
   pes: { label: 'Pejsek', g: 'm', only: 'family', forms: { nom: 'pejsek', gen: 'pejska', dat: 'pejskovi', acc: 'pejska', voc: 'pejsku', ins: 'pejskem' } },
@@ -196,14 +197,24 @@ function ctx(heroes) {
     return { ...r.forms, full, name, g: (m, f) => (r.g === 'f' ? f : m) };
   };
   const ps = fam.parents.filter(inStories).map(mkParent);
+  // bratr nebo sestra z Rodiny zastoupí sourozence, když v profilu není druhé dítě (bez jména „bratr“, „sestra“)
+  const sibM = sibRaw ? null : fam.parents.find((p) => p.role === 'bratr' || p.role === 'sestra');
+  const sibG = sibRaw ? sibRaw.gender : sibM ? ROLES[sibM.role].g : null;
+  const member = (roles) => { const p = fam.parents.find((x) => roles.includes(x.role)); return p ? { ...mkParent(p), kind: p.role } : null; };
   return {
     H: h.nom,
     h,
     // šablona může volat g() i ve větvi pro jedno dítě, která se pak nepoužije – proto náhrada za chybějící mpl
     g: (m, f, mpl = m, fpl) => (one ? (allF ? f : m) : allF ? fpl ?? mpl.replace(/li\b/g, 'ly') : mpl),
     n: (sg, pl) => (one ? sg : pl),
-    sib: sibRaw ? sibRaw.forms : null,
-    sg: (m, f) => (sibRaw && sibRaw.gender === 'f' ? f : m),
+    sib: sibRaw ? sibRaw.forms : sibM ? (sibM.name ? sibM.forms : ROLES[sibM.role].forms) : null,
+    sg: (m, f) => (sibG === 'f' ? f : m),
+    // mazlíček a další příbuzní (kdekoli v Rodině, i když nejsou c.p1/c.p2), jinak null; tvary jako u rodičů
+    pet: member(['pes', 'kocka']),
+    babi: member(['babi']),
+    deda: member(['deda']),
+    teta: member(['teta']),
+    strejda: member(['strejda']),
     p1: ps[0] || mkParent({ role: 'mama' }),
     p2: ps[1] || null,
     town: fam.home.town,
