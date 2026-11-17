@@ -303,7 +303,13 @@ export async function handle(req: Request, path: string): Promise<J> {
     }
   }
 
-  if (path === 'cron') return cron();
+  if (path === 'cron') {
+    // Volitelná pojistka: když je v Secrets nastavené CRON_SECRET, pustí se jen volání se stejnou hlavičkou x-cron-secret
+    // (doplň ji do net.http_post v plánovači, migrations/20261114_socialni_kalendar.sql). Bez CRON_SECRET jako dřív.
+    const tajne = env('CRON_SECRET');
+    if (tajne && req.headers.get('x-cron-secret') !== tajne) return new Response(JSON.stringify({ message: 'Neplatný klíč plánovače.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    return cron();
+  }
 
   const c = await caller(req);
   const b = await req.json().catch(() => ({}));

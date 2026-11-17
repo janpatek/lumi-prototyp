@@ -29,6 +29,8 @@ const G: any = globalThis;
 const env = (k: string): string => (G.Deno ? G.Deno.env.get(k) : G.process?.env?.[k]) || '';
 const enc = new TextEncoder();
 const fail = (status: number, message: string) => Object.assign(new Error(message), { status });
+// porovnání tajných hodnot bez prozrazení délky shody časem
+const same = (a: string, b: string) => { let d = a.length ^ b.length; for (let i = 0; i < Math.max(a.length, b.length); i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0); return d === 0; };
 
 // ---------- base64 ----------
 const b64 = (s: string) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
@@ -171,6 +173,18 @@ async function playSub(token: string): Promise<J> {
   if (!r.ok) throw fail(r.status === 404 || r.status === 410 ? 404 : 502, 'Google Play: ' + (j.error?.message || r.status));
   return j;
 }
+// Potvrzení nákupu u Googlu. Nepotvrzený nákup Google po 3 dnech sám vrátí; telefon ho potvrzuje taky, ale když se mu to
+// nepovede a rodina aplikaci pár dní neotevře, přišla by o předplatné. Chyba potvrzení ověření nezastaví.
+async function playAck(token: string, g: J) {
+  if (g.acknowledgementState !== 'ACKNOWLEDGEMENT_STATE_PENDING') return;
+  const product = (g.lineItems || [])[0]?.productId;
+  if (!product || !['SUBSCRIPTION_STATE_ACTIVE', 'SUBSCRIPTION_STATE_IN_GRACE_PERIOD'].includes(g.subscriptionState)) return;
+  try {
+    const r = await fetch(`https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE}/purchases/subscriptions/${encodeURIComponent(product)}/tokens/${encodeURIComponent(token)}:acknowledge`,
+      { method: 'POST', headers: { Authorization: 'Bearer ' + (await googleToken()), 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) console.error('acknowledge', r.status, (await r.text()).slice(0, 200));
+  } catch (e) { console.error('acknowledge', (e as Error).message); }
+}
 const money = (m: J) => (m ? Number(m.units || 0) + Number(m.nanos || 0) / 1e9 : null);
 const minusMonth = (iso_: string) => { const d = new Date(iso_); d.setUTCMonth(d.getUTCMonth() - 1); return d.toISOString(); };
 // typy oznámení RTDN: https://developer.android.com/google/play/billing/rtdn-reference
@@ -257,7 +271,10 @@ async function caller(req: Request): Promise<string> {
 async function handle(req: Request, path: string): Promise<J> {
   if (path === 'app') {
     const uid = await caller(req), b = await req.json().catch(() => ({}));
-    let rec: J;
+    // limit ověření na účet (každé ověření Androidu je dotaz na Google Play API s denní kvótou). Dokud v databázi
+    // funkce store_touch není (migrace 20261117 ještě neproběhla), ověřuje se bez limitu jako dřív.
+    if ((await rpc('store_touch', { uid }).catch(() => true)) === false) throw fail(429, 'Moc ověření za sebou. Zkuste to prosím za chvíli.');
+    let rec: J, ack: (() => Promise<void>) | null = null;
     if (b.platform === 'ios') {
       const tx = await appleJws(b.jws);
       if (tx.bundleId !== BUNDLE) throw fail(400, 'Cizí aplikace');
@@ -266,10 +283,14 @@ async function handle(req: Request, path: string): Promise<J> {
       const token = String(b.token || '');
       if (!token) throw fail(400, 'Chybí purchase token');
       const g = await playSub(token);
+      ack = () => playAck(token, g);
       rec = googleRecord(g, token, await rpc('store_sub_by_token', { tokens: [token, g.linkedPurchaseToken].filter(Boolean) }), null);
     } else throw fail(400, 'Neznámá platforma');
     rec.family = uid; // nákup používá tahle rodina (i po obnovení na novém telefonu)
-    return save(rec);
+    rec.source = 'app'; // doklad poslal telefon: databáze jím nepřepíše novější stav z oznámení obchodu (vrácené peníze)
+    const out = await save(rec);
+    if (ack) await ack(); // potvrdit u Googlu až po zápisu: potvrzený nákup, o kterém nevíme, by už Google sám nevrátil
+    return out;
   }
   if (path === 'apple') {
     const b = await req.json().catch(() => ({}));
@@ -283,7 +304,7 @@ async function handle(req: Request, path: string): Promise<J> {
   }
   if (path === 'google') {
     const secret = env('PUBSUB_SECRET');
-    if (!secret || new URL(req.url).searchParams.get('secret') !== secret) throw fail(401, 'Neplatný klíč odběru');
+    if (!secret || !same(new URL(req.url).searchParams.get('secret') || '', secret)) throw fail(401, 'Neplatný klíč odběru');
     const b = await req.json().catch(() => ({}));
     const m = JSON.parse(b.message?.data ? b64text(b.message.data) : '{}');
     if (m.packageName && m.packageName !== PACKAGE) throw fail(400, 'Cizí aplikace');
@@ -294,6 +315,7 @@ async function handle(req: Request, path: string): Promise<J> {
     try { g = await playSub(token); } catch (e) { if ((e as J).status === 404) return { ok: true, gone: true }; throw e; }
     const id = await rpc('store_sub_by_token', { tokens: [token, g.linkedPurchaseToken].filter(Boolean) });
     await save(googleRecord(g, token, id, { id: b.message?.messageId || m.eventTimeMillis, type: sn?.notificationType, eventTimeMillis: m.eventTimeMillis, voided: vn?.orderId }));
+    await playAck(token, g);
     return { ok: true };
   }
   throw fail(404, 'Neznámá adresa');

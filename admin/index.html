@@ -6,20 +6,16 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#F7F5FC">
   <title>Ospalek – administrace</title>
+  <!-- Content-Security-Policy: skripty jen z vlastních souborů (žádné inline skripty ani onclick/onerror v HTML), takže vložený
+       kód z dat se nespustí a nemá kam poslat přihlášení. 'unsafe-eval' potřebuje náhled šablon pohádek (new Function).
+       connect-src: databáze, oba workery a localhost pro vývoj. Při změně adres v ../config.js uprav i tenhle řádek. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://imiujppjewddeldjifkl.supabase.co; media-src 'self' blob: https://imiujppjewddeldjifkl.supabase.co; connect-src 'self' https://imiujppjewddeldjifkl.supabase.co https://ospalek-tts.jan-patek.workers.dev https://ospalek-push.jan-patek.workers.dev http://localhost:* http://127.0.0.1:*; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
   <link rel="icon" href="../brand/maskot-3d/web/ospalek-mark-64.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="admin.css?v=9">
-  <script>
-    // Téma: ruční volba z administrace, jinak podle systému
-    (function () {
-      var pref = null;
-      try { pref = localStorage.getItem('ospalek.admin.theme'); } catch (e) {}
-      var dark = pref ? pref === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-    })();
-  </script>
+  <script src="theme.js?v=1"></script>
 </head>
 <body class="locked">
   <div class="shell">
@@ -34,7 +30,7 @@
         <div class="as">Zobrazit jako role</div>
         <select id="viewAs" aria-label="Zobrazit administraci jako role"></select>
         <button class="theme-btn" id="themeBtn" type="button"></button>
-        <button class="theme-btn" type="button" onclick="adminLogout()"><svg class="ico" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg><span>Odhlásit</span></button>
+        <button class="theme-btn" type="button" id="logoutBtn"><svg class="ico" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg><span>Odhlásit</span></button>
         <div class="perf" id="perf" title="Jak dlouho trvalo načíst data a vykreslit stránku"></div>
       </div>
     </aside>
@@ -45,7 +41,7 @@
   <script src="../app/stories.cs.js?v=8"></script>
   <script src="../config.js?v=3"></script>
   <script src="demo-data.js?v=5"></script>
-  <script src="live-data.js?v=11"></script>
-  <script src="boot.js?v=17"></script>
+  <script src="live-data.js?v=12"></script>
+  <script src="boot.js?v=18"></script>
 </body>
 </html>

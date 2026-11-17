@@ -1684,7 +1684,13 @@ const actions = {
     $modal.innerHTML = `<div class="overlay" data-a="closeModal"><div class="sheet" data-stop><h2>Bydliště</h2>${homeForm()}${changesNote()}<div class="footer-actions"><button class="btn" data-a="saveHome">Uložit</button></div></div></div>`;
   },
   saveHome: () => { if (syncHome() === false) return; closeModal(); render(); },
-  reset: () => { if (confirm(`Smazat účet a všechna data rodiny v tomto zařízení i na našem serveru? Nejde to vrátit.${S.premium && BILLING.native ? '\n\nPředplatné se tím nezruší. Zrušte ho v nastavení předplatných App Store nebo Google Play.' : ''}`)) { DAILY.disable(); SYNC.forget(); OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login'); } },
+  reset: () => { if (confirm(`Smazat účet a všechna data rodiny v tomto zařízení i na našem serveru? Nejde to vrátit.${S.premium && BILLING.native ? '\n\nPředplatné se tím nezruší. Zrušte ho v nastavení předplatných App Store nebo Google Play.' : ''}`)) {
+    // nejdřív server: bez připojení se nic nemaže ani v telefonu, jinak by data na serveru zůstala a už by nešla smazat
+    Promise.resolve(DAILY.disable()).catch(() => {}).then(() => SYNC.forget()).catch(() => false).then((done) => {
+      if (done === false) { toast('Smazání se nepovedlo dokončit, nedaří se spojit se serverem. Připojte se k internetu a zkuste to znovu. Nic se zatím nesmazalo.'); return; }
+      OFFLINE.clear(); offlineMemo.clear(); store.clear(); S = blank(); ui.step = 0; go('login');
+    });
+  } },
   playPause: () => playPause(),
   rate: (el) => rate(el),
   prevSeg: () => jump(-1),

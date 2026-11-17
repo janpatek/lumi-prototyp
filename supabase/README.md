@@ -151,7 +151,7 @@ i zveřejňování na stránce (`pages_manage_posts`). Plánovač jde zkontrolov
 3. **Authentication → Sign In / Providers → Anonymous sign-ins: zapnout.** Rodiny díky tomu nemusí zadávat e-mail.
    Doporučení: v Authentication → Rate Limits nech limit anonymních přihlášení nízký (výchozích 30 za hodinu z jedné IP), později přidat captchu (Turnstile).
 4. Pozvi se do týmu (SQL Editor), pak v **Authentication → Users → Add user** založ účet se stejným e-mailem a heslem (Auto Confirm).
-   Trigger tě při založení účtu sám přidá do tabulky `staff`:
+   Trigger tě při založení účtu sám přidá do tabulky `staff` (jen účet s potvrzeným e-mailem, proto Auto Confirm):
    ```sql
    insert into staff_invites (email, name, role) values ('tvuj@email.cz', 'Jan', 'owner');
    ```
@@ -242,6 +242,33 @@ Přístup drží jen naše databáze: `access_grants.until` a `families.promo_un
 - Produkce: po `20261111_kupony.sql` spustit jednou `migrations/20261116_kupony_bez_revenuecat.sql`. Ta odstraní části pro
   RevenueCat. Pak smazat edge funkci `coupon-grant` a secret `REVENUECAT_SECRET_KEY`, pokud existuje.
 - Test: `cd supabase && node test-kupony.mjs`. Lokálně (`dev-server.mjs`) jsou kupóny `TEST30`, `ZNAMI-TEST-0001`, `SLEVA20`.
+
+## Zabezpečení (17. 11. 2026)
+
+Opravy z auditu před produkcí. V produkci spusť jednou `migrations/20261117_zabezpeceni.sql` (SQL Editor; předpokládá
+všechny starší migrace) a **teprve potom** nasaď `tts-worker` (`npx wrangler deploy` ve složce `tts-worker/`) a novou
+verzi Edge Function `store`. Test nad skutečným schématem: `cd supabase && node test-zabezpeceni.mjs`.
+
+- **Hlas:** novou větu z ElevenLabs namluví `tts-worker` jen přihlášené rodině a v mezích tabulky `tts_limits`
+  (`app_tts_allow`). Limity se mění v SQL Editoru, např. `update tts_limits set global_day = 300000;`. Podrobnosti
+  v `tts-worker/README.md`.
+- **Nastavení rodiny:** `app_sync_family` z `settings` nechá jen známé klíče a typy, platformu a verzi jen z bezpečných
+  znaků. Administrace navíc všechno, co vypisuje, ošetřuje sama.
+- **Tým:** pozvánka (`staff_invites`) dá roli jen účtu s potvrzeným e-mailem. Při zakládání přes *Add user* proto nech
+  zaškrtnuté *Auto Confirm User*. `admin_families` vrací jména dětí a celý e-mail jen rolím `owner`, `support`, `finance`.
+- **Nákupy:** starý doklad z telefonu nepřepíše vrácené peníze, po převodu nákupu na jiný účet ho ten původní nemá,
+  limit 60 ověření za hodinu na účet (`store_touch`), Edge Function nákup u Googlu sama potvrzuje.
+- **Kódy:** zámek proti souběhu u `max_uses`; sloučení účtů přístup z kódu přesouvá, nekopíruje.
+
+Co kód neumí zařídit a je potřeba nastavit ručně:
+
+1. `select * from staff_invites;` má být prázdné. Authentication → Sign In / Providers → Email: zapnuté *Confirm email*.
+2. Authentication → Attack Protection: zapnout CAPTCHA (Turnstile) vyžaduje úpravu aplikace, zatím aspoň nízký limit
+   anonymních přihlášení (Rate Limits). Limit pokusů u kódů i limity hlasu platí na účet; celkový denní strop hlasu
+   (`tts_limits.global_day`) drží škodu při zakládání účtů ve velkém.
+3. U klíče ElevenLabs nech nastavený měsíční limit kreditů.
+4. Cloudflare a GitHub: dvoufázové ověření (kdo ovládne repozitář nebo doménu, mění kód aplikace i pohádky).
+5. Volitelně Secrets → `CRON_SECRET` a stejná hlavička `x-cron-secret` v plánovači sociálních sítí.
 
 ## Lokální vyzkoušení bez účtu
 

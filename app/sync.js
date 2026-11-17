@@ -122,8 +122,9 @@ const SYNC = (() => {
     on: true,
     // přihlášení rodiny pro ověření nákupu na serveru (app/billing.js)
     token: async () => (await session()).access_token,
-    // přihlášení pro tts-worker (ten podle něj zapíše namluvené věty k uživateli); nikdy kvůli tomu nezakládá účet
-    ttsAuth: async (S) => { if (!S.user || !get(SKEY)) return null; try { return (await session()).access_token; } catch (e) { return null; } },
+    // přihlášení pro tts-worker: bez něj novou větu nenamluví (kredity jsou jen pro rodiny) a podle něj ji zapíše k účtu.
+    // Rodina, která už začala (S.user), účet má nebo ho dostane při prvním uložení; tady se jen nečeká, až to proběhne.
+    ttsAuth: async (S) => { if (!S.user) return null; try { return (await session()).access_token; } catch (e) { return null; } },
     // po každém uložení; odešle se s krátkým zpožděním, ať se nepíše při každém písmenku
     family(S) {
       if (!S.user) return;
@@ -190,11 +191,19 @@ const SYNC = (() => {
     signOut() { set(SKEY, null); },
     // přímé volání s odpovědí (pohádka dne, odběr upozornění v app/daily.js); bez připojení vyhodí chybu
     call: (fn, args = {}) => rpc(fn, args),
-    // „Smazat všechna data“: smaže rodinu i anonymní účet v databázi
+    // „Smazat všechna data“: smaže rodinu i anonymní účet v databázi. Vrací true, když je na serveru smazáno
+    // (nebo tam nic nebylo). false = server se neozval: přihlášení v telefonu ZŮSTÁVÁ, jinak by se k datům na serveru
+    // už nikdo nedostal a nešla by smazat. Aplikace pak rodině řekne, ať to zkusí znovu s připojením.
     async forget() {
+      if (get(SKEY)) {
+        try { await rpc('app_delete_family', {}); } catch (e) {
+          // přihlášení mezitím přestalo platit: zkusit jednou s obnoveným, teprve pak to vzdát
+          try { await rpc('app_delete_family', {}); } catch (e2) { return false; }
+        }
+      }
       queue = []; persist(); set(SRC, null);
-      if (get(SKEY)) { try { await rpc('app_delete_family', {}); } catch (e) { /* bez připojení zůstane účet bez dat */ } }
       set(SKEY, null);
+      return true;
     },
   };
 })();

@@ -42,7 +42,8 @@ async function fetchOne(l) {
     try {
       r = await fetch(TTS + '/tts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5174' },
+        // OSPALEK_TOOLS_KEY = tajný klíč nástrojů (stejný jako TOOLS_KEY ve Workeru); bez něj Worker novou větu nenamluví
+        headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:5174', ...(process.env.OSPALEK_TOOLS_KEY ? { 'X-Ospalek-Tools': process.env.OSPALEK_TOOLS_KEY } : {}) },
         body: JSON.stringify({ text: l.t, voice: 'jana', mood: l.mood }),
       });
       if (r.ok) buf = Buffer.from(await r.arrayBuffer());

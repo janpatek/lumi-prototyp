@@ -2,7 +2,7 @@
 //  – ostrá data (je vyplněný ../config.js): přihlášení člena týmu do Supabase a načtení souhrnů,
 //  – jinak ukázková data z demo-data.js.
 // Zbytek skriptů potřebuje hotová data (window.DEMO), proto se načítá až potom: stahuje se paralelně, spouští v pořadí.
-const ADMIN_SCRIPTS = ['store-data.js?v=1', 'api.js?v=6', 'vtable.js?v=2', 'admin.js?v=15', 'helpdesk.js?v=3', 'rodiny.js?v=5', 'analytika.js?v=8', 'predplatne.js?v=2', 'kupony.js?v=5', 'system.js?v=7', 'upozorneni.js?v=2', '../app/voice-lines.js?v=1', 'generator.js?v=1', 'socialni-site.js?v=7', 'socialni-kalendar.js?v=2'];
+const ADMIN_SCRIPTS = ['store-data.js?v=1', 'api.js?v=6', 'vtable.js?v=2', 'admin.js?v=16', 'helpdesk.js?v=4', 'rodiny.js?v=6', 'analytika.js?v=8', 'predplatne.js?v=3', 'kupony.js?v=6', 'system.js?v=8', 'upozorneni.js?v=3', '../app/voice-lines.js?v=1', 'generator.js?v=2', 'socialni-site.js?v=8', 'socialni-kalendar.js?v=3'];
 
 function loadScripts(list) {
   return Promise.all(list.map((src) => new Promise((res, rej) => {
@@ -34,8 +34,9 @@ async function bootAdmin() {
     await loadScripts(ADMIN_SCRIPTS);
   } catch (e) {
     const el = bootMessage(`<h1>Data se nepodařilo načíst</h1><p class="err">${String(e.message).replace(/[<>&]/g, '')}</p>
-      <button class="btn" type="button" onclick="location.reload()">Zkusit znovu</button>
+      <button class="btn" type="button" id="sbRetry">Zkusit znovu</button>
       <button class="linkbtn" type="button" id="sbOut">Odhlásit z databáze</button>`);
+    el.querySelector('#sbRetry').onclick = () => location.reload();
     el.querySelector('#sbOut').onclick = () => { LIVE.signOut(); location.reload(); };
     return;
   }
@@ -44,4 +45,6 @@ async function bootAdmin() {
   window.BOOT_MS = performance.now() - t0;
   startAdmin();
 }
+// tlačítko Odhlásit (dřív inline onclick v index.html, ten Content-Security-Policy nepustí)
+document.getElementById('logoutBtn')?.addEventListener('click', () => window.adminLogout());
 bootAdmin();
