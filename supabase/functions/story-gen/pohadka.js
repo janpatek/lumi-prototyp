@@ -52,6 +52,7 @@ Každý odstavec i název je TĚLO JavaScriptového template literálu. Údaje r
 - c.n(jedno, víc) – tvar jen podle čísla („má“/„mají“, „ty“/„vy“, „Pomůžeš“/„Pomůžete“).
 - c.sib – sourozenec, který v pohádce není hrdinou (má .nom .gen .dat .acc .voc .ins), nebo null; c.sg(m, f) – tvar podle jeho rodu.
 - c.p1, c.p2 – rodiče: .full („maminka Petra“), .nom/.gen/.dat/.acc/.ins („maminka“), .g(m, f). c.p2 může být null.
+- c.sib je i bratr/sestra z Rodiny (jméno, bez jména „bratr“/„sestra“). c.pet – pejsek nebo kočička rodiny: .full („pejsek Rex“), .nom/.gen/.dat/.acc/.ins („pejsek“), .g(m, f), .kind ('pes'/'kocka'). c.babi, c.deda, c.teta, c.strejda – ti členové Rodiny: .full („teta Lenka“), tvary, .g(m, f). Každý může chybět – vždy jen v podmínce \${c.pet ? \`…\` : ''}. Mazlíčka dej do domácí scény nebo k usínání, tetu a strýčka k oslavám a návštěvám, v krátkých samostatných větách.
 - c.inTown („v Benešově“), c.near (pole okolních obcí v 1. pádě, může být prázdné), c.attr (pole atrakcí v okolí, může být prázdné).
 - c.food a c.animal – oblíbené jídlo a zvíře v 1. pádě („palačinky“, „jahody a knedlíky“, „liška“).
 - Globální funkce cap(s) (velké první písmeno) a listCz(pole) („A, B a C“).

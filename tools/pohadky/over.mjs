@@ -31,10 +31,20 @@ const K = {
   anicka: kid('Anička', 'Aničky', 'Aničce', 'Aničku', 'Aničko', 'Aničkou', 'f', 'knedlíky', 'kočička'),
 };
 const parent = (role, name) => {
-  const R = { mama: ['f', { nom: 'maminka', gen: 'maminky', dat: 'mamince', acc: 'maminku', voc: 'maminko', ins: 'maminkou' }], tata: ['m', { nom: 'tatínek', gen: 'tatínka', dat: 'tatínkovi', acc: 'tatínka', voc: 'tatínku', ins: 'tatínkem' }] }[role];
-  return { ...R[1], full: R[1].nom + (name ? ' ' + name : ''), name: name ? { nom: name } : null, g: (m, f) => (R[0] === 'f' ? f : m) };
+  const R = {
+    mama: ['f', { nom: 'maminka', gen: 'maminky', dat: 'mamince', acc: 'maminku', voc: 'maminko', ins: 'maminkou' }],
+    tata: ['m', { nom: 'tatínek', gen: 'tatínka', dat: 'tatínkovi', acc: 'tatínka', voc: 'tatínku', ins: 'tatínkem' }],
+    babi: ['f', { nom: 'babička', gen: 'babičky', dat: 'babičce', acc: 'babičku', voc: 'babičko', ins: 'babičkou' }],
+    deda: ['m', { nom: 'dědeček', gen: 'dědečka', dat: 'dědečkovi', acc: 'dědečka', voc: 'dědečku', ins: 'dědečkem' }],
+    teta: ['f', { nom: 'teta', gen: 'tety', dat: 'tetě', acc: 'tetu', voc: 'teto', ins: 'tetou' }],
+    strejda: ['m', { nom: 'strýček', gen: 'strýčka', dat: 'strýčkovi', acc: 'strýčka', voc: 'strýčku', ins: 'strýčkem' }],
+    pes: ['m', { nom: 'pejsek', gen: 'pejska', dat: 'pejskovi', acc: 'pejska', voc: 'pejsku', ins: 'pejskem' }],
+    kocka: ['f', { nom: 'kočička', gen: 'kočičky', dat: 'kočičce', acc: 'kočičku', voc: 'kočičko', ins: 'kočičkou' }],
+  }[role];
+  return { ...R[1], full: R[1].nom + (name ? ' ' + name : ''), name: name ? { nom: name } : null, g: (m, f) => (R[0] === 'f' ? f : m), kind: role };
 };
-function ctx(heroes, sib, ps, home) {
+// x: noví členové Rodiny { pet, babi, deda, teta, strejda } (výsledek parent(…)) – jako ctx() v app.js
+function ctx(heroes, sib, ps, home, x = {}) {
   const one = heroes.length === 1;
   const allF = heroes.every((k) => k.gender === 'f');
   const h = {};
@@ -46,6 +56,7 @@ function ctx(heroes, sib, ps, home) {
     sib: sib ? sib.forms : null,
     sg: (m, f) => (sib && sib.gender === 'f' ? f : m),
     p1: ps[0], p2: ps[1] || null,
+    pet: x.pet || null, babi: x.babi || null, deda: x.deda || null, teta: x.teta || null, strejda: x.strejda || null,
     town: home.town, inTown: home.inTown, near: home.near, attr: home.attr,
     food: listCz([...new Set(heroes.map((k) => k.food))]),
     animal: listCz([...new Set(heroes.map((k) => k.animal))]),
@@ -62,6 +73,9 @@ const FAM = {
   'dvě děti': ctx([K.tonik, K.eliska], null, [parent('mama', 'Petra'), parent('tata', 'Honza')], HOME_A),
   'dvě holky': ctx([K.eliska, K.anicka], K.matej, [parent('mama')], HOME_B),
   'bez okolí': ctx([K.matej], null, [parent('mama')], HOME_0),
+  'mazlíček a příbuzní': ctx([K.tonik], kid('Kuba', 'Kuby', 'Kubovi', 'Kubu', 'Kubo', 'Kubou', 'm'), [parent('mama', 'Petra'), parent('tata')], HOME_A,
+    { pet: parent('pes', 'Rex'), babi: parent('babi', 'Jarmila'), deda: parent('deda'), teta: parent('teta', 'Lenka'), strejda: parent('strejda') }),
+  'kočička': ctx([K.anicka], kid('sestra', 'sestry', 'sestře', 'sestru', 'sestro', 'sestrou', 'f'), [parent('mama')], HOME_B, { pet: parent('kocka') }),
 };
 const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, s) => a + s.t.split(/\s+/).length / 2 + (s.pause || 0) + 1, 0) / 60));
 const SFX = ['sparkle', 'magic', 'car', 'horn', 'birds', 'owl', 'paper', 'wind', 'ding'];
