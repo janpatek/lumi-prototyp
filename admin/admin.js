@@ -38,7 +38,19 @@ const hm = (ms) => {
   return `${Math.floor(m / 1440)} d ${Math.floor((m % 1440) / 60)} h`;
 };
 const kc = (n) => `${Math.round(n).toLocaleString('cs-CZ')} Kč`;
-const dec = (n, d = 1) => n.toLocaleString('cs-CZ', { maximumFractionDigits: d, minimumFractionDigits: d });
+const dec = (n, d = 1) => Number(n).toLocaleString('cs-CZ', { maximumFractionDigits: d, minimumFractionDigits: d });
+// Bezpečnost: cokoli z databáze nebo ze sítě jde do HTML jen přes esc() (text i atributy), čísla přes num()/fmt()/dec()
+// a adresy do href/src přes safeUrl(). Syrově se vkládají jen vlastní statické šablony.
+// num: hodnota z dat jako celé nezáporné číslo v rozumném rozsahu (cokoli jiného = 0)
+const num = (x, max = 1e9) => Math.max(0, Math.min(max, Math.round(Number(x)) || 0));
+// safeUrl: adresa z dat do href/src. Projde jen https:, vlastní blob: náhled a relativní cesta; javascript:, data:, http: a //cizí.web se zahodí.
+const safeUrl = (u) => {
+  const s = String(u ?? '').trim(), t = s.replace(/[\u0000-\u0020]/g, '');
+  if (/^(https:\/\/|blob:)/i.test(t)) return s;
+  return /^[a-z][a-z0-9+.-]*:/i.test(t) || /^[\/\\]{2}/.test(t) ? '' : s;
+};
+// obrázek, který se nenačte, se odstraní (dřív inline onerror="this.remove()", ten by neprošel přes Content-Security-Policy)
+document.addEventListener('error', (ev) => { const t = ev.target; if (t && t.tagName === 'IMG' && t.hasAttribute('data-rm')) t.remove(); }, true);
 const initials = (n) => String(n || '?').split(/\s+/).map((x) => x[0]).join('').slice(0, 2).toUpperCase();
 // osobní údaje jen pro role s oprávněním families.pii
 const famName = (f) => (!f ? 'Smazaný uživatel' : !f.email ? `Host ${f.id}` : API.can('families.pii') ? f.name : `Uživatel ${f.id}`);
@@ -51,7 +63,7 @@ const subTag = (f) => {
   return `<span class="tag ${c}">${l}${f.plan === 'dárek' ? ' · dárek' : ''}</span>`;
 };
 const healthTag = (h) => `<span class="health ${h >= 60 ? 'h-good' : h >= 35 ? 'h-mid' : 'h-bad'}" title="Zdraví účtu (0–100)">${h}</span>`;
-const kidsHtml = (f) => f.kids.map((k) => `<span class="kid ${k.g}">${API.can('families.pii') ? esc(k.name) : k.g === 'f' ? 'holka' : 'kluk'} ${k.age}</span>`).join('');
+const kidsHtml = (f) => f.kids.map((k) => `<span class="kid ${esc(k.g)}">${API.can('families.pii') ? esc(k.name) : k.g === 'f' ? 'holka' : 'kluk'} ${esc(k.age)}</span>`).join('');
 const tStatus = (t) => `<span class="st st-${t.status}">${API.TSTATUS[t.status]}</span>`;
 const slaChip = (t) => {
   const s = API.tickets.sla(t);
@@ -423,7 +435,7 @@ function pageRegistrations() {
     <section class="panel">
       <div class="panel-head"><h2>Seznam registrací</h2><span class="muted">${fmt(list.length)} uživatelů</span></div>
       <div class="table-wrap"><table><thead><tr><th>Kdy</th><th>Účet</th><th class="r">Děti</th><th>Bydliště</th><th>Zdroj</th><th>Předplatné</th></tr></thead>
-      <tbody>${list.slice(F.regPage * per, (F.regPage + 1) * per).map((f) => `<tr><td class="num">${fdate(f.created)} <span class="muted">${f.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></td><td>${acct(f)}</td><td class="r num">${f.kids}</td><td>${esc(f.town)} <span class="muted">${f.country}</span></td><td class="muted">${esc(f.source)}</td><td>${planTag(f.premium)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">V tomhle období se nikdo neregistroval.</td></tr>'}</tbody></table></div>
+      <tbody>${list.slice(F.regPage * per, (F.regPage + 1) * per).map((f) => `<tr><td class="num">${fdate(f.created)} <span class="muted">${f.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></td><td>${acct(f)}</td><td class="r num">${f.kids}</td><td>${esc(f.town)} <span class="muted">${esc(f.country)}</span></td><td class="muted">${esc(f.source)}</td><td>${planTag(f.premium)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">V tomhle období se nikdo neregistroval.</td></tr>'}</tbody></table></div>
       <div class="pager"><span>Strana ${F.regPage + 1} z ${pages}</span>
         <span class="head-actions"><button class="btn white sm" data-a="rpage" data-v="-1" ${F.regPage ? '' : 'disabled'}>Předchozí</button><button class="btn white sm" data-a="rpage" data-v="1" ${F.regPage < pages - 1 ? '' : 'disabled'}>Další</button></span></div>
     </section>`;
@@ -456,7 +468,7 @@ function pageVisits() {
 const MOODS = { lullaby: 'Ukolébavka (klidná hudba)', adventure: 'Dobrodružná', road: 'Na cesty (rytmická)' };
 const CATS = window.CATEGORIES.filter((c) => c.id !== 'all');
 const catLabel = (id) => CATS.find((c) => c.id === id)?.label || id;
-const catIco = (id) => `<img class="cat-ico" src="../brand/ikony/kat-${esc(id)}.webp" alt="" onerror="this.remove()">`;
+const catIco = (id) => `<img class="cat-ico" src="../brand/ikony/kat-${esc(id)}.webp" alt="" data-rm>`;
 // stories.cs.js má vlastní cap a listCz jako globální const, proto jiná jména
 const capT = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const listT = (a) => (a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' a ' + a[a.length - 1]);
@@ -584,7 +596,8 @@ const minutes = (segs) => Math.max(1, Math.round(segs.reduce((a, p) => a + p.t.s
 const coverHtml = (s, which, label) => {
   const path = which === 'f' ? s.cover.imgF : s.cover.img;
   const blob = PREVIEWS[s.id + ':' + which];
-  return `<div class="cv" style="--g1:${esc(s.cover.g1)};--g2:${esc(s.cover.g2)}">${esc(s.cover.emoji)}${blob || path ? `<img src="${esc(blob || path)}" alt="" loading="lazy" onerror="this.remove()">` : ''}${label ? `<span class="tag ${which === 'f' ? 'peach' : 'sky'}">${label}</span>` : ''}</div>`;
+  const src = safeUrl(blob || path);
+  return `<div class="cv" style="--g1:${esc(s.cover.g1)};--g2:${esc(s.cover.g2)}">${esc(s.cover.emoji)}${src ? `<img src="${esc(src)}" alt="" loading="lazy" data-rm>` : ''}${label ? `<span class="tag ${which === 'f' ? 'peach' : 'sky'}">${label}</span>` : ''}</div>`;
 };
 const PREVIEWS = {}; // vlastní obrázek vybraný pro vyzkoušení – jen v paměti, nikam se neukládá
 
@@ -596,7 +609,7 @@ function storyCard(s, changedIds) {
     <h3>${esc(safeTitle(s))}</h3>
     <div class="tags">
       ${s.cats.map((c) => `<span class="tag">${catIco(c)}${esc(catLabel(c))}</span>`).join('')}
-      <span class="tag line">${s.ages[0]}–${s.ages[1]} let</span>
+      <span class="tag line">${esc(s.ages[0])}–${esc(s.ages[1])} let</span>
       ${s.free ? '<span class="tag honey">Zdarma</span>' : '<span class="tag line">Placená</span>'}
     </div>
     ${D.storyAgg[s.id] ? `<p class="hint" style="margin:-4px 6px 10px">${fmt(D.storyAgg[s.id].plays)} přehrání · ${pct(D.storyAgg[s.id].done, D.storyAgg[s.id].plays)} do konce · <a class="link" href="#pouzivani">statistiky</a></p>` : ''}
@@ -617,7 +630,7 @@ function pageStories() {
     ${head('Pohádky', `${STORIES.length} pohádek · ${STORIES.filter((s) => s.free).length} zdarma`, `<button class="btn" data-a="new">${I.plus}Nová pohádka</button>`)}
     <section class="panel" style="margin-bottom:16px">
       <div class="panel-head" style="margin:0">
-        <div>${PUB.on ? `<h2>${!PUB.loaded ? 'Načítám zveřejněné pohádky…' : PUB.busy ? 'Zveřejňuji…' : PUB.version ? `Zveřejněno v aplikaci · verze ${PUB.version}` : 'V aplikaci jsou pohádky z app/stories.cs.js'}</h2>
+        <div>${PUB.on ? `<h2>${!PUB.loaded ? 'Načítám zveřejněné pohádky…' : PUB.busy ? 'Zveřejňuji…' : PUB.version ? `Zveřejněno v aplikaci · verze ${esc(PUB.version)}` : 'V aplikaci jsou pohádky z app/stories.cs.js'}</h2>
         <p class="muted" style="font-size:13px;margin-top:4px">${PUB.at ? `Naposledy ${fdate(PUB.at)} ${PUB.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}${PUB.by ? ` · ${esc(PUB.by)}` : ''}. ` : ''}${PUB.can ? 'Každá uložená změna se hned zveřejní na webu i v mobilní aplikaci. Aplikace si ji stáhne při spuštění nebo při návratu do aplikace.' : 'Upravovat a zveřejňovat pohádky smí role Vlastník a Obsah.'} ${ch.total ? `Proti app/stories.cs.js: ${ch.added} nových · ${ch.edited} upravených · ${ch.deleted} smazaných.` : ''} Nová pohádka potřebuje obálku v repozitáři, jinak se ukáže jen emoji.</p>
         ${PUB.err ? `<p class="err" style="margin-top:6px">${esc(PUB.err)} <button class="linkbtn" data-a="pubReload">Načíst znovu</button></p>` : ''}</div>`
         : `<h2>${ch.total ? `${ch.total} ${ch.total === 1 ? 'změna' : ch.total < 5 ? 'změny' : 'změn'} proti app/stories.cs.js` : 'Beze změn proti app/stories.cs.js'}</h2>
@@ -665,8 +678,8 @@ function openEditor(id) {
           <label>Kategorie</label>
           <div class="chips" id="eCats">${CATS.map((c) => `<button type="button" class="chip ${s.cats.includes(c.id) ? 'on' : ''}" data-a="ecat" data-v="${c.id}">${catIco(c.id)}${c.label}</button>`).join('')}</div>
           <div class="fields3">
-            <div><label for="eA0">Věk od</label><input id="eA0" type="number" min="1" max="12" data-e="a0" value="${s.ages[0]}"></div>
-            <div><label for="eA1">Věk do</label><input id="eA1" type="number" min="1" max="12" data-e="a1" value="${s.ages[1]}"></div>
+            <div><label for="eA0">Věk od</label><input id="eA0" type="number" min="1" max="12" data-e="a0" value="${esc(s.ages[0])}"></div>
+            <div><label for="eA1">Věk do</label><input id="eA1" type="number" min="1" max="12" data-e="a1" value="${esc(s.ages[1])}"></div>
             <div><label for="eEmoji">Emoji zálohy</label><input id="eEmoji" data-e="emoji" value="${esc(s.cover.emoji)}"></div>
           </div>
           <label class="check"><input type="checkbox" data-e="free" ${s.free ? 'checked' : ''}> Zdarma (jedna ze tří pohádek bez předplatného)</label>

@@ -48,6 +48,8 @@ const env = {
   MAX_CHARS: '1500',
   SUPABASE_URL: process.env.SUPABASE_URL || 'http://localhost:54321',
   SUPABASE_KEY: 'dev',
+  TTS_AUTH: process.env.TTS_AUTH || 'required',
+  TOOLS_KEY: process.env.TOOLS_KEY || '',
 };
 
 createServer(async (req, res) => {

@@ -14,8 +14,12 @@
 //   MAX_CHARS        nejdelší povolený text v jednom požadavku (jedna věta pohádky; nejdelší má ~190 znaků)
 //   TTS_LIMIT        (binding ratelimits) kolik nových vět smí jedna IP adresa vygenerovat za minutu
 //   LANGUAGE_CODE    volitelně "cs" – jen pro modely, které vynucení jazyka podporují
-//   SUPABASE_URL, SUPABASE_KEY  databáze administrace (veřejný publishable klíč); GET /naklady podle ní pozná člena týmu
-//   (POST /tts s hlavičkou Authorization od aplikace: věta, která šla do ElevenLabs, se zapíše k uživateli přes app_tts_usage)
+//   SUPABASE_URL, SUPABASE_KEY  databáze (veřejný publishable klíč); POST /tts podle ní ověří rodinu a limity, GET /naklady člena týmu
+//   TTS_AUTH         "required" (výchozí): novou větu namluví jen přihlášené rodině v mezích limitů (app_tts_allow);
+//                    "off": bez ověření jako dřív – jen nouzově, kredity pak může čerpat kdokoli
+//   TOOLS_KEY        tajné (`npx wrangler secret put TOOLS_KEY`): klíč pro nástroje týmu v tools/hlas (hlavička X-Ospalek-Tools),
+//                    které namlouvají společné věty bez přihlášení rodiny a mimo limity rodin. Bez něj nástroje novou větu nenamluví.
+//   (věta, která šla do ElevenLabs, se zapíše k uživateli přes app_tts_usage a počítá se mu do denního limitu)
 //
 // GET /naklady (pro administraci): spotřeba kreditů ElevenLabs po dnech od začátku, tarif a kurz ČNB.
 // Pustí jen člena týmu přihlášeného i kódem z Google Authenticatoru (token Supabase v hlavičce Authorization).
@@ -88,6 +92,16 @@ export default {
       if (!success) return json({ error: 'Příliš mnoho nových vět najednou. Zkus to za chvilku.' }, 429, cors);
     }
     const sent = tag ? `${tag} ${text}` : text;
+    // Nová věta stojí kredity: namluví se jen přihlášené rodině a jen v mezích denních limitů (databáze, app_tts_allow).
+    // Hlavičku Origin jde mimo prohlížeč podvrhnout, proto rozhoduje ověřené přihlášení ze Supabase, ne Origin.
+    const auth = request.headers.get('Authorization') || '';
+    const signed = /^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(auth);
+    // nástroje týmu (tools/hlas: namlouvání společných vět) se prokazují tajným klíčem TOOLS_KEY místo přihlášení rodiny
+    const tools = !!env.TOOLS_KEY && same(request.headers.get('X-Ospalek-Tools') || '', env.TOOLS_KEY);
+    if (env.TTS_AUTH !== 'off' && !tools) {
+      const no = await allowed_(env, auth, signed, sent.length);
+      if (no) return json({ error: no.error }, no.status, cors);
+    }
     const res = await fetch(`${API}${voiceId}?output_format=mp3_44100_128`, {
       method: 'POST',
       headers: { 'xi-api-key': env.ELEVENLABS_API_KEY, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
@@ -109,8 +123,7 @@ export default {
     ctx.waitUntil(cache.put(cacheKey, new Response(buf, { headers: audioHeaders })));
     // náklady po uživatelích: s přihlášením z aplikace zapíše větu k jeho účtu (administrace → Uživatelé).
     // Kredity podle hlavičky ElevenLabs, jinak počet znaků. Chyba zápisu hlas nezdrží ani nezastaví.
-    const auth = request.headers.get('Authorization') || '';
-    if (/^Bearer [\w-]+\.[\w-]+\.[\w-]+$/.test(auth) && env.SUPABASE_URL && env.SUPABASE_KEY) {
+    if (signed && env.SUPABASE_URL && env.SUPABASE_KEY) {
       const credits = Number(res.headers.get('character-cost')) || sent.length;
       ctx.waitUntil(fetch(`${env.SUPABASE_URL}/rest/v1/rpc/app_tts_usage`, {
         method: 'POST', headers: { apikey: env.SUPABASE_KEY, Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ chars: credits }),
@@ -120,6 +133,33 @@ export default {
     return new Response(buf, { headers: { ...audioHeaders, 'X-Ospalek-Cache': 'miss' } });
   },
 };
+
+// ---------- Smí se nová věta namluvit? ----------
+// Databáze (app_tts_allow) ověří podpis přihlášení, že k němu patří rodina, a denní limity (na rodinu i celkový strop).
+// Vrací null = smí, jinak { status, error }. Když se databáze neozve, hlas se raději nenamluví (kredity jsou peníze).
+const TTS_DENY = {
+  auth: [401, 'Hlas je jen pro přihlášenou aplikaci. Otevřete prosím aplikaci znovu s připojením k internetu.'],
+  // 403, ne 429: na 429 (minutový limit IP adresy) aplikace čeká a zkouší znovu, tady by čekala zbytečně
+  family: [403, 'Dnes už jsme pro vás namluvili hodně nových vět. Další půjdou zase zítra, hotové pohádky hrají dál.'],
+  month: [403, 'Tento měsíc už jsme pro vás namluvili hodně nových vět. Hotové pohádky hrají dál.'],
+  global: [403, 'Hlas je dnes hodně vytížený. Zkuste to prosím později, hotové pohádky hrají dál.'],
+};
+async function allowed_(env, auth, signed, chars) {
+  if (!signed) return { status: 401, error: 'Hlas je jen pro přihlášenou aplikaci. Aktualizujte prosím Ospalka na nejnovější verzi.' };
+  if (!env.SUPABASE_URL || !env.SUPABASE_KEY) return { status: 500, error: 'Worker nemá nastavenou databázi (SUPABASE_URL).' };
+  let r;
+  try {
+    r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/app_tts_allow`, {
+      method: 'POST', headers: { apikey: env.SUPABASE_KEY, Authorization: auth, 'Content-Type': 'application/json' }, body: JSON.stringify({ chars }),
+    });
+  } catch (e) { return { status: 503, error: 'Hlas je teď nedostupný. Zkuste to prosím za chvilku.' }; }
+  if (r.status === 401 || r.status === 403) return { status: 401, error: TTS_DENY.auth[1] };
+  const a = r.ok ? await r.json().catch(() => null) : null;
+  if (!a || typeof a !== 'object') { console.log('app_tts_allow', r.status); return { status: 503, error: 'Hlas je teď nedostupný. Zkuste to prosím za chvilku.' }; }
+  if (a.ok === true) return null;
+  const [status, error] = TTS_DENY[a.error] || TTS_DENY.global;
+  return { status, error };
+}
 
 // ---------- Náklady na kredity (administrace) ----------
 const COST_ROLES = ['owner', 'finance', 'analyst', 'content'];
@@ -180,6 +220,8 @@ async function cnb() {
   return out;
 }
 
+// porovnání tajných hodnot bez prozrazení délky shody časem
+const same = (a, b) => { let d = a.length ^ b.length; for (let i = 0; i < Math.max(a.length, b.length); i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0); return d === 0; };
 const list = (s) => String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
 const model = (env) => env.MODEL_ID || 'eleven_v4';
 function voices(env) {

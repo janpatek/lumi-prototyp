@@ -18,8 +18,20 @@ const STEPS = [
 ];
 const SSTATE = { ceka: ['Čeká', 'peach'], hotovo: ['Hotovo', 'mint'], vynechano: ['Vynecháno', 'line'], bezi: ['Probíhá…', 'honey'] };
 // Šablona se spouští jako kód. Odpověď modelu proto nesmí sahat na nic mimo kontext pohádky (stejná kontrola je v pohadka.js).
+// POZOR: tohle NENÍ bezpečnostní hranice. Seznam zakázaných slov jde vždycky nějak obejít (skládání názvů z kousků,
+// nepřímý přístup k vlastnostem), chytá jen omyly modelu a hrubé pokusy. Šablonu z generátoru i ze zásobníku proto ber
+// jako kód, který poběží v prohlížeči každého, kdo ji otevře, s jeho přihlášením. Skutečná oprava = šablony jako data
+// s vlastním malým interpretem (audit, nález B2/B3).
 const UNSAFE = /\b(window|document|globalThis|self|top|parent|frames|opener|fetch|XMLHttpRequest|WebSocket|EventSource|localStorage|sessionStorage|indexedDB|caches|cookie|eval|Function|constructor|prototype|__proto__|import|require|location|navigator|setTimeout|setInterval|postMessage|Worker|alert)\b|\\u|\\x/;
-const unsafe = (s) => UNSAFE.test(s.titleSrc) || UNSAFE.test(s.textSrc);
+// Přísnější část (17. 11. 2026), ověřená na všech pohádkách v app/stories.cs.js a konceptech v koncepty/pohadky:
+//  – další slova, přes která se dá dostat ke globálním objektům nebo ke konstruktoru funkce,
+//  – přístup k vlastnosti přes řetězec (x['…'], x["…"], x[`…`]) a řetězený přístup přes hranaté závorky ([][a][a]),
+//  – skládání řetězců plusem ('con' + 'structor'); šablony pohádek skládají text jen přes \`…${…}…\`.
+const UNSAFE2 = /\b(Reflect|Object|Proxy|Symbol|arguments|this|new|async|await|function|class|fromCharCode|fromCodePoint|bind|call|apply|atob)\b|[\w$)}\]'"`]\s*\[\s*['"`]|\]\s*\[|['"`]\s*\+|\+\s*['"`]/;
+// UNSAFE2 se zatím nepoužívá k odmítání: mohl by zamítnout i poctivou šablonu (třeba spojení řetězců plusem) a generátor
+// by přestal fungovat. Zapnout ho jde, až bude ověřený i na zásobníku v ostré databázi (vrátit „|| UNSAFE2.test(t)“).
+const unsafeSrc = (src) => { const t = String(src ?? ''); return UNSAFE.test(t); };
+const unsafe = (s) => unsafeSrc(s.titleSrc) || unsafeSrc(s.textSrc);
 
 // ---------- Dosazování jako v aplikaci ----------
 const ENGINE = (() => {
@@ -418,13 +430,13 @@ function renderBench() {
       const hi = heroIdx(f);
       const r = renderFor(ENG, s, famFor(ENG, f), hi);
       const m = renderFor(ENG, s, famMarked(ENG, f), hi);
-      const coverCv = `<div class="cv" style="--g1:${esc(s.cover.g1)};--g2:${esc(s.cover.g2)}">${esc(s.cover.emoji)}${s.cover.img ? `<img src="${esc(s.cover.img)}" alt="" onerror="this.remove()">` : ''}</div>`;
+      const coverCv = `<div class="cv" style="--g1:${esc(s.cover.g1)};--g2:${esc(s.cover.g2)}">${esc(s.cover.emoji)}${safeUrl(s.cover.img) ? `<img src="${esc(safeUrl(s.cover.img))}" alt="" data-rm>` : ''}</div>`;
       body = `<div class="covers one" style="max-width:120px">${coverCv}</div><h3>${esc(r.title)}</h3>
         <p class="muted" style="font-size:13px;margin-bottom:10px">${r.segs.length} odstavců · ${words(r.segs)} slov · asi ${minutes(r.segs)} min · <span class="gpers">zvýrazněné</span> věty se namlouvají pro každou rodinu</p>
         <div class="txt">${r.segs.map((p, i) => {
           const ls = splitT(p.t), ms = splitT(m.segs[i]?.t || '');
           const html = ls.length === ms.length ? ls.map((l, j) => (/⟦/.test(ms[j]) ? `<span class="gpers">${esc(l)}</span>` : esc(l))).join(' ') : esc(p.t);
-          return `<p>${html}${p.sfx ? ` <span class="sfx">♪ ${esc(p.sfx)}</span>` : ''}${p.pause ? ` <span class="sfx">⏸ ${p.pause} s</span>` : ''}</p>`;
+          return `<p>${html}${p.sfx ? ` <span class="sfx">♪ ${esc(p.sfx)}</span>` : ''}${p.pause ? ` <span class="sfx">⏸ ${esc(p.pause)} s</span>` : ''}</p>`;
         }).join('')}</div>`;
     } catch (e) { body = `<p class="err">Šablona má chybu: ${esc(e.message)}</p>`; }
   }
@@ -512,7 +524,7 @@ function draftCard(d) {
   const s = d.story, [sl, sc] = STATUS[d.status] || STATUS.koncept;
   const waits = d.status === 'vyroba' ? STEPS.filter(([k, , req]) => req && stepOf(d, k).stav === 'ceka').map(([, l]) => l.toLowerCase()) : [];
   return `<a class="panel story gdraft" href="#zasobnik/${esc(d.id)}">
-    <div class="covers one"><div class="cv" style="--g1:${esc(s.cover.g1)};--g2:${esc(s.cover.g2)}">${esc(s.cover.emoji)}${s.cover.img ? `<img src="${esc(s.cover.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div></div>
+    <div class="covers one"><div class="cv" style="--g1:${esc(s.cover.g1)};--g2:${esc(s.cover.g2)}">${esc(s.cover.emoji)}${safeUrl(s.cover.img) ? `<img src="${esc(safeUrl(s.cover.img))}" alt="" loading="lazy" data-rm>` : ''}</div></div>
     <h3>${esc(titleOf(s))}</h3>
     <div class="tags"><span class="tag ${sc}">${sl}</span>${s.cats.slice(0, 1).map((c) => `<span class="tag">${catIco(c)}${esc(catLabel(c))}</span>`).join('')}${d.brief?.length ? `<span class="tag line">${LEN[d.brief.length]}</span>` : ''}${d.brief?.model === 'simulace' ? '<span class="tag honey">Simulace</span>' : ''}</div>
     ${waits.length ? `<p class="hint" style="margin:-4px 6px 8px">Čeká na: ${esc(waits.join(', '))}</p>` : ''}
@@ -574,8 +586,8 @@ function pageDraft(id) {
         ${d.brief?.pozn ? `<p class="hint">${esc(d.brief.pozn)}${d.brief.pouceni ? ` Poučení: ${esc(d.brief.pouceni)}` : ''}</p>` : ''}
         <div class="fields3">
           <div><label>Id (název obálky)</label><input data-dm="id" value="${esc(s.id)}" ${ro || d.status !== 'koncept' ? 'readonly' : ''}></div>
-          <div><label>Věk od</label><input type="number" min="1" max="12" data-dm="a0" value="${s.ages[0]}" ${ro ? 'readonly' : ''}></div>
-          <div><label>Věk do</label><input type="number" min="1" max="12" data-dm="a1" value="${s.ages[1]}" ${ro ? 'readonly' : ''}></div>
+          <div><label>Věk od</label><input type="number" min="1" max="12" data-dm="a0" value="${esc(s.ages[0])}" ${ro ? 'readonly' : ''}></div>
+          <div><label>Věk do</label><input type="number" min="1" max="12" data-dm="a1" value="${esc(s.ages[1])}" ${ro ? 'readonly' : ''}></div>
           <div><label>Hudba v pozadí</label><select data-dm="mood" ${ro ? 'disabled' : ''}>${Object.entries(MOODS).map(([v, l]) => `<option value="${v}" ${s.mood === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
           <div><label>Emoji obálky</label><input data-dm="emoji" value="${esc(s.cover.emoji)}" ${ro ? 'readonly' : ''}></div>
           <div><label>&nbsp;</label><label class="check"><input type="checkbox" data-dm="free" ${s.free ? 'checked' : ''} ${ro ? 'disabled' : ''}> Zdarma</label></div>

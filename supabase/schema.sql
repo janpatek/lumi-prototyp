@@ -193,12 +193,78 @@ begin
   perform usage_add(uid, 0, 0, 0, 1, greatest(0, least(coalesce(chars, 0), 1000)));
 end $$;
 
+-- Nastavení aplikace od klienta: jen známé klíče a typy (volby a počty). Cokoli jiného se zahodí, takže se do
+-- administrace nedostane cizí text ani HTML (migrations/20261117_zabezpeceni.sql).
+create or replace function public.clean_settings(j jsonb) returns jsonb language sql immutable set search_path = public as $$
+  select case when j is null or jsonb_typeof(j) <> 'object' then null else jsonb_strip_nulls(jsonb_build_object(
+    'theme', case when j->>'theme' in ('auto', 'light', 'dark') then j->>'theme' end,
+    'notify', case when j->>'notify' in ('on', 'off', 'ask') then j->>'notify' end,
+    'relatives', case when jsonb_typeof(j->'relatives') = 'number' then least(greatest(floor((j->>'relatives')::numeric), 0), 99)::int end,
+    'places', case when jsonb_typeof(j->'places') = 'number' then least(greatest(floor((j->>'places')::numeric), 0), 99)::int end,
+    'heroes', case when jsonb_typeof(j->'heroes') = 'number' then least(greatest(floor((j->>'heroes')::numeric), 0), 99)::int end,
+    'favs', case when jsonb_typeof(j->'favs') = 'number' then least(greatest(floor((j->>'favs')::numeric), 0), 9999)::int end,
+    'heard', case when jsonb_typeof(j->'heard') = 'number' then least(greatest(floor((j->>'heard')::numeric), 0), 99999)::int end,
+    'changesMonth', case when jsonb_typeof(j->'changesMonth') = 'number' then least(greatest(floor((j->>'changesMonth')::numeric), 0), 999)::int end,
+    'code', case when jsonb_typeof(j->'code') = 'boolean' then (j->>'code')::boolean end)) end;
+$$;
+-- Krátký technický údaj od klienta (platforma, verze aplikace): jen písmena, číslice a pár znaků, jinak nic.
+create or replace function public.clean_tag(t text) returns text language sql immutable set search_path = public as $$
+  select case when t ~ '^[A-Za-z0-9.?_ -]{1,20}$' then t end;
+$$;
+
+-- Limity nových vět z ElevenLabs (kredity = peníze). Jeden řádek, upravuje se v SQL Editoru, tts-worker se nemusí nasazovat znovu.
+--   family_day / family_month: kolik kreditů (zhruba znaků) smí jedna rodina nechat nově namluvit za den / za posledních 30 dní,
+--   global_day: strop pro všechny rodiny dohromady za den (pojistka proti zakládání účtů ve velkém).
+-- Věty z mezipaměti se nepočítají. Celá knihovna pro jednu rodinu je kolem 65 000 znaků.
+create table if not exists public.tts_limits (
+  id int primary key default 1 check (id = 1),
+  family_day int not null default 70000,
+  family_month int not null default 160000,
+  global_day int not null default 600000
+);
+insert into public.tts_limits (id) values (1) on conflict (id) do nothing;
+create index if not exists family_usage_day_idx on public.family_usage (day);   -- celkový denní strop se čte při každé nové větě
+alter table public.tts_limits enable row level security;   -- jen přes funkci níže
+
+-- Smí tts-worker nechat namluvit novou větu? Volá ho s přihlášením z aplikace těsně před ElevenLabs.
+-- Vrací { ok: true } nebo { ok: false, error: 'auth' | 'family' | 'month' | 'global' }. Podpis přihlášení ověřuje databáze sama
+-- (neplatný nebo chybějící token odmítne už brána Supabase).
+create or replace function public.app_tts_allow(chars int) returns jsonb language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); l tts_limits; today date := (now() at time zone 'Europe/Prague')::date;
+  n int := greatest(0, least(coalesce(chars, 0), 1000)); d bigint; m bigint; g bigint;
+begin
+  if uid is null then return jsonb_build_object('ok', false, 'error', 'auth'); end if;
+  -- První pohádka se může připravovat dřív, než aplikace stihne rodinu uložit (app_sync_family jde s malým zpožděním).
+  -- Účet proto dostane prázdný záznam rodiny hned, aby se mu věty počítaly do limitů; uložení rodiny ho pak jen doplní.
+  -- (ne „insert … on conflict“: ten by při každé větě spotřeboval číslo rodiny)
+  if not exists (select 1 from families where id = uid) then
+    insert into families (id) values (uid) on conflict (id) do nothing;
+  end if;
+  select * into l from tts_limits where id = 1;
+  if l.id is null then return jsonb_build_object('ok', true); end if;
+  select coalesce(sum(u.tts_chars) filter (where u.day = today), 0), coalesce(sum(u.tts_chars), 0) into d, m
+    from family_usage u where u.family_id = uid and u.day > today - 30;
+  if d + n > l.family_day then return jsonb_build_object('ok', false, 'error', 'family'); end if;
+  if m + n > l.family_month then return jsonb_build_object('ok', false, 'error', 'month'); end if;
+  select coalesce(sum(u.tts_chars), 0) into g from family_usage u where u.day = today;
+  if g + n > l.global_day then return jsonb_build_object('ok', false, 'error', 'global'); end if;
+  return jsonb_build_object('ok', true);
+end $$;
+
 -- Uloží rodinu přihlášeného (anonymního) uživatele a nahradí seznam dětí.
 create or replace function public.app_sync_family(p jsonb) returns bigint language plpgsql security definer set search_path = public as $$
 declare uid uuid := auth.uid(); s bigint; consent boolean; was boolean; mail text; prov text; news boolean;
   old_town text; old_onb boolean; n_names int := 0; n_kids int := 0; n_town int := 0;
 begin
   if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
+  -- vstup od klienta: nastavení jen známé klíče, technické údaje jen bezpečné znaky, obec bez značek, nejvýš 6 dětí
+  p := p || jsonb_build_object('settings', clean_settings(p->'settings'), 'platform', clean_tag(p->>'platform'), 'app_version', clean_tag(p->>'app_version'),
+    'town', left(btrim(regexp_replace(coalesce(p->>'town', ''), '[<>[:cntrl:]]', '', 'g')), 80),
+    'source', left(regexp_replace(coalesce(p->>'source', ''), '[<>[:cntrl:]]', '', 'g'), 60));
+  if p->>'source' = '' then p := p - 'source'; end if;
+  if jsonb_typeof(p->'children') = 'array' and jsonb_array_length(p->'children') > 6 then
+    p := jsonb_set(p, '{children}', (select jsonb_agg(x) from (select x from jsonb_array_elements(p->'children') with ordinality t(x, i) order by i limit 6) q));
+  end if;
   consent := coalesce((p->>'analytics')::boolean, false);
   select f.analytics, f.town, f.onboarded into was, old_town, old_onb from families f where f.id = uid;
   -- e-mail jen z ověřeného účtu (přihlášení přes Google / Apple), ne z toho, co pošle aplikace
@@ -317,12 +383,17 @@ create or replace function public.admin_families() returns table (
   plays bigint, seconds bigint, completed bigint, days bigint, plays30 bigint, seconds30 bigint, days30 bigint, last_day date, fav_category text,
   newsletter boolean, newsletter_at timestamptz, analytics_at timestamptz, settings jsonb, push_devices bigint, usage jsonb
 ) language plpgsql stable security definer set search_path = public as $$
-declare today date := (now() at time zone 'Europe/Prague')::date;
+declare today date := (now() at time zone 'Europe/Prague')::date; pii boolean;
 begin
   perform require_staff();
+  -- jména dětí a celý e-mail jen rolím s oprávněním „Vidět jména a e-maily“ (admin/api.js: owner, support, finance);
+  -- ostatním e-mail s tečkami a děti beze jména – dřív to hlídal jen prohlížeč (migrations/20261117_zabezpeceni.sql)
+  pii := coalesce((select s.role in ('owner', 'support', 'finance') from staff s where s.user_id = auth.uid()), false);
   return query
-  select f.id, f.seq, f.created_at, f.last_seen_at, f.provider, f.email, f.town, f.country, f.platform, f.app_version, f.source, f.onboarded, f.premium, f.analytics,
-    coalesce((select jsonb_agg(jsonb_build_object('name', c.name, 'g', c.gender, 'age', c.age) order by c.id) from children c where c.family_id = f.id), '[]'::jsonb),
+  select f.id, f.seq, f.created_at, f.last_seen_at, f.provider,
+    case when pii then f.email else regexp_replace(f.email, '^(.).*(@.*)$', '\1•••\2') end,
+    f.town, f.country, f.platform, f.app_version, f.source, f.onboarded, f.premium, f.analytics,
+    coalesce((select jsonb_agg(jsonb_build_object('name', case when pii then c.name else '' end, 'g', c.gender, 'age', c.age) order by c.id) from children c where c.family_id = f.id), '[]'::jsonb),
     coalesce(a.plays, 0), coalesce(a.seconds, 0), coalesce(a.completed, 0), coalesce(a.days, 0),
     coalesce(a.plays30, 0), coalesce(a.seconds30, 0), coalesce(a.days30, 0), a.last_day,
     (select p.category from plays p where p.family_id = f.id group by p.category order by count(*) desc limit 1),
@@ -477,6 +548,8 @@ end $$;
 create or replace function public.admin_log(action text, target text, detail text) returns void language plpgsql security definer set search_path = public as $$
 begin
   perform require_staff();
+  -- akce jen ve tvaru „oblast.akce“ (coupon.create, family.export…), ať do auditu nejde zapsat libovolný text místo akce
+  if coalesce(action, '') !~ '^[a-z]{2,20}\.[a-z_]{2,30}$' then raise exception 'Neznámá akce.' using errcode = '22023'; end if;
   insert into audit_log (actor, action, target, detail) values (auth.uid(), left(action, 40), left(target, 120), left(detail, 500));
 end $$;
 
@@ -515,6 +588,9 @@ create or replace function public.staff_invite_apply() returns trigger language 
 declare i staff_invites;
 begin
   if new.email is null then return new; end if;
+  -- roli dostane jen účet s potvrzeným e-mailem: registrace s cizím (pozvaným) e-mailem bez potvrzení nic nezíská
+  -- (migrations/20261117_zabezpeceni.sql). to_jsonb kvůli lokální simulaci, kde auth.users sloupec nemá.
+  if to_jsonb(new) ? 'email_confirmed_at' and (to_jsonb(new)->>'email_confirmed_at') is null then return new; end if;
   delete from staff_invites where email = lower(new.email) returning * into i;
   if i.email is not null then
     insert into staff (user_id, name, role) values (new.id, i.name, i.role) on conflict (user_id) do nothing;
@@ -523,6 +599,13 @@ begin
 end $$;
 drop trigger if exists staff_invite_apply on auth.users;
 create trigger staff_invite_apply after insert or update of email on auth.users for each row execute function public.staff_invite_apply();
+-- potvrzení e-mailu přijde až po založení účtu: spoušť musí zabrat i na něj (sloupec v lokální simulaci chybí)
+do $$ begin
+  if exists (select 1 from information_schema.columns where table_schema = 'auth' and table_name = 'users' and column_name = 'email_confirmed_at') then
+    drop trigger if exists staff_invite_apply on auth.users;
+    create trigger staff_invite_apply after insert or update of email, email_confirmed_at on auth.users for each row execute function public.staff_invite_apply();
+  end if;
+end $$;
 
 -- ---------- Pohádky (katalog z administrace) ----------
 -- Administrace po každé úpravě uloží celý seznam pohádek jako novou verzi. Aplikace si při spuštění stáhne poslední
@@ -913,10 +996,26 @@ alter table public.store_events enable row level security;
 -- p = { sub: {...}, events: [{ key, type, at, period_start, period_end, amount, currency, czk, detail }], family: uuid|null }
 -- Vrací stav pro aplikaci: { active, trial, expires, willRenew }.
 create or replace function public.store_record(p jsonb) returns jsonb language plpgsql security definer set search_path = public as $$
-declare s jsonb := p->'sub'; fam uuid; e jsonb; t text; prev text; r store_subs;
+declare s jsonb := p->'sub'; fam uuid; e jsonb; t text; prev text; r store_subs; old store_subs; stale boolean := false;
 begin
-  fam := nullif(p->>'family', '')::uuid;
+  -- rodina od obchodu (obfuscatedAccountId / appAccountToken) nemusí být UUID: cokoli jiného se bere jako „nevíme“
+  fam := case when p->>'family' ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (p->>'family')::uuid end;
   if fam is not null and not exists (select 1 from families where id = fam) then fam := null; end if;
+  select * into old from store_subs z where z.id = s->>'id' for update;
+  -- Doklad z telefonu (source = app) může být starý: Apple ho podepsal kdysi a klient ho pošle znovu. Starší doklad
+  -- nesmí přepsat novější stav z oznámení obchodu – hlavně vrácené peníze zpátky na „aktivní“.
+  -- Platí jen pro doklady z telefonu na iOS (Android se vždy čte živě z Google Play); oznámení obchodu se zapíše vždy.
+  if old.id is not null and p->>'source' = 'app' and old.platform = 'ios' and coalesce(s->>'status', '') <> 'refunded' and (
+       (old.status = 'refunded' and coalesce((s->>'expires_at')::timestamptz, '-infinity') <= coalesce(old.expires_at, 'infinity'))
+       or coalesce((s->>'expires_at')::timestamptz, '-infinity') < coalesce(old.expires_at, '-infinity')) then
+    stale := true;
+  end if;
+  if stale then
+    -- stav necháme, jak je; rodina se smí připojit jen tam, kde ještě žádná není
+    update store_subs z set family_id = coalesce(z.family_id, fam) where z.id = old.id returning * into r;
+    return jsonb_build_object('active', r.status in ('trial', 'active', 'grace') and coalesce(r.expires_at > now(), true), 'trial', r.trial,
+      'expires', (extract(epoch from r.expires_at) * 1000)::bigint, 'willRenew', r.will_renew, 'status', r.status);
+  end if;
   insert into store_subs as x (id, platform, family_id, product, status, trial, started_at, expires_at, will_renew, country, currency, price, env, token, updated_at)
   values (s->>'id', s->>'platform', fam, s->>'product', s->>'status', coalesce((s->>'trial')::boolean, false), (s->>'started_at')::timestamptz,
           (s->>'expires_at')::timestamptz, coalesce((s->>'will_renew')::boolean, true), s->>'country', s->>'currency', (s->>'price')::numeric,
@@ -945,8 +1044,33 @@ begin
     update families set premium = exists (select 1 from store_subs z where z.family_id = r.family_id and z.status in ('trial', 'active', 'grace') and coalesce(z.expires_at, now()) > now() - interval '1 day')
     where id = r.family_id;
   end if;
+  -- nákup přešel na jinou rodinu (nový telefon): té původní se předplatné přepočítá, jeden nákup = jedna rodina
+  if old.family_id is not null and old.family_id is distinct from r.family_id then
+    update families set premium = exists (select 1 from store_subs z where z.family_id = old.family_id and z.status in ('trial', 'active', 'grace') and coalesce(z.expires_at, now()) > now() - interval '1 day')
+      or coalesce(public.code_until(old.family_id) > now(), false)
+    where id = old.family_id;
+  end if;
   return jsonb_build_object('active', r.status in ('trial', 'active', 'grace') and coalesce(r.expires_at > now(), true), 'trial', r.trial,
     'expires', (extract(epoch from r.expires_at) * 1000)::bigint, 'willRenew', r.will_renew, 'status', r.status);
+end $$;
+
+-- Kolikrát za hodinu smí jeden účet nechat ověřit nákup (každé ověření Androidu je dotaz na Google Play API s denní kvótou).
+-- Volá Edge Function store před ověřením; vrací false, když je účet přes limit.
+create table if not exists public.store_tries (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  since timestamptz not null default now(),
+  n int not null default 0
+);
+alter table public.store_tries enable row level security;   -- jen přes funkci níže
+create or replace function public.store_touch(uid uuid) returns boolean language plpgsql security definer set search_path = public as $$
+declare t store_tries;
+begin
+  insert into store_tries as x (user_id, n) values (uid, 1)
+    on conflict (user_id) do update set
+      n = case when x.since < now() - interval '1 hour' then 1 else x.n + 1 end,
+      since = case when x.since < now() - interval '1 hour' then now() else x.since end
+    returning * into t;
+  return t.n <= 60;
 end $$;
 
 -- Android: předplatné podle purchase tokenu (i předchozího, linkedPurchaseToken)
@@ -1111,7 +1235,7 @@ begin
     returning * into t;
   if t.n >= 10 then return jsonb_build_object('ok', false, 'error', 'tries'); end if;
   h := encode(sha256(convert_to(upper(regexp_replace(coalesce(code, ''), '\s', '', 'g')), 'UTF8')), 'hex');
-  select * into c from access_codes a where a.code_hash = h;
+  select * into c from access_codes a where a.code_hash = h for update;   -- zámek: dva účty naráz nepřekročí max_uses
   if not found then
     r := coupon_redeem(uid, code);
     if r->>'error' = 'unknown' then
@@ -1193,7 +1317,7 @@ end $$;
 -- Funkce smí volat jen přihlášení (rodiny jsou přihlášené anonymně); anonymní klíč bez přihlášení přečte jen katalog pohádek.
 revoke all on all tables in schema public from anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
-grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family(), public.app_tts_usage(int),
+grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family(), public.app_tts_usage(int), public.app_tts_allow(int),
   public.app_daily(int), public.app_push_subscribe(jsonb), public.app_push_unsubscribe(text), public.app_redeem_code(text) to authenticated;
 grant execute on function public.admin_me(), public.admin_role(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_family_usage(bigint), public.admin_staff(),
@@ -1203,7 +1327,7 @@ grant execute on function public.admin_me(), public.admin_role(), public.admin_f
   public.admin_story_drafts(), public.admin_story_draft_save(jsonb, timestamptz), public.admin_story_draft_delete(uuid),
   public.admin_push(int), public.admin_push_save(jsonb), public.admin_daily_set(date, text), public.admin_push_test(), public.admin_store(boolean) to authenticated;
 -- předplatné z obchodů: jen Edge Function store s tajným klíčem
-grant execute on function public.store_record(jsonb), public.store_sub_by_token(text[]) to service_role;
+grant execute on function public.store_record(jsonb), public.store_sub_by_token(text[]), public.store_touch(uuid) to service_role;
 -- rozesílání upozornění: jen push-worker s tajným klíčem (sb_secret_…)
 grant execute on function public.push_start(timestamptz), public.push_batch(int, int), public.push_report(bigint, bigint[], bigint[], bigint[]) to service_role;
 grant execute on function public.app_catalog(bigint) to anon, authenticated;
@@ -1302,6 +1426,8 @@ begin
   insert into access_grants (user_id, code_id, until, created_at)
     select uid, code_id, until, created_at from access_grants where user_id = src
     on conflict (user_id, code_id) do update set until = greatest(access_grants.until, excluded.until);
+  -- přesun, ne kopie: starému účtu (zůstává, když má e-mail) kód nezůstane, jinak by šel jeden kód rozdávat dál
+  delete from access_grants where user_id = src;
   -- kupóny: uplatnění a přístup přejdou na hlavní účet (dřív, než se starý účet smaže a vazba by se ztratila)
   update coupon_redemptions set family_id = uid where family_id = src;
   update coupon_codes set used_by = uid where used_by = src;
@@ -1326,3 +1452,8 @@ revoke execute on function public.coupon_redeem(uuid, text), public.code_until(u
   public.admin_coupon_pause(text, boolean) from public, anon, authenticated;
 grant execute on function public.app_redeem_code(text), public.app_code_until(), public.admin_coupons(), public.admin_coupon_save(jsonb, jsonb),
   public.admin_coupon_add_codes(text, jsonb), public.admin_coupon_pause(text, boolean) to authenticated;
+
+-- ---------- Práva: funkce definované až za hromadným „revoke“ výše (migrations/20261117_zabezpeceni.sql) ----------
+-- Bez toho by je po čerstvém spuštění schema.sql směl volat i nepřihlášený klíč a hodnocení v administraci by nešlo zobrazit.
+revoke execute on function public.app_merge_ticket(), public.app_merge_from(uuid), public.admin_story_ratings() from public, anon;
+grant execute on function public.app_merge_ticket(), public.app_merge_from(uuid), public.admin_story_ratings() to authenticated;

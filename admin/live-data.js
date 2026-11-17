@@ -6,17 +6,19 @@
 
 const LIVE = (() => {
   const C = window.OSPALEK_CONFIG || {};
-  const dev = new URLSearchParams(location.search).get('db');
-  const devOk = dev && /^http:\/\/localhost(:\d+)?$/.test(dev);
+  // Vývojové parametry ?db=, ?tts= a ?push= platí jen tehdy, když sama administrace běží na localhostu. Na ostrém webu
+  // (ospalek.cz) se ignorují, jinak by podvržený odkaz poslal heslo nebo token procesu na počítači člena týmu.
+  const LOCAL_ADMIN = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  const devParam = (k) => { const v = LOCAL_ADMIN ? new URLSearchParams(location.search).get(k) : null; return v && /^http:\/\/localhost(:\d+)?$/.test(v) ? v : ''; };
+  const dev = devParam('db');
+  const devOk = !!dev;
   const URL_ = devOk ? dev : C.supabaseUrl;
   const KEY_ = devOk ? 'dev' : C.supabaseAnonKey;
   const SKEY = 'ospalek.admin.sb.v1', MKEY = 'ospalek.admin.mode';
   // tts-worker (hlas ElevenLabs): GET /naklady vrací spotřebu kreditů; lokálně ?tts=http://localhost:8787
-  const ttsDev = new URLSearchParams(location.search).get('tts');
-  const TTS_ = ttsDev && /^http:\/\/localhost(:\d+)?$/.test(ttsDev) ? ttsDev : C.ttsUrl || 'https://ospalek-tts.jan-patek.workers.dev';
+  const TTS_ = devParam('tts') || C.ttsUrl || 'https://ospalek-tts.jan-patek.workers.dev';
   // push-worker (večerní upozornění): POST /test pošle zkoušku; lokálně ?push=http://localhost:8788
-  const pushDev = new URLSearchParams(location.search).get('push');
-  const PUSH_ = pushDev && /^http:\/\/localhost(:\d+)?$/.test(pushDev) ? pushDev : C.pushUrl || 'https://ospalek-push.jan-patek.workers.dev';
+  const PUSH_ = devParam('push') || C.pushUrl || 'https://ospalek-push.jan-patek.workers.dev';
   const configured = !!(URL_ && KEY_);
   const get = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const set = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
@@ -28,6 +30,9 @@ const LIVE = (() => {
     const h = new URLSearchParams(location.hash.slice(1));
     if (!h.has('access_token') && !h.has('error')) return null;
     history.replaceState(null, '', location.pathname + location.search);
+    // Přihlášení z adresy se přijme jen z odkazu na obnovu hesla (type=recovery) a jen jako úplný token ve tvaru JWT.
+    // Jiný odkaz s #access_token=… (podstrčený cizí účet) se zahodí a administrace chce běžné přihlášení.
+    if (!h.has('error') && (h.get('type') !== 'recovery' || !/^[\w-]+\.[\w-]+\.[\w-]+$/.test(h.get('access_token') || ''))) return null;
     if (h.has('error')) return { error: /expired/.test(h.get('error_code') || '') ? 'Odkaz z e-mailu už vypršel. Pošli si nový.' : (h.get('error_description') || 'Odkaz z e-mailu nefunguje.') };
     return { type: h.get('type'), access_token: h.get('access_token'), refresh_token: h.get('refresh_token'), expires_at: Number(h.get('expires_at')) || Math.floor(Date.now() / 1000) + Number(h.get('expires_in') || 3600) };
   })();
@@ -75,7 +80,7 @@ const LIVE = (() => {
   // ---------- Přihlašovací okna ----------
   // Jedna karta, ve které se střídají kroky: heslo → (nové heslo) → kód z Google Authenticatoru.
   let box = null;
-  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function card(html, onSubmit) {
     if (!box) { box = document.createElement('main'); box.className = 'login'; document.body.prepend(box); }
     box.innerHTML = `<form class="panel login-card" novalidate><img src="../brand/maskot-3d/web/ospalek-spi.webp" alt=""><b class="wordmark">Ospalek</b>${html}</form>`;

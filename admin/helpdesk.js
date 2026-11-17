@@ -33,7 +33,7 @@ function ticketRow(t) {
   const who = t.assignee ? API.staffName(t.assignee) : '';
   return `<div class="tk ${t.status === 'new' ? 'unread' : ''}">
     <div class="l1"><i class="dot pri-${t.pri}" title="Priorita: ${API.TPRI[t.pri]}"></i><span class="s">${esc(t.subject)}</span><span class="t">${ago(t.updated)}</span></div>
-    <div class="l2"><span class="mono">#${t.id}</span><span class="fam">${esc(famName(f))}</span>${slaChip(t)}${tStatus(t)}${who ? `<span class="av" title="Řeší ${esc(who)}">${initials(who)}</span>` : ''}</div>
+    <div class="l2"><span class="mono">#${esc(t.id)}</span><span class="fam">${esc(famName(f))}</span>${slaChip(t)}${tStatus(t)}${who ? `<span class="av" title="Řeší ${esc(who)}">${esc(initials(who))}</span>` : ''}</div>
   </div>`;
 }
 
@@ -53,16 +53,16 @@ function hdContext(t, f) {
     <div style="margin-bottom:8px">${subTag(f)} ${f.tags.map((x) => `<span class="tag line">${esc(x)}</span>`).join(' ')}</div>
     <div style="margin-bottom:8px">${kidsHtml(f)}</div>
     <dl class="kv">
-      <dt>Bydliště</dt><dd>${esc(f.town)} ${f.country}</dd>
-      <dt>Zařízení</dt><dd>${f.platform} ${f.appVer === 'web' ? '' : f.appVer}</dd>
+      <dt>Bydliště</dt><dd>${esc(f.town)} ${esc(f.country)}</dd>
+      <dt>Zařízení</dt><dd>${esc(f.platform)} ${f.appVer === 'web' ? '' : esc(f.appVer)}</dd>
       <dt>Registrace</dt><dd>${fdate(f.created)}</dd>
       <dt>Naposledy</dt><dd>${ago(f.lastSeen)}</dd>
       <dt>Přehrání 30 d</dt><dd>${fmt(f.plays30)}</dd>
       <dt>Zdraví</dt><dd>${healthTag(f.health)}</dd>
     </dl>
-    ${API.can('billing.read') ? `<h3>Platby</h3>${pays.length ? `<dl class="kv">${pays.slice(0, 4).map((p) => `<dt>${fdate(p.at)}</dt><dd>${kc(p.czk)} <span class="${p.status === 'zaplaceno' ? 'muted' : 'down'}">${p.status}</span></dd>`).join('')}</dl>` : '<p class="muted">Zatím žádné.</p>'}` : ''}
+    ${API.can('billing.read') ? `<h3>Platby</h3>${pays.length ? `<dl class="kv">${pays.slice(0, 4).map((p) => `<dt>${fdate(p.at)}</dt><dd>${kc(p.czk)} <span class="${p.status === 'zaplaceno' ? 'muted' : 'down'}">${esc(p.status)}</span></dd>`).join('')}</dl>` : '<p class="muted">Zatím žádné.</p>'}` : ''}
     <h3>Další tickety</h3>
-    ${others.length ? others.slice(0, 6).map((x) => `<p style="margin-bottom:5px"><a class="link" href="#helpdesk/${x.id}">#${x.id} ${esc(x.subject)}</a> ${tStatus(x)}</p>`).join('') : '<p class="muted">Žádné.</p>'}`;
+    ${others.length ? others.slice(0, 6).map((x) => `<p style="margin-bottom:5px"><a class="link" href="#helpdesk/${esc(x.id)}">#${esc(x.id)} ${esc(x.subject)}</a> ${tStatus(x)}</p>`).join('') : '<p class="muted">Žádné.</p>'}`;
 }
 
 function hdComposer(t) {
@@ -71,7 +71,7 @@ function hdComposer(t) {
   return `<div class="composer ${note ? 'note' : ''}">
     <div class="row">
       <div class="seg"><button data-a="tMode" data-v="agent" class="${note ? '' : 'on'}">Odpověď uživateli</button><button data-a="tMode" data-v="note" class="${note ? 'on' : ''}">Interní poznámka</button></div>
-      <select data-f="tTpl" aria-label="Vložit šablonu"><option value="">Vložit šablonu…</option>${API.tickets.templates().map((x) => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select>
+      <select data-f="tTpl" aria-label="Vložit šablonu"><option value="">Vložit šablonu…</option>${API.tickets.templates().map((x) => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select>
     </div>
     <textarea id="tText" data-f="tText" placeholder="${note ? 'Poznámku uvidí jen tým, uživatel ne.' : 'Napiš odpověď… (r)'}">${esc(HD.draft[t.id] || '')}</textarea>
     <div class="row" style="margin-top:8px">
@@ -85,13 +85,13 @@ function hdDetail() {
   const t = HD.sel && API.tickets.get(HD.sel);
   if (!t) return `<div class="hd-empty"><img src="../brand/maskot-3d/web/ospalek-spi.webp" alt=""><b>Vyber ticket ze seznamu</b><p class="hint" style="margin-top:6px">j / k další a předchozí · r odpovědět · e vyřešit · a vzít si</p></div>`;
   const f = API.families.get(t.fam), canR = API.can('tickets.reply');
-  const sel = (k, opts, v) => `<select data-tprop="${k}" ${canR ? '' : 'disabled'}>${opts.map(([val, l]) => `<option value="${val}" ${val === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  const sel = (k, opts, v) => `<select data-tprop="${k}" ${canR ? '' : 'disabled'}>${opts.map(([val, l]) => `<option value="${esc(val)}" ${val === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   return `
     <div class="td-head">
       <div style="display:flex;gap:8px;align-items:flex-start">
         <a class="btn white sm back" href="#helpdesk/${HD.view}">${I.back}Zpět</a>
         <div style="flex:1;min-width:0"><h2>${esc(t.subject)}</h2>
-        <div class="td-meta">#${t.id} · ${esc(D.ticketCats[t.cat])} · přes ${esc(t.channel)} · založeno ${fdate(t.created)} ${t.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })} (${ago(t.created)})</div></div>
+        <div class="td-meta">#${esc(t.id)} · ${esc(D.ticketCats[t.cat])} · přes ${esc(t.channel)} · založeno ${fdate(t.created)} ${t.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })} (${ago(t.created)})</div></div>
       </div>
       <div class="td-props">
         <label>Stav ${sel('status', Object.entries(API.TSTATUS), t.status)}</label>
@@ -197,7 +197,7 @@ document.addEventListener('input', (ev) => {
   if (f === 'tText' && HD.sel) HD.draft[HD.sel] = t.value;
   if (f === 'ntFamQ') {
     const r = API.families.list({ q: t.value, seg: 'all' }, null, 8).items.filter((x) => x.email);
-    $('#ntRes').innerHTML = t.value.trim() ? r.map((x) => `<button type="button" class="chip" data-a="tPickFam" data-v="${x.id}">${esc(famName(x))} <span class="muted">${esc(x.town)}</span></button>`).join('') || '<span class="hint">Nic nenalezeno.</span>' : '';
+    $('#ntRes').innerHTML = t.value.trim() ? r.map((x) => `<button type="button" class="chip" data-a="tPickFam" data-v="${esc(x.id)}">${esc(famName(x))} <span class="muted">${esc(x.town)}</span></button>`).join('') || '<span class="hint">Nic nenalezeno.</span>' : '';
   }
 });
 document.addEventListener('change', (ev) => {
@@ -248,7 +248,7 @@ function openNewTicket() {
   modal(`<div class="dialog narrow" role="dialog" aria-modal="true" aria-labelledby="ntT">
     <div class="dialog-head"><h2 id="ntT">Nový ticket</h2><button class="x" data-a="close" aria-label="Zavřít">×</button></div>
     <div class="dialog-body">
-      <label for="ntFamQ">Uživatel</label><input id="ntFamQ" data-f="ntFamQ" placeholder="Jméno, e-mail, město nebo id" autocomplete="off" value="${f ? esc(famName(f)) : ''}"><input type="hidden" id="ntFam" value="${f ? f.id : ''}">
+      <label for="ntFamQ">Uživatel</label><input id="ntFamQ" data-f="ntFamQ" placeholder="Jméno, e-mail, město nebo id" autocomplete="off" value="${f ? esc(famName(f)) : ''}"><input type="hidden" id="ntFam" value="${f ? esc(f.id) : ''}">
       <div class="chips" id="ntRes" style="margin-top:6px"></div>
       <label for="ntSub">Předmět</label><input id="ntSub" placeholder="Např. Telefonát: nejde přehrát pohádka">
       <div class="fields2">

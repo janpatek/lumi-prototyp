@@ -10,10 +10,27 @@ aplikace (app/) ── POST /tts { text, voice } ──▶ Worker (klíč jako t
 Co Worker hlídá:
 - Přijme jen požadavky z webů v `ALLOWED_ORIGINS` (ospalek.cz, GitHub Pages, localhost).
 - Pustí jen hlasy z `VOICES` a text nejvýš `MAX_CHARS` znaků (400; aplikace posílá po větách, nejdelší má ~190 znaků).
-- Jedna IP adresa smí nechat namluvit nejvýš 120 nových vět za minutu (`[[ratelimits]]` TTS_LIMIT ve `wrangler.toml`). Věty z mezipaměti se nepočítají. Celkový strop drží měsíční limit kreditů u klíče v ElevenLabs – ten nech nastavený.
-- Stejný text a hlas vrací z mezipaměti, takže se neplatí znovu.
+- Jedna IP adresa smí nechat namluvit nejvýš 120 nových vět za minutu (`[[ratelimits]]` TTS_LIMIT ve `wrangler.toml`). Věty z mezipaměti se nepočítají.
+- Stejný text a hlas vrací z mezipaměti, takže se neplatí znovu. Věty z mezipaměti dostane každý, i starší verze aplikace.
+- **Novou větu (tu, co stojí kredity) namluví jen přihlášené rodině** (od 17. 11. 2026, `TTS_AUTH = "required"`). Aplikace
+  posílá přihlášení rodiny (`Authorization: Bearer …`, anonymní účet Supabase) a worker se před voláním ElevenLabs zeptá
+  databáze (`app_tts_allow`), která ověří podpis přihlášení a limity z tabulky `tts_limits`:
+  - `family_day` (70 000 kreditů, zhruba znaků): jedna rodina za den, zhruba celá knihovna najednou,
+  - `family_month` (160 000 znaků): jedna rodina za 30 dní,
+  - `global_day` (600 000 znaků, asi 1 100 Kč): všechny rodiny dohromady za den – pojistka proti zakládání účtů ve velkém.
+  Limity se mění v Supabase → SQL Editor (`update tts_limits set global_day = …`), worker se nasazovat nemusí.
+  Když se databáze neozve, worker novou větu nenamluví (hotové hrají dál).
+- Pořadí nasazení: nejdřív `supabase/migrations/20261117_zabezpeceni.sql`, potom `npx wrangler deploy`.
+- **Nástroje týmu** (`tools/hlas/namluvit.mjs`, `predehrat.mjs`) rodinu nemají. Prokazují se tajným klíčem:
+  jednou `npx wrangler secret put TOOLS_KEY` (dlouhý náhodný řetězec, např. `openssl rand -hex 32`) a při spuštění
+  nástroje `OSPALEK_TOOLS_KEY=… node tools/hlas/namluvit.mjs nahrat …`. Klíč nepatří do repozitáře. Bez něj nástroje
+  dostanou jen věty z mezipaměti. Limity rodin se na ně nevztahují, limit 120 nových vět za minutu ano.
+- Limity se počítají v kreditech ElevenLabs tak, jak je worker zapisuje k účtu (u běžného modelu 1 znak = 1 kredit).
+- Verze aplikace starší než Android 1.19 přihlášení neposílají: hrají jim hotové věty (společné a ty už jednou
+  namluvené), nová věta se jménem dítěte ne. Aplikace pak nabídne „Raději ji přečtu já“.
 
-Skript mimo prohlížeč ale může hlavičku `Origin` podvrhnout. Hlavní pojistka proti zneužití je proto **limit kreditů nastavený přímo u klíče** v ElevenLabs.
+Hlavička `Origin` jde mimo prohlížeč podvrhnout, proto o nových větách rozhoduje přihlášení a limity, ne Origin.
+Poslední pojistka je **limit kreditů nastavený přímo u klíče** v ElevenLabs – nech ho nastavený.
 
 ## 1. Klíč a hlas v ElevenLabs
 

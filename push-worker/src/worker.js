@@ -13,7 +13,8 @@
 // Nastavení (wrangler.toml → [vars], tajné hodnoty přes `npx wrangler secret put …`):
 //   VAPID_PUBLIC_KEY      veřejný klíč (stejný jako pushKey v config.js), vyrobí ho push-worker/klice.mjs
 //   VAPID_PRIVATE_KEY     tajné: soukromý klíč VAPID (klice.mjs ho uloží rovnou do Workeru)
-//   SUPABASE_SECRET       tajné: tajný klíč Supabase (sb_secret_…), smí volat jen funkce push_*
+//   SUPABASE_SECRET       tajné: tajný klíč Supabase (sb_secret_…). POZOR: je to plný klíč k celé databázi (obchází pravidla
+//                         tabulek), worker ho používá jen na funkce push_*. Chraň účet Cloudflare dvoufázovým ověřením.
 //   SUPABASE_URL, SUPABASE_KEY  databáze a veřejný klíč (ověření člena týmu u /test)
 //   ALLOWED_ORIGINS       odkud smí volat administrace (/test)
 //   BATCH_SIZE            odběrů v jedné dávce (Free: 40, Paid: až 400)

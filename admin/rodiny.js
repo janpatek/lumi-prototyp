@@ -5,9 +5,9 @@
 const FAM = { q: '', seg: 'all', country: 'all', platform: 'all', sort: 'created', dir: -1, vt: null };
 
 const famCols = () => [
-  { k: 'name', label: 'Uživatel', w: 'minmax(190px, 1.5fr)', sort: true, html: (f) => `<span class="av">${f.email ? initials(famName(f)) : 'H'}</span><span class="ell"><b>${esc(famName(f))}</b> <span class="muted">${esc(famMail(f)) || f.id}</span></span>` },
+  { k: 'name', label: 'Uživatel', w: 'minmax(190px, 1.5fr)', sort: true, html: (f) => `<span class="av">${f.email ? esc(initials(famName(f))) : 'H'}</span><span class="ell"><b>${esc(famName(f))}</b> <span class="muted">${esc(famMail(f)) || esc(f.id)}</span></span>` },
   { k: 'kids', label: 'Děti', w: 'minmax(120px, 1fr)', sort: true, html: kidsHtml },
-  { k: 'town', label: 'Bydliště', w: '124px', sort: true, html: (f) => `<span class="ell">${esc(f.town)}</span> <span class="muted">${f.country}</span>` },
+  { k: 'town', label: 'Bydliště', w: '124px', sort: true, html: (f) => `<span class="ell">${esc(f.town)}</span> <span class="muted">${esc(f.country)}</span>` },
   { k: 'plan', label: 'Tarif', w: '136px', html: subTag },
   { k: 'plays30', label: 'Přehrání 30 d', w: '92px', cls: 'r', sort: true, html: (f) => (f.analytics === false ? '<span class="muted" title="Bez souhlasu se statistikami">–</span>' : fmt(f.plays30)) },
   { k: 'min30', label: 'Minut 30 d', w: '84px', cls: 'r', sort: true, html: (f) => (f.analytics === false ? '<span class="muted">–</span>' : fmt(f.min30)) },
@@ -124,13 +124,13 @@ function pageFamily(id) {
   const stRows = Object.entries(bystory).sort((x, y) => y[1].n - x[1].n);
   const title = (sid) => { const s = STORIES.find((x) => x.id === sid); return s ? safeTitle(s, f.kids[0]?.g === 'f' ? 'f' : 'm') : sid; };
   const tl = [
-    { at: f.created, c: 'var(--s1)', t: `Registrace (${esc(f.source)}, ${f.platform})` },
+    { at: f.created, c: 'var(--s1)', t: `Registrace (${esc(f.source)}, ${esc(f.platform)})` },
     f.trialI >= 0 && { at: D.dayAt(f.trialI), c: 'var(--honey)', t: 'Začal zkušební týden' },
     f.subI >= 0 && f.plan !== 'dárek' && { at: D.dayAt(f.subI), c: 'var(--s3)', t: 'Předplatné (129 Kč měsíčně)' },
     f.subEnd >= 0 && { at: D.dayAt(f.subEnd), c: 'var(--s2)', t: 'Zrušení předplatného' },
-    ...pays.map((p) => ({ at: p.at, c: p.status === 'zaplaceno' ? 'var(--s3)' : 'var(--s2)', t: `Platba ${kc(p.czk)} · ${p.status}` })),
-    ...tks.map((t) => ({ at: t.created, c: 'var(--s4)', t: `Ticket <a class="link" href="#helpdesk/${t.id}">#${t.id} ${esc(t.subject)}</a>` })),
-    ...gifts.map((g) => ({ at: g.at, c: 'var(--honey)', t: `Dárek: ${g.months} ${plural(g.months, 'měsíc', 'měsíce', 'měsíců')} zdarma` })),
+    ...pays.map((p) => ({ at: p.at, c: p.status === 'zaplaceno' ? 'var(--s3)' : 'var(--s2)', t: `Platba ${kc(p.czk)} · ${esc(p.status)}` })),
+    ...tks.map((t) => ({ at: t.created, c: 'var(--s4)', t: `Ticket <a class="link" href="#helpdesk/${esc(t.id)}">#${esc(t.id)} ${esc(t.subject)}</a>` })),
+    ...gifts.map((g) => ({ at: g.at, c: 'var(--honey)', t: `Dárek: ${esc(g.months)} ${plural(g.months, 'měsíc', 'měsíce', 'měsíců')} zdarma` })),
     { at: f.lastSeen, c: 'var(--line)', t: 'Naposledy v aplikaci' },
   ].filter(Boolean).sort((x, y) => y.at - x.at);
   const canE = API.can('families.edit'), canDel = API.can('families.delete'), canGift = API.can('billing.refund');
@@ -138,13 +138,13 @@ function pageFamily(id) {
     <div class="head">
       <div class="fam-head">
         <a class="btn white sm" href="#uzivatele">${I.back}Uživatelé</a>
-        <div class="avatar">${f.email ? initials(famName(f)) : 'H'}</div>
-        <div><h1>${esc(famName(f))}</h1><p>${esc(famMail(f)) || 'Bez e-mailu (host)'} · <span class="mono">${f.id}</span> · ${esc(f.town)} ${f.country} · ${subTag(f)} ${f.tags.map((x) => `<span class="tag line">${esc(x)}</span>`).join(' ')}</p></div>
+        <div class="avatar">${f.email ? esc(initials(famName(f))) : 'H'}</div>
+        <div><h1>${esc(famName(f))}</h1><p>${esc(famMail(f)) || 'Bez e-mailu (host)'} · <span class="mono">${esc(f.id)}</span> · ${esc(f.town)} ${esc(f.country)} · ${subTag(f)} ${f.tags.map((x) => `<span class="tag line">${esc(x)}</span>`).join(' ')}</p></div>
       </div>
       <div class="head-actions">
         ${API.can('tickets.reply') && f.email ? `<button class="btn white sm" data-a="tNew">${I.chat}Nový ticket</button>` : ''}
-        ${canGift && f.email ? `<button class="btn white sm" data-a="famGift" data-v="${f.id}">${I.gift}Darovat měsíc</button>` : ''}
-        ${canDel ? `<button class="btn white sm" data-a="famExport" data-v="${f.id}">${I.down}Export dat (GDPR)</button><button class="btn danger sm" data-a="famDelete" data-v="${f.id}">Smazat uživatele</button>` : ''}
+        ${canGift && f.email ? `<button class="btn white sm" data-a="famGift" data-v="${esc(f.id)}">${I.gift}Darovat měsíc</button>` : ''}
+        ${canDel ? `<button class="btn white sm" data-a="famExport" data-v="${esc(f.id)}">${I.down}Export dat (GDPR)</button><button class="btn danger sm" data-a="famDelete" data-v="${esc(f.id)}">Smazat uživatele</button>` : ''}
       </div>
     </div>
     ${demoBar(D.live ? '' : `Aktivita se dopočítala za ${dec(ms)} ms.`)}
@@ -168,11 +168,11 @@ function pageFamily(id) {
         </div>
       </section>
       <section class="panel"><div class="panel-head"><h2>Děti</h2></div>
-        <div class="kids">${f.kids.map((k, i) => `<div class="kidcard"><b>${API.can('families.pii') ? esc(k.name) : `Dítě ${i + 1}`}</b><div class="muted">${k.g === 'f' ? 'holka' : 'kluk'}, ${k.age} ${plural(k.age, 'rok', 'roky', 'let')}</div><div style="margin-top:6px;font-size:12px">Hrdinou <b>${fmt(a.hero[i])}×</b></div></div>`).join('')}</div>
+        <div class="kids">${f.kids.map((k, i) => `<div class="kidcard"><b>${API.can('families.pii') ? esc(k.name) : `Dítě ${i + 1}`}</b><div class="muted">${k.g === 'f' ? 'holka' : 'kluk'}, ${esc(k.age)} ${plural(k.age, 'rok', 'roky', 'let')}</div><div style="margin-top:6px;font-size:12px">Hrdinou <b>${fmt(a.hero[i])}×</b></div></div>`).join('')}</div>
         <h2 style="margin:16px 0 8px">Zařízení</h2>
-        <dl class="kv"><dt>Platforma</dt><dd>${f.platform}</dd><dt>Verze aplikace</dt><dd>${f.appVer}${f.platform !== 'Web' && f.appVer !== '1.4.2' ? ' <span class="tag peach">stará</span>' : ''}</dd><dt>Registrace</dt><dd>${fdate(f.created)}</dd><dt>Zdroj</dt><dd>${esc(f.source)}</dd></dl>
+        <dl class="kv"><dt>Platforma</dt><dd>${esc(f.platform)}</dd><dt>Verze aplikace</dt><dd>${esc(f.appVer)}${f.platform !== 'Web' && f.appVer !== '1.4.2' ? ' <span class="tag peach">stará</span>' : ''}</dd><dt>Registrace</dt><dd>${fdate(f.created)}</dd><dt>Zdroj</dt><dd>${esc(f.source)}</dd></dl>
         <h2 style="margin:16px 0 8px">Interní poznámka</h2>
-        <textarea data-f="famNote" data-id="${f.id}" rows="4" style="font-family:var(--body);font-size:13px" ${canE ? '' : 'disabled'} placeholder="Vidí jen tým. Uloží se po opuštění pole.">${esc(API.families.note(f.id))}</textarea>
+        <textarea data-f="famNote" data-id="${esc(f.id)}" rows="4" style="font-family:var(--body);font-size:13px" ${canE ? '' : 'disabled'} placeholder="Vidí jen tým. Uloží se po opuštění pole.">${esc(API.families.note(f.id))}</textarea>
       </section>
     </div>
     <div class="grid2" style="margin-top:16px">
@@ -186,7 +186,7 @@ function pageFamily(id) {
       </section>
       <section class="panel"><div class="panel-head"><h2>Platby</h2>${API.can('billing.read') ? '<a class="btn white sm" href="#platby">Všechny</a>' : ''}</div>
         ${API.can('billing.read') ? `<div class="table-wrap"><table><thead><tr><th>Datum</th><th>Obchod</th><th class="r">Částka</th><th>Stav</th></tr></thead><tbody>
-        ${pays.slice(0, 8).map((p) => `<tr><td class="num">${fdate(p.at)}</td><td>${p.store}</td><td class="r num">${p.cur === 'EUR' ? `${dec(p.amount, 2)} €` : kc(p.czk)}</td><td>${payTag(p.status)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Žádné platby.</td></tr>'}</tbody></table></div>` : '<p class="muted">Tvoje role platby nevidí.</p>'}
+        ${pays.slice(0, 8).map((p) => `<tr><td class="num">${fdate(p.at)}</td><td>${esc(p.store)}</td><td class="r num">${p.cur === 'EUR' ? `${dec(p.amount, 2)} €` : kc(p.czk)}</td><td>${payTag(p.status)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Žádné platby.</td></tr>'}</tbody></table></div>` : '<p class="muted">Tvoje role platby nevidí.</p>'}
       </section>
       <section class="panel"><div class="panel-head"><h2>Časová osa</h2></div>
         <ul class="timeline">${tl.map((e) => `<li><span class="when">${fdate(e.at)}</span><i class="dot" style="--c:${e.c}"></i><span>${e.t}</span></li>`).join('')}</ul>
@@ -194,23 +194,29 @@ function pageFamily(id) {
     </div>`;
 }
 // ---------- Nastavení a souhlasy ----------
+const THEMES = { auto: 'podle času', light: 'den', dark: 'noc' };
 const yesNo = (v, at, yes = 'ano', no = 'ne') => (v ? `<span class="status-ok">${yes}</span>${at ? ` <span class="muted">od ${fdate(at)}</span>` : ''}` : `<span class="muted">${no}</span>`);
+// f.settings je libovolný JSON, který pošle aplikace (tedy kdokoli s veřejným klíčem): do HTML z něj smí jen čísla
+// převedená přes num() a hodnoty porovnané s výčtem, nikdy syrový řetězec.
 function settingsHtml(f) {
-  const st = f.settings, P = { device: 'bez přihlášení', guest: 'host', google: 'Google', apple: 'Apple', email: 'e-mail' };
-  const notify = !st ? '–' : st.notify === 'on' ? `<span class="status-ok">zapnutá</span>${f.push ? ` <span class="muted">${f.push} ${plural(f.push, 'zařízení', 'zařízení', 'zařízení')}</span>` : ' <span class="muted">upozornění zatím nedorazilo do žádného zařízení</span>'}` : st.notify === 'off' ? '<span class="muted">odmítnutá</span>' : '<span class="muted">zatím se nerozhodl</span>';
-  const theme = st && { auto: 'podle času', light: 'den', dark: 'noc' }[st.theme];
+  const raw = f.settings, st = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : null;
+  const push = num(f.push), rel = st ? num(st.relatives, 99) : 0, places = st ? num(st.places, 999) : 0, heroes = st ? num(st.heroes, 99) : 0;
+  const favs = st ? num(st.favs, 99999) : 0, heard = st ? num(st.heard, 99999) : 0, chg = st ? num(st.changesMonth, 999) : 0;
+  const P = { device: 'bez přihlášení', guest: 'host', google: 'Google', apple: 'Apple', email: 'e-mail' };
+  const notify = !st ? '–' : st.notify === 'on' ? `<span class="status-ok">zapnutá</span>${push ? ` <span class="muted">${push} ${plural(push, 'zařízení', 'zařízení', 'zařízení')}</span>` : ' <span class="muted">upozornění zatím nedorazilo do žádného zařízení</span>'}` : st.notify === 'off' ? '<span class="muted">odmítnutá</span>' : '<span class="muted">zatím se nerozhodl</span>';
+  const theme = st && typeof st.theme === 'string' && Object.hasOwn(THEMES, st.theme) ? THEMES[st.theme] : '';
   return `<dl class="kv">
       <dt>Novinky e-mailem (marketing)</dt><dd>${f.email ? yesNo(f.newsletter, f.newsletterAt, 'souhlasí') : '<span class="muted">bez e-mailu, nejde oslovit</span>'}</dd>
       <dt>Statistiky poslechu</dt><dd>${yesNo(f.analytics, f.analyticsAt, 'souhlasí')}</dd>
       <dt>Večerní připomínka</dt><dd>${notify}</dd>
-      <dt>Účet</dt><dd>${esc(P[f.provider] || (f.email ? 'přihlášený' : 'bez přihlášení'))}${f.onboarded === false ? ' <span class="tag peach">nedokončil nastavení</span>' : ''}</dd>
+      <dt>Účet</dt><dd>${esc((typeof f.provider === 'string' && Object.hasOwn(P, f.provider) && P[f.provider]) || (f.email ? 'přihlášený' : 'bez přihlášení'))}${f.onboarded === false ? ' <span class="tag peach">nedokončil nastavení</span>' : ''}</dd>
       <dt>Předplatné</dt><dd>${subTag(f)}${st && st.code ? ' <span class="tag line">odemčeno kódem</span>' : ''}</dd>
       ${st ? `<dt>Vzhled</dt><dd>${theme || '–'}</dd>
-      <dt>Profil</dt><dd>${f.kids.length} ${plural(f.kids.length, 'dítě', 'děti', 'dětí')} · ${st.relatives} ${plural(st.relatives, 'blízký', 'blízcí', 'blízkých')} · ${st.places} ${plural(st.places, 'místo', 'místa', 'míst')}</dd>
-      <dt>Hrdinové pohádek</dt><dd>${st.heroes}</dd>
-      <dt>Oblíbené pohádky</dt><dd>${fmt(st.favs)}</dd>
-      <dt>Dohrané pohádky (v zařízení)</dt><dd>${fmt(st.heard)}</dd>
-      <dt>Změny tento měsíc</dt><dd>${st.changesMonth} z 10${st.changesMonth >= 10 ? ' <span class="tag peach">vyčerpáno</span>' : ''}</dd>` : ''}
+      <dt>Profil</dt><dd>${f.kids.length} ${plural(f.kids.length, 'dítě', 'děti', 'dětí')} · ${rel} ${plural(rel, 'blízký', 'blízcí', 'blízkých')} · ${places} ${plural(places, 'místo', 'místa', 'míst')}</dd>
+      <dt>Hrdinové pohádek</dt><dd>${heroes}</dd>
+      <dt>Oblíbené pohádky</dt><dd>${fmt(favs)}</dd>
+      <dt>Dohrané pohádky (v zařízení)</dt><dd>${fmt(heard)}</dd>
+      <dt>Změny tento měsíc</dt><dd>${chg} z 10${chg >= 10 ? ' <span class="tag peach">vyčerpáno</span>' : ''}</dd>` : ''}
     </dl>
     ${st ? '' : '<p class="hint" style="margin-top:10px">Nastavení aplikace zatím nepřišlo: uživatel má starší verzi aplikace, nebo od aktualizace aplikaci neotevřel.</p>'}
     <p class="hint" style="margin-top:10px">Jména blízkých, místa ani oblíbené věci na server nejdou, vidíš jen počty.</p>`;
@@ -242,7 +248,7 @@ function usageHtml(f, a) {
 }
 
 const emptyActivity = (f) => ({ plays: 0, minutes: 0, days: 0, cat: [0, 0, 0, 0], story: {}, hero: f.kids.map(() => 0), done: 0, hours: new Float64Array(24), series: { plays: new Uint16Array(D.days), minutes: new Float32Array(D.days), events: [] } });
-const payTag = (s) => `<span class="tag ${s === 'zaplaceno' ? 'mint' : s === 'vráceno' ? 'line' : 'peach'}">${s}</span>`;
+const payTag = (s) => `<span class="tag ${s === 'zaplaceno' ? 'mint' : s === 'vráceno' ? 'line' : 'peach'}">${esc(s)}</span>`;
 
 function famCsv() {
   const pii = API.can('families.pii');

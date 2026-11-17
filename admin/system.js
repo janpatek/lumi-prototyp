@@ -12,8 +12,8 @@ function pageTeam() {
         <button class="btn white sm" data-a="teamPw" data-v="${esc(s.id)}">Nastavit heslo</button>
         ${!me && s.twofa ? `<button class="btn white sm" data-a="teamMfa" data-v="${esc(s.id)}">Zrušit kód</button>` : ''}
         ${!me ? `<button class="btn danger sm" data-a="teamRemove" data-v="${esc(s.id)}">Odebrat</button>` : ''}</div>` : '';
-    return `<tr><td><span class="av">${initials(s.name)}</span> <b>${esc(s.name)}</b>${me ? ' <span class="tag">ty</span>' : ''}${s.invited ? ' <span class="tag honey">pozvánka</span>' : ''}</td><td class="muted">${esc(s.email)}</td>
-      <td>${canM && !me ? `<select data-f="staffRole" data-id="${s.id}" style="width:auto;padding:4px 8px">${roles.map(([k, r]) => `<option value="${k}" ${s.role === k ? 'selected' : ''}>${r.label}</option>`).join('')}</select>` : API.ROLES[s.role].label}</td>
+    return `<tr><td><span class="av">${esc(initials(s.name))}</span> <b>${esc(s.name)}</b>${me ? ' <span class="tag">ty</span>' : ''}${s.invited ? ' <span class="tag honey">pozvánka</span>' : ''}</td><td class="muted">${esc(s.email)}</td>
+      <td>${canM && !me ? `<select data-f="staffRole" data-id="${esc(s.id)}" style="width:auto;padding:4px 8px">${roles.map(([k, r]) => `<option value="${k}" ${s.role === k ? 'selected' : ''}>${r.label}</option>`).join('')}</select>` : API.ROLES[s.role].label}</td>
       <td>${s.twofa ? '<span class="status-ok">zapnuto</span>' : (D.live ? '<span class="status-warn">nastaví při přihlášení</span>' : '<span class="status-bad">vypnuto</span>')}</td><td class="muted">${s.last ? ago(s.last) : '–'}</td>${D.live && canM ? `<td>${acts}</td>` : ''}</tr>`;
   };
   const btn = canM ? (D.live ? `<button class="btn" data-a="teamAdd">${I.plus}Přidat člena týmu</button>` : `<button class="btn" data-a="invite">${I.plus}Pozvat člena týmu</button>`) : '';
@@ -136,9 +136,9 @@ function pageAudit() {
     AUD.vt = vtable($('#audList'), {
       cols: [
         { k: 'at', label: 'Kdy', w: '150px', html: (e) => `<span class="num">${fdate(e.at)} <span class="muted">${e.at.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></span>` },
-        { k: 'actor', label: 'Kdo', w: '130px', html: (e) => `<span class="av">${initials(API.staffName(e.actor))}</span>${esc(API.staffName(e.actor))}` },
-        { k: 'action', label: 'Akce', w: '150px', html: (e) => `<span class="tag ${e.live ? 'honey' : 'line'}">${ACTION_LABEL[e.action.split('.')[0]] || e.action}</span> <span class="mono muted">${e.action.split('.')[1]}</span>` },
-        { k: 'target', label: 'Objekt', w: '140px', html: (e) => (/^#\d+$/.test(e.target) ? `<a class="link" href="#helpdesk/${e.target.slice(1)}">${e.target}</a>` : /^f\d+$/.test(e.target) ? `<a class="link mono" href="#uzivatele/${e.target}">${e.target}</a>` : esc(e.target)) },
+        { k: 'actor', label: 'Kdo', w: '130px', html: (e) => `<span class="av">${esc(initials(API.staffName(e.actor)))}</span>${esc(API.staffName(e.actor))}` },
+        { k: 'action', label: 'Akce', w: '150px', html: (e) => { const [kind, what] = String(e.action ?? '').split('.'); return `<span class="tag ${e.live ? 'honey' : 'line'}">${esc(Object.hasOwn(ACTION_LABEL, kind) ? ACTION_LABEL[kind] : e.action)}</span> <span class="mono muted">${esc(what)}</span>`; } },
+        { k: 'target', label: 'Objekt', w: '140px', html: (e) => (/^#\d+$/.test(e.target) ? `<a class="link" href="#helpdesk/${esc(e.target.slice(1))}">${esc(e.target)}</a>` : /^f\d+$/.test(e.target) ? `<a class="link mono" href="#uzivatele/${esc(e.target)}">${esc(e.target)}</a>` : esc(e.target)) },
         { k: 'detail', label: 'Detail', w: 'minmax(240px, 1fr)', html: (e) => `<span class="ell">${esc(e.detail)}</span>` },
       ],
       rowH: 38, key: (e) => e.at.getTime() + e.action,
@@ -147,7 +147,7 @@ function pageAudit() {
     });
     onLeave(() => { AUD.vt.destroy(); AUD.vt = null; });
   });
-  const opt = (k, v, l) => `<option value="${v}" ${AUD[k] === v ? 'selected' : ''}>${esc(l)}</option>`;
+  const opt = (k, v, l) => `<option value="${esc(v)}" ${AUD[k] === v ? 'selected' : ''}>${esc(l)}</option>`;
   return `
     ${head('Audit log', 'Kdo co v administraci udělal. Záznamy nejdou upravit ani smazat.')}
     ${demoBar('Ve skutečnosti zapisuje backend do tabulky jen pro přidávání (append-only).')}
@@ -188,7 +188,7 @@ function palSearch(q) {
   }
   PAL.items = out; PAL.i = 0;
   let g = null;
-  $('#palRes').innerHTML = out.map((x, i) => `${x.grp !== g ? `<div class="grp">${(g = x.grp)}</div>` : ''}<a href="${x.href}" role="option" data-pi="${i}" class="${i === 0 ? 'on' : ''}">${esc(x.label)}<small>${esc(x.sub)}</small></a>`).join('') || '<p class="muted" style="padding:14px">Nic nenalezeno.</p>';
+  $('#palRes').innerHTML = out.map((x, i) => `${x.grp !== g ? `<div class="grp">${(g = x.grp)}</div>` : ''}<a href="${esc(x.href)}" role="option" data-pi="${i}" class="${i === 0 ? 'on' : ''}">${esc(x.label)}<small>${esc(x.sub)}</small></a>`).join('') || '<p class="muted" style="padding:14px">Nic nenalezeno.</p>';
 }
 function palMove(d) {
   if (!PAL.items.length) return;
