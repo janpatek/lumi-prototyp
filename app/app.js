@@ -895,12 +895,14 @@ function cloudSpeak(text, onend) {
 // ---------- Poslech bez internetu (offline.js, sw.js) ----------
 const lineId = (t, mood) => (mood || '') + '|' + t;
 // co pohádka pro dané hrdiny potřebuje: věty s rodinou (IndexedDB) a soubory (společné věty, obálka)
-async function storyNeeds(st, hs = heroes()) {
+// music: true = i celá hudba stylu (Stáhnout na cestu); jinak se hudba stahuje průběžně při poslechu
+async function storyNeeds(st, hs = heroes(), { music = false } = {}) {
   await voiceLines.ready;
   const lines = VOICE_LINES.planStory(st.text(ctx(hs))).flatMap((p) => p.lines);
+  const sounds = await ambience.storyFiles(st, { music }).catch(() => []);
   return {
     family: [...new Set(lines.filter((l) => !voiceLines.has(l)).map((l) => l.t))],
-    files: [...new Set([...lines.filter((l) => voiceLines.has(l)).map(voiceLines.url), ...(st.cover.img ? [coverImg(st, hs)] : [])])],
+    files: [...new Set([...lines.filter((l) => voiceLines.has(l)).map(voiceLines.url), ...(st.cover.img ? [coverImg(st, hs)] : []), ...sounds])],
   };
 }
 const offlineMemo = new Map(); // pohádka + hrdinové → Promise<true/false>
@@ -919,8 +921,8 @@ function storyOffline(st, hs = heroes()) {
   return offlineMemo.get(k);
 }
 // stáhne vše, co pohádka potřebuje; věty rodiny jdou přes cloudClip, takže se zaplatí jen jednou
-async function downloadStory(st, onprog) {
-  const n = await storyNeeds(st);
+async function downloadStory(st, onprog, opts) {
+  const n = await storyNeeds(st, heroes(), opts);
   const jobs = [...n.family.map((t) => () => cloudClip(t, st.mood)), ...n.files.map((f) => () => OFFLINE.saveFile(f))];
   const run = async (job) => {
     for (let a = 1; ; a++) {
@@ -1021,6 +1023,10 @@ function openPlayer(st, queue) {
   P = { st, segs, plan, i: 0, playing: false, stop: null, showText: true, rec, voice: linesOk ? 'lines' : rec ? rec.voices[0].id : TTS_URL ? 'cloud' : 'browser', audio: null, ready: false, prog: 0 };
   // pořadí pohádek pro Předchozí / Další ze zamčené obrazovky: polička, ze které se pohádka otevřela
   P.queue = queue && queue.includes(st.id) ? queue : STORIES.map((s) => s.id);
+  // efekty na místech děje (audio.js storyFx): pro každý odstavec [{ line, kdy, fx }]
+  P.fxs = segs.map(() => []);
+  const pp = P;
+  ambience.storyFx(st, segs, plan).then((fx) => { if (P === pp) { P.fxs = fx; storyTimes(); } }).catch(() => {});
   // jeden přehrávač vytvořený při kliknutí – iOS pak pustí i další odstavce bez dalšího klepnutí
   if (TTS_URL) P.cloudEl = new Audio();
   $app.insertAdjacentHTML('beforeend', `
@@ -1061,7 +1067,8 @@ function storyTimes() {
   P.durs = P.segs.map((seg, i) => {
     const speak = lines ? voiceLines.seconds(P.plan[i]) : seg.t.length / 14;
     const rest = !seg.pause ? 0.5 : answerTime(seg) ? seg.pause : quietPause(seg);
-    return speak + rest + (seg.sfx ? 0.7 : 0.15);
+    const fx = (P.fxs && P.fxs[i]) || [];
+    return speak + rest + 0.15 + fx.filter((f) => f.kdy !== 'spolu').length * 1.6;
   });
   P.total = P.durs.reduce((a, b) => a + b, 0);
   clearInterval(P.timeIv);
@@ -1235,6 +1242,14 @@ function resumeAfterReload() {
   document.getElementById('waiting').textContent = 'Aplikace se musela znovu načíst. Klepněte na Přehrát a pokračujeme.';
 }
 
+// efekty v uspávankách tišeji
+const fxSoft = () => (P.st.mood === 'lullaby' ? 0.7 : 1);
+// nahrávka z ElevenLabs je souvislá: efekty odstavce zazní na jeho začátku a kulisa se přepne podle děje
+function recFx(i) {
+  ambience.scene(i);
+  (P.fxs[i] || []).forEach((f, j) => setTimeout(() => { if (P && P.playing) ambience.sfx(f.fx, { soft: fxSoft() }); }, j * 1200));
+}
+
 function playSeg() {
   if (!P) return;
   P.stop && P.stop();
@@ -1244,7 +1259,9 @@ function playSeg() {
   P.segAt = Date.now();
   highlight();
   const seg = P.segs[P.i];
-  if (seg.sfx) ambience.sfx(seg.sfx);
+  ambience.scene(P.i); // kulisa podle děje
+  const fx = P.fxs[P.i] || [];
+  const soft = fxSoft();
   const token = (P.token = (P.token || 0) + 1);
   const go = () => { if (P && P.playing && P.token === token) { P.i++; playSeg(); } };
   const cloud = P.voice === 'cloud' && !P.cloudFailed;
@@ -1252,7 +1269,9 @@ function playSeg() {
   const fallback = TTS_URL ? (t) => cloudClip(t, P.st.mood) : null;
   // další odstavec se připravuje, zatímco tenhle hraje
   if (cloud && P.segs[P.i + 1]) cloudClip(P.segs[P.i + 1].t).catch(() => {});
-  if (lines) voiceLines.prefetch(P.plan[P.i + 1], fallback);
+  if (lines) voiceLines.prefetch(P.plan[P.i + 1], fallback, P.fxs[P.i + 1]);
+  // jiný hlas než skládaný neumí efekty časovat podle vět: zazní na začátku odstavce
+  if (!lines) fx.forEach((f, j) => setTimeout(() => { if (P && P.playing && P.token === token) ambience.sfx(f.fx, { soft }); }, j * 1200));
   const after = () => {
     if (!seg.pause) return setTimeout(go, 500);
     ambience.duck(false); // pauza: pozadí zase nahlas
@@ -1264,9 +1283,9 @@ function playSeg() {
   const delay = setTimeout(() => {
     ambience.duck(true);
     P.stop = lines
-      ? voiceLines.speak(P.plan[P.i], () => { P.retries = 0; after(); }, { fallback, onerror: (e) => voiceStalled(e, token) })
+      ? voiceLines.speak(P.plan[P.i], () => { P.retries = 0; after(); }, { fallback, onerror: (e) => voiceStalled(e, token), fx, soft })
       : (cloud ? cloudSpeak : speak)(seg.t, after);
-  }, seg.sfx ? 700 : 150);
+  }, !lines && fx.length ? 700 : 150);
   P.stop = () => clearTimeout(delay);
 }
 
@@ -1307,7 +1326,7 @@ async function playRec() {
     const start = v.starts[P.i] || 0;
     await new Promise((ok) => P.audio.addEventListener('loadedmetadata', ok, { once: true }));
     P.audio.currentTime = start;
-    if (P.segs[P.i].sfx) ambience.sfx(P.segs[P.i].sfx);
+    recFx(P.i);
   }
   if (P.audio.ended) P.audio.currentTime = 0;
   P.audio.play();
@@ -1333,7 +1352,7 @@ function onRecTime() {
       return;
     }
     P.i = i;
-    if (P.playing && P.segs[i].sfx) ambience.sfx(P.segs[i].sfx);
+    if (P.playing) recFx(i);
     highlight();
   }
 }
@@ -1390,7 +1409,7 @@ function playPause() {
     P.started = true;
     if (P.i >= P.segs.length) { P.i = 0; P.logged = false; }
     if (!P.sync || P.sync.done) P.sync = SYNC.playStart(P.st, S);
-    ambience.startBackground(P.st);
+    ambience.startBackground(P.st, P.i);
     document.querySelector('.the-end')?.remove();
     document.querySelector('.end-rate')?.remove();
     recVoice() ? playRec() : playSeg();
@@ -1485,7 +1504,7 @@ function setBackground(on) {
   });
   document.getElementById('bgMix').classList.toggle('off', !on); // jen skrýt, ať tlačítka neposkočí
   if (!P || !P.playing) return;
-  if (on) { ambience.startBackground(P.st); ambience.duck(true); } else ambience.stopBackground(true);
+  if (on) { ambience.startBackground(P.st, P.i); ambience.duck(true); } else ambience.stopBackground(true);
 }
 
 // keepMedia: přepnutí na další pohádku – oznámení na zamčené obrazovce nezmizí, jen se přepíše
@@ -1625,7 +1644,7 @@ const actions = {
     if (!navigator.onLine) { el.textContent = 'Bez internetu nejde'; return; }
     el.dataset.busy = '1';
     try {
-      await downloadStory(st, (d, n) => { el.textContent = `${Math.round((d / n) * 100)} %`; });
+      await downloadStory(st, (d, n) => { el.textContent = `${Math.round((d / n) * 100)} %`; }, { music: true });
       S.offline = [...new Set([...(S.offline || []), id])]; store.set(S);
       el.dataset.on = '1'; el.classList.add('ghost'); el.innerHTML = `${I.check} Staženo`; offlineStats();
     } catch (e) {

@@ -4,6 +4,8 @@
 // vyrábí mobile/scripts/copy-web.mjs). Ostatní věty se stáhnou z ospalek.cz při prvním poslechu nebo
 // tlačítkem „Stáhnout na cestu“ a uloží se natrvalo do zařízení (Capacitor Filesystem, složka hlas/).
 // Stejně tak se z webu dotahuje rejstřík nahrávek a kulis, aby nové pohádky hrály bez nové verze aplikace.
+// Hudba, kulisy a efekty (audio/hudba, audio/pozadi, audio/efekty): co v aplikaci není, se vezme z webu
+// a uloží do zařízení (složka zvuky/), příště hraje i bez internetu.
 
 const REMOTE = (() => {
   const NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -72,11 +74,53 @@ const REMOTE = (() => {
   async function clear() {
     if (!FS) return;
     await FS.rmdir({ path: 'hlas', directory: DIR, recursive: true }).catch(() => {});
+    await FS.rmdir({ path: 'zvuky', directory: DIR, recursive: true }).catch(() => {});
     saved = Promise.resolve(new Set());
+    assets = Promise.resolve(new Set());
   }
+
+  // ---------- hudba, kulisy, efekty ----------
+  let assets = null, assetBase = null;
+  const assetName = (rel) => rel.replace(/^(\.\.\/)+audio\//, '').replace(/\//g, '_');
+  const listAssets = () => (assets = assets || (FS
+    ? FS.readdir({ path: 'zvuky', directory: DIR })
+      .then((r) => new Set((r.files || []).map((f) => (typeof f === 'string' ? f : f.name))))
+      .catch(() => new Set())
+    : Promise.resolve(new Set())));
+  const assetUrl = () => (assetBase = assetBase || FS.getUri({ path: 'zvuky', directory: DIR }).then((r) => window.Capacitor.convertFileSrc(r.uri).replace(/\/?$/, '/')));
+  const localBuf = (u) => fetch(u).then((r) => (okLocal(r) ? r.arrayBuffer() : null)).then((b) => (b && b.byteLength ? b : null)).catch(() => null);
+  async function saveAsset(name, buf) {
+    if (!FS) return;
+    const set = await listAssets();
+    if (set.has(name)) return;
+    await FS.writeFile({ path: `zvuky/${name}`, data: b64(buf), directory: DIR, recursive: true });
+    set.add(name);
+  }
+  // obsah souboru: z aplikace (web: ze serveru), ze zařízení, nebo z ospalek.cz (a uloží se)
+  async function asset(rel) {
+    const local = await localBuf(rel);
+    if (local) return local;
+    if (!NATIVE) throw new Error('Zvuk se nenačetl.');
+    const name = assetName(rel);
+    if (FS && (await listAssets()).has(name)) {
+      const b = await localBuf((await assetUrl()) + name);
+      if (b) return b;
+    }
+    const r = await fetch(siteUrl(rel));
+    if (!r.ok) throw new Error('Zvuk se nenačetl.');
+    const b = await r.arrayBuffer();
+    saveAsset(name, b.slice(0)).catch(() => {});
+    return b;
+  }
+  // pro Stáhnout na cestu (jen mobil)
+  async function hasAsset(rel) {
+    if (FS && (await listAssets()).has(assetName(rel))) return true;
+    return !!(await localBuf(rel));
+  }
+  const fetchAsset = (rel) => asset(rel).then(() => {});
 
   // adresa souboru, který v aplikaci nemusí být (obálka nové pohádky, kulisa): na mobilu z webu
   const siteUrl = (rel) => SITE + rel.replace(/^(\.\.\/)+/, '');
 
-  return { NATIVE, SITE, okLocal, clip, save, fetchClip, hasClip, index, clear, siteUrl };
+  return { NATIVE, SITE, okLocal, clip, save, fetchClip, hasClip, index, clear, siteUrl, asset, hasAsset, fetchAsset };
 })();

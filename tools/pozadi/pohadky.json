@@ -1,0 +1,2153 @@
+{
+  "babicka-na-skateboardu": {
+    "styl": "sranda",
+    "kulisa": "mesto-den",
+    "fx": [
+      {"p":3,"at":"skateboard pod ní jezdil sem a tam","fx":"skateboard","kdy":"spolu"},
+      {"p":5,"at":"si sedla na zem","fx":"bum-mekke","kdy":"po"},
+      {"p":17,"at":"otíral se o nohy","fx":"kocka-predeni","kdy":"po"},
+      {"p":18,"at":"Jen vítr.","fx":"smutny-trombon","kdy":"po"},
+      {"p":19,"at":"zapískala tak hlasitě","fx":"piskani","kdy":"po"},
+      {"p":22,"at":"sedla si do jiřin","fx":"listi","kdy":"po"},
+      {"p":23,"at":"sedla si na kocoura","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":25,"at":"šlápl na ocásek","fx":"mys-pipani","kdy":"po"},
+      {"p":26,"at":"pískat i při čištění zubů","fx":"cisteni-zubu","kdy":"spolu"},
+      {"p":27,"at":"spadla hned na začátku","fx":"bum-mekke","kdy":"po"},
+      {"p":35,"at":"Jela kolem plotu.","fx":"skateboard","kdy":"spolu"},
+      {"p":36,"at":"A v tu chvíli se ulicí rozlehlo","fx":"piskani","kdy":"pred"},
+      {"p":38,"at":"Paní z pekárny zatleskala","fx":"tleskani","kdy":"po"},
+      {"p":45,"at":"Fíí, fíí.","fx":"piskani","kdy":"pred"}
+    ]
+  },
+  "barborka": {
+    "styl": "vanoce",
+    "kulisa": [{"od":9,"id":"snih-ticho"},{"od":15,"id":null},{"od":59,"id":"krb-vanoce"}],
+    "fx": [
+      {"p":2,"at":"zazvonil u dveří děda","fx":"zvonek-dvere","kdy":"po"},
+      {"p":9,"at":"Křup, křup, křup.","fx":"kroky-snih","kdy":"pred"},
+      {"p":13,"at":"Děda ji ustřihl šikmo","fx":"nuzky","kdy":"po"},
+      {"p":16,"at":"položili do vany s vlažnou vodou","fx":"vana","kdy":"po"},
+      {"p":22,"at":"Děda napsal na papírek tři pravidla","fx":"psani","kdy":"po"},
+      {"p":25,"at":"Svíčky vždycky zapaloval dospělý","fx":"zapalka","kdy":"pred"},
+      {"p":27,"at":"Na velký papír se nakreslilo","fx":"psani","kdy":"po"},
+      {"p":37,"at":"záclonu","fx":"zaves","kdy":"po"},
+      {"p":43,"at":"Voda se vyměnila za čerstvou","fx":"kohoutek","kdy":"po"},
+      {"p":45,"at":"Pšš, pšš.","fx":"kapka","kdy":"pred"},
+      {"p":48,"at":"vykoukl tenoučký zelený proužek","fx":"cink","kdy":"po"},
+      {"p":50,"at":"Hned se poslala fotka dědovi","fx":"pocitac","kdy":"po"},
+      {"p":53,"at":"kreslil mráz ledové kapradiny","fx":"trpyt","kdy":"po"},
+      {"p":57,"at":"Děda zrovna volal","fx":"telefon","kdy":"pred"}
+    ]
+  },
+  "barevna-honicka": {
+    "styl": "auto",
+    "kulisa": "auto",
+    "fx": [
+      {"p":0,"at":"Haló, haló, posádko!","fx":"virbl","kdy":"pred"},
+      {"p":1,"at":"Duha se rozsypala na kousíčky","fx":"zvonecky","kdy":"pred"},
+      {"p":8,"at":"Chyť, sevři a hop!","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":12,"at":"blinkry, které blikají","fx":"blinkr","kdy":"po"},
+      {"p":15,"at":"Šedivánek dostal žlutý proužek","fx":"trpyt","kdy":"pred"},
+      {"p":18,"at":"Mám tě!","fx":"cink","kdy":"po"},
+      {"p":19,"at":"Vypadám jako semafor!","fx":"auto-troubeni","kdy":"po"},
+      {"p":21,"at":"Modrá je chycená","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":23,"at":"Šedivánek už smutně visel nad silnicí","fx":"smutny-trombon","kdy":"po"},
+      {"p":25,"at":"Dá se namíchat!","fx":"cink","kdy":"pred"},
+      {"p":26,"at":"z mráčku vykoukla fialová","fx":"kouzlo","kdy":"po"},
+      {"p":27,"at":"Zase byl duhový.","fx":"fanfara","kdy":"po"},
+      {"p":38,"at":"Píp píp!","fx":"auto-troubeni","kdy":"po"}
+    ]
+  },
+  "bourka-nebojsa": {
+    "styl": "ukolebavka",
+    "kulisa": [{"od":0,"id":"dest"},{"od":28,"id":null}],
+    "fx": [
+      {"p":0,"at":"vítr si pohvizdoval do okapů","fx":"vitr","kdy":"spolu"},
+      {"p":3,"at":"Peřina vyletěla až k nosu","fx":"perina","kdy":"pred"},
+      {"p":5,"at":"Dveře se pootevřely","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":6,"at":"postel se trochu prohnula","fx":"postel-vrzani","kdy":"po"},
+      {"p":10,"at":"Na okno začaly ťukat kapky","fx":"kapky-okno","kdy":"spolu"},
+      {"p":19,"at":"Bubnuje tišeji.","fx":"hrom","kdy":"po"},
+      {"p":20,"at":"jen si potichu šuměly","fx":"listi","kdy":"po"},
+      {"p":23,"at":"Takové malé, ospalé bum.","fx":"hrom","kdy":"pred"}
+    ]
+  },
+  "bublinka": {
+    "styl": "voda",
+    "kulisa": null,
+    "fx": [
+      {"p":3,"at":"Cvak, voda.","fx":"kohoutek","kdy":"pred"},
+      {"p":5,"at":"Na mýdle se nafukovala malinká duhová bublina","fx":"trpyt","kdy":"po"},
+      {"p":8,"at":"Pak mýdlo do dlaní","fx":"myti-rukou","kdy":"spolu"},
+      {"p":11,"at":"jako zip na bundě","fx":"zip","kdy":"po"},
+      {"p":17,"at":"odplavala do odtoku","fx":"bubliny","kdy":"po"},
+      {"p":19,"at":"Byla pryč.","fx":"pufnuti","kdy":"pred"}
+    ]
+  },
+  "certik-bez-strachu": {
+    "styl": "cert",
+    "kulisa": [{"od":0,"id":"snih-ticho"},{"od":14,"id":"krb-vanoce"},{"od":30,"id":"snih-ticho"},{"od":49,"id":null}],
+    "fx": [
+      {"p":6,"at":"to jen tenounce cinklo","fx":"cink","kdy":"po"},
+      {"p":7,"at":"Bu… bu… BUCHTIČKY!","fx":"smutny-trombon","kdy":"po"},
+      {"p":8,"at":"spadl z pařezu","fx":"bum-mekke","kdy":"po"},
+      {"p":9,"at":"Sova se smála","fx":"sova","kdy":"po"},
+      {"p":10,"at":"popadaly do brázdy","fx":"vrana","kdy":"po"},
+      {"p":13,"at":"A tak šli.","fx":"kroky-snih","kdy":"spolu"},
+      {"p":15,"at":"A pak: bum, bum, bum.","fx":"klepani","kdy":"pred"},
+      {"p":16,"at":"v ruce mu zvonil zvoneček","fx":"zvonecky","kdy":"po"},
+      {"p":17,"at":"Zachrastil řetězem","fx":"retez","kdy":"po"},
+      {"p":20,"at":"Jenom hodiny tikaly.","fx":"hodiny-tikani","kdy":"po"},
+      {"p":23,"at":"skutálel se pod stůl","fx":"xylofon-dolu","kdy":"po"},
+      {"p":25,"at":"nedalo zastavit","fx":"smich-deti","kdy":"po"},
+      {"p":30,"at":"když se zavíraly dveře","fx":"dvere-zavreni","kdy":"pred"},
+      {"p":41,"at":"vytáhl z kapsy bublifuk a foukl","fx":"bubliny","kdy":"po"},
+      {"p":43,"at":"A pak se zasmála","fx":"smich-deti","kdy":"po"},
+      {"p":46,"at":"Fika slavnostně jmenoval","fx":"fanfara","kdy":"po"},
+      {"p":47,"at":"Bu… bu… BUŘTY!","fx":"smutny-trombon","kdy":"po"},
+      {"p":49,"at":"slyšet zvenku zvoneček","fx":"zvonecky","kdy":"spolu"}
+    ]
+  },
+  "cesta-za-pokladem": {
+    "styl": "auto",
+    "kulisa": "auto",
+    "fx": [
+      {"p":0,"at":"Haló, haló, posádko!","fx":"pocitac","kdy":"pred"},
+      {"p":6,"at":"Pokladová loď vyplouvá!","fx":"lod-houkani","kdy":"po"},
+      {"p":9,"at":"Pozor… začínáme!","fx":"pistalka","kdy":"po"},
+      {"p":10,"at":"Cink! První zlatý penízek","fx":"cink","kdy":"pred"},
+      {"p":13,"at":"Kohout! Kikirikí!","fx":"kohout","kdy":"pred"},
+      {"p":19,"at":"Cink! Třetí penízek.","fx":"cink","kdy":"pred"},
+      {"p":22,"at":"Bůů, haf, píp, mňau!","fx":"krava","kdy":"pred"},
+      {"p":28,"at":"To byla krása!","fx":"tleskani","kdy":"pred"},
+      {"p":30,"at":"Cink! Pátý penízek.","fx":"cink","kdy":"pred"},
+      {"p":34,"at":"Jeden vypadal jako ovečka","fx":"ovce","kdy":"po"},
+      {"p":39,"at":"Cink! Šestý penízek.","fx":"cink","kdy":"pred"},
+      {"p":41,"at":"Láhev! Výborně.","fx":"xylofon-nahoru","kdy":"pred"},
+      {"p":43,"at":"Čím víc písku vybereš","fx":"zahrada-krtek","kdy":"po"},
+      {"p":48,"at":"Cink! Sedmý zlatý penízek.","fx":"zvonecky","kdy":"pred"},
+      {"p":49,"at":"Na konci cesty nechala Pomalinka vzkaz.","fx":"harfa","kdy":"pred"},
+      {"p":51,"at":"Pomalu žvýká lísteček salátu","fx":"mlaskani","kdy":"po"},
+      {"p":53,"at":"Výprava splněna!","fx":"fanfara","kdy":"po"},
+      {"p":54,"at":"Šum, šum, ššš.","fx":"pocitac","kdy":"po"},
+      {"p":57,"at":"Píp píp!","fx":"auto-troubeni","kdy":"po"}
+    ]
+  },
+  "chameleon": {
+    "styl": "zviratka",
+    "kulisa": null,
+    "fx": [
+      {"p":1,"at":"A opice, které dělaly největší rámus","fx":"opice","kdy":"po"},
+      {"p":3,"at":"Pšt, pšt","fx":"rozprasovac","kdy":"pred"},
+      {"p":9,"at":"Lidé si mysleli, že je to klacík","fx":"smutny-trombon","kdy":"po"},
+      {"p":10,"at":"Kamil si povzdechl","fx":"xylofon-dolu","kdy":"po"},
+      {"p":14,"at":"a tenhle list má oko!","fx":"cink","kdy":"po"},
+      {"p":28,"at":"Nejdřív se mu rozsvítily tváře","fx":"kouzlo","kdy":"pred"},
+      {"p":30,"at":"Otevřela víčko terária","fx":"cvrcek","kdy":"pred"},
+      {"p":30,"at":"a cvrček byl pryč","fx":"svist","kdy":"po"},
+      {"p":31,"at":"volaly děti","fx":"smich-deti","kdy":"pred"},
+      {"p":36,"at":"přelezl na přední větvičku","fx":"listi","kdy":"po"},
+      {"p":40,"at":"zčervenal na špičce ocasu","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "chytra-horakyne": {
+    "styl": "lidova",
+    "kulisa": null,
+    "fx": [
+      {"p":4,"at":"hrušky mezitím padaly do trávy","fx":"bum-mekke","kdy":"po"},
+      {"p":8,"at":"Nebo vlaštovka!","fx":"vlastovka","kdy":"po"},
+      {"p":9,"at":"Nejrychlejší je myšlenka.","fx":"cink","kdy":"po"},
+      {"p":12,"at":"není sladší než spánek","fx":"zivnuti","kdy":"po"},
+      {"p":15,"at":"Země je nejbohatší.","fx":"zvonecky","kdy":"po"},
+      {"p":16,"at":"Nejrychlejší je můj hnědák","fx":"kun-rehtani","kdy":"po"},
+      {"p":26,"at":"koza mečela","fx":"koza","kdy":"pred"},
+      {"p":27,"at":"Cesta vedla dolů z hor přes kamenitý potok","fx":"potok","kdy":"spolu"},
+      {"p":29,"at":"ale holoubek frnk!","fx":"kridla-ptak","kdy":"po"},
+      {"p":31,"at":"holoubek seděl na komíně a vrkal","fx":"holub-vrkani","kdy":"po"},
+      {"p":32,"at":"se narodilo hříbátko","fx":"kun-rehtani","kdy":"po"},
+      {"p":35,"at":"Druhý den jel pán kočárem","fx":"kopyta","kdy":"spolu"},
+      {"p":37,"at":"v křesle usnul","fx":"chrapani","kdy":"po"},
+      {"p":39,"at":"koník je vezl za svitu měsíce","fx":"kopyta","kdy":"spolu"},
+      {"p":40,"at":"Ráno se pán probudil","fx":"kohout","kdy":"pred"}
+    ]
+  },
+  "cisarovy-nove-saty": {
+    "styl": "sranda",
+    "kulisa": [{"od":26,"id":"namesti"},{"od":37,"id":null}],
+    "fx": [
+      {"p":7,"at":"dal tkalcům truhlu zlaťáků","fx":"mince","kdy":"po"},
+      {"p":8,"at":"Šustili rukama ve vzduchu","fx":"tkalcovsky-stav","kdy":"spolu"},
+      {"p":13,"at":"Nic! Vůbec nic!","fx":"xylofon-dolu","kdy":"po"},
+      {"p":21,"at":"Stříhali nůžkami vzduch","fx":"nuzky","kdy":"po"},
+      {"p":22,"at":"dřív než kohout","fx":"kohout","kdy":"po"},
+      {"p":24,"at":"Lehoučké jako pavučina","fx":"trpyt","kdy":"po"},
+      {"p":26,"at":"Bum, bum, bum!","fx":"virbl","kdy":"pred"},
+      {"p":28,"at":"Vítr mu čechral košili","fx":"vitr","kdy":"spolu"},
+      {"p":29,"at":"Všichni tleskali.","fx":"tleskani","kdy":"po"},
+      {"p":32,"at":"smálo celé náměstí","fx":"smich-deti","kdy":"po"},
+      {"p":34,"at":"Zrudl jako rajče.","fx":"smutny-trombon","kdy":"po"},
+      {"p":37,"at":"A ven se vysypalo všechno","fx":"mince","kdy":"po"}
+    ]
+  },
+  "den-naruby": {
+    "styl": "sranda",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":18,"id":"mesto-den"},{"od":31,"id":"hriste"},{"od":45,"id":"domov-rano"}],
+    "fx": [
+      {"p":0,"at":"Místo aby zazvonil, zívl","fx":"zivnuti","kdy":"po"},
+      {"p":3,"at":"Z kohoutku tekla voda nahoru","fx":"kohoutek","kdy":"pred"},
+      {"p":6,"at":"Mňau, mňau.","fx":"kocka-mnoukani","kdy":"pred"},
+      {"p":7,"at":"zaštěkala","fx":"pes-stekot","kdy":"po"},
+      {"p":15,"at":"vyletěla nahoru","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":17,"at":"natáhl se a ukousl","fx":"mlaskani","kdy":"po"},
+      {"p":22,"at":"Kapky vyskakovaly z louží","fx":"kapka","kdy":"pred"},
+      {"p":24,"at":"Blub, blub, blub","fx":"bubliny","kdy":"pred"},
+      {"p":25,"at":"Tú tú!","fx":"auto-troubeni","kdy":"pred"},
+      {"p":35,"at":"Dospělí zatleskali","fx":"tleskani","kdy":"po"},
+      {"p":42,"at":"mňoukl pes nešťastně","fx":"pes-knuceni","kdy":"po"},
+      {"p":45,"at":"Peřina z podlahy na postel","fx":"perina","kdy":"pred"},
+      {"p":47,"at":"Ráno budík zazvonil","fx":"budik","kdy":"pred"},
+      {"p":50,"at":"Pes od sousedů zaštěkal haf","fx":"pes-stekot","kdy":"pred"},
+      {"p":50,"at":"kočka zamňoukala mňau","fx":"kocka-mnoukani","kdy":"po"}
+    ]
+  },
+  "dinosaurus-na-zahrade": {
+    "styl": "sranda",
+    "kulisa": "zahrada-den",
+    "fx": [
+      {"p":0,"at":"kos na plotě zpíval","fx":"ptaci-zpev","kdy":"po"},
+      {"p":4,"at":"Kámen zapraskal","fx":"skorapka","kdy":"pred"},
+      {"p":5,"at":"řekla hlavička","fx":"kurata","kdy":"po"},
+      {"p":7,"at":"Žuch!","fx":"bum-mekke","kdy":"pred"},
+      {"p":9,"at":"Zavrtěl se, kýchl","fx":"kychnuti","kdy":"pred"},
+      {"p":17,"at":"Kamínek opravdu hlad měl","fx":"mlaskani","kdy":"spolu"},
+      {"p":20,"at":"Zkroušeně sklopil hlavu","fx":"smutny-trombon","kdy":"po"},
+      {"p":22,"at":"Jenže dinosauři rostou rychle","fx":"zvetseni","kdy":"po"},
+      {"p":25,"at":"Pak přišla sousedovic kočka","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":26,"at":"spadla tři jablka","fx":"bum-mekke","kdy":"po"},
+      {"p":27,"at":"Chrrr, fíí. Chrrr, fíí.","fx":"chrapani","kdy":"pred"},
+      {"p":28,"at":"vrabci se v ní hned začali koupat","fx":"vrabci","kdy":"po"},
+      {"p":33,"at":"a pak šups dolů","fx":"skluzavka","kdy":"pred"},
+      {"p":36,"at":"Malé letní kapky","fx":"dest-zacina","kdy":"spolu"},
+      {"p":37,"at":"na jedno kousnutí","fx":"kousnuti-jablko","kdy":"po"},
+      {"p":38,"at":"Nahnul se, srkl","fx":"piti","kdy":"pred"},
+      {"p":45,"at":"Kapla do bazénku","fx":"kapka","kdy":"pred"},
+      {"p":54,"at":"Skořápka je klíč!","fx":"cink","kdy":"pred"},
+      {"p":58,"at":"Spirála se rozsvítila","fx":"teleport","kdy":"pred"},
+      {"p":62,"at":"Rozhlížela se a volala","fx":"dino-maminka","kdy":"po"},
+      {"p":63,"at":"poprvé v životě opravdu zařval","fx":"dinosaurus","kdy":"po"},
+      {"p":69,"at":"Spirála na kameni pohasla","fx":"trpyt","kdy":"po"},
+      {"p":72,"at":"Večer přišla pusa na dobrou noc","fx":"pusa","kdy":"pred"},
+      {"p":74,"at":"Ten večer byla zahrada tichá","fx":"cvrcek","kdy":"spolu"}
+    ]
+  },
+  "dlouhy-siroky-bystrozraky": {
+    "styl": "lidova",
+    "kulisa": null,
+    "fx": [
+      {"p":4,"at":"Klíček cvakl a dveře","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":7,"at":"Kůň klapal kopyty","fx":"kopyta","kdy":"pred"},
+      {"p":10,"at":"A natáhl se tak","fx":"zvetseni","kdy":"pred"},
+      {"p":13,"at":"kulatý jako sud a pochrupoval","fx":"chrapani","kdy":"po"},
+      {"p":14,"at":"Pfffff!","fx":"zmenseni","kdy":"po"},
+      {"p":25,"at":"Vtom se brána sama otevřela","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":31,"at":"foukl do sálu kouzelný spánek","fx":"harfa","kdy":"po"},
+      {"p":34,"at":"stála v sále zase princezna","fx":"kouzlo","kdy":"po"},
+      {"p":35,"at":"cvakla a praskla","fx":"cink","kdy":"po"},
+      {"p":36,"at":"Jen zabouchl dveře","fx":"dvere-bouchnuti","kdy":"po"},
+      {"p":37,"at":"znovu přišel kouzelný spánek","fx":"chrapani","kdy":"po"},
+      {"p":39,"at":"skála se pomalu rozestoupila","fx":"kamen","kdy":"po"},
+      {"p":41,"at":"A druhá obruč","fx":"cink","kdy":"pred"},
+      {"p":46,"at":"Moře bylo veliké a hluboké","fx":"vlny","kdy":"pred"},
+      {"p":48,"at":"Pil a pil","fx":"piti","kdy":"pred"},
+      {"p":51,"at":"Vlny se vrátily na své místo","fx":"vlny","kdy":"pred"},
+      {"p":53,"at":"Prsten se proměnil v princeznu","fx":"kouzlo","kdy":"pred"},
+      {"p":54,"at":"Zakrákal, vyletěl oknem","fx":"vrana","kdy":"pred"},
+      {"p":55,"at":"Kamenní koně zaržáli","fx":"kun-rehtani","kdy":"pred"},
+      {"p":56,"at":"šaty zbělely jako sníh","fx":"trpyt","kdy":"po"},
+      {"p":58,"at":"Starý král je vítal už u brány","fx":"fanfara","kdy":"po"}
+    ]
+  },
+  "drak": {
+    "styl": "hvezdy",
+    "kulisa": "jeskyne-noc",
+    "fx": [
+      {"p":1,"at":"uměl foukat obláčky kouře","fx":"pufnuti","kdy":"po"},
+      {"p":2,"at":"kolem jeskyně","fx":"sova","kdy":"pred"},
+      {"p":6,"at":"rozsvítily stovky malých","fx":"trpyt","kdy":"po"},
+      {"p":7,"at":"Tma je vlastně docela hezká","fx":"zivnuti","kdy":"po"}
+    ]
+  },
+  "dvanact-mesicku": {
+    "styl": "zima",
+    "kulisa": [{"od":0,"id":null},{"od":9,"id":"snih-ticho"},{"od":12,"id":"ohen-zima"},{"od":38,"id":null}],
+    "fx": [
+      {"p":3,"at":"To v kozí řeči znamená děkuju","fx":"koza","kdy":"pred"},
+      {"p":7,"at":"Dovnitř zavál studený vítr","fx":"vitr","kdy":"spolu"},
+      {"p":10,"at":"Sníh křupal pod nohama","fx":"kroky-snih","kdy":"spolu"},
+      {"p":11,"at":"čepýřil si peří","fx":"kridla-ptak","kdy":"po"},
+      {"p":20,"at":"Březen jí zamával nad ohněm","fx":"kouzlo","kdy":"po"},
+      {"p":21,"at":"Ale jen kytičku","fx":"vcela","kdy":"po"},
+      {"p":24,"at":"nadšeně čenichala","fx":"koza","kdy":"po"},
+      {"p":27,"at":"Zamával holí – a bylo léto","fx":"harfa","kdy":"po"},
+      {"p":28,"at":"Ptáci zpívali, slunce hřálo","fx":"ptaci-zpev","kdy":"pred"},
+      {"p":30,"at":"vystrkovaly ze sněhu zobáčky","fx":"vrabci","kdy":"po"},
+      {"p":32,"at":"Zamával – a byl podzim","fx":"kouzlo","kdy":"po"},
+      {"p":33,"at":"jablka žuchla do trávy","fx":"bum-mekke","kdy":"po"}
+    ]
+  },
+  "hadanky": {
+    "styl": "auto",
+    "kulisa": "auto",
+    "fx": [
+      {"p":0,"at":"Právě startuje to","fx":"auto-start","kdy":"pred"},
+      {"p":1,"at":"První hádanka!","fx":"virbl","kdy":"pred"},
+      {"p":3,"at":"Správně!","fx":"cink","kdy":"po"},
+      {"p":4,"at":"opice to milujou","fx":"opice","kdy":"po"},
+      {"p":5,"at":"Hádankové auto zrychluje.","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":8,"at":"Píp píp!","fx":"auto-troubeni","kdy":"pred"}
+    ]
+  },
+  "housenka-zmena": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"zahrada-den"},{"od":25,"id":null}],
+    "fx": [
+      {"p":1,"at":"Ňam, lísteček.","fx":"mlaskani","kdy":"pred"},
+      {"p":6,"at":"z ní vylezla jako z pyžama","fx":"zip","kdy":"po"},
+      {"p":14,"at":"pověsila se hlavou dolů a zabalila se","fx":"perina","kdy":"po"},
+      {"p":16,"at":"Pršelo, svítilo slunce, foukal vítr","fx":"vitr","kdy":"spolu"},
+      {"p":19,"at":"Po dvou týdnech kukla praskla","fx":"skorapka","kdy":"po"},
+      {"p":22,"at":"Motýl zamával křídly","fx":"kridla-vila","kdy":"po"}
+    ]
+  },
+  "hrdinove-a-dest": {
+    "styl": "hrdinove",
+    "kulisa": "namesti",
+    "fx": [
+      {"p":7,"at":"U kolotoče se zkoušela muzika","fx":"virbl","kdy":"po"},
+      {"p":10,"at":"až se třásly okenní tabulky","fx":"hrom","kdy":"po"},
+      {"p":12,"at":"Kap. Kap, kap.","fx":"dest-zacina","kdy":"pred"},
+      {"p":13,"at":"A v tu chvíli to cinklo","fx":"zvonecky","kdy":"pred"},
+      {"p":14,"at":"jako když ťukneš na velký zvon","fx":"zvon","kdy":"po"},
+      {"p":19,"at":"Čmuchal štěkl","fx":"pes-stekot","kdy":"po"},
+      {"p":20,"at":"Hvězdoplášť letí!","fx":"kouzlo","kdy":"po"},
+      {"p":21,"at":"Fff! Fffff!","fx":"vitr","kdy":"po"},
+      {"p":25,"at":"koupali vrabci","fx":"vrabci","kdy":"po"},
+      {"p":26,"at":"Čmuchal se otřepal","fx":"splouchnuti","kdy":"po"},
+      {"p":30,"at":"Tým vyběhl nahoru","fx":"kroky-beh","kdy":"pred"},
+      {"p":32,"at":"jako po skluzavce","fx":"skluzavka","kdy":"po"},
+      {"p":39,"at":"Čmuchal kýchl","fx":"kychnuti","kdy":"po"},
+      {"p":47,"at":"sedl si na zadek","fx":"bum-mekke","kdy":"po"},
+      {"p":51,"at":"skrz ni prosvítilo slunce","fx":"trpyt","kdy":"po"},
+      {"p":52,"at":"tiché, teplé brnknutí","fx":"harfa","kdy":"pred"},
+      {"p":58,"at":"Muzikanti vytáhli trumpety a spustili","fx":"fanfara","kdy":"po"},
+      {"p":60,"at":"Spolkl ji celou","fx":"mlaskani","kdy":"po"},
+      {"p":64,"at":"štěkal na trumpety","fx":"pes-stekot","kdy":"po"},
+      {"p":65,"at":"Celé náměstí tleskalo","fx":"tleskani","kdy":"po"},
+      {"p":66,"at":"mrak potichu zapršel","fx":"dest-zacina","kdy":"spolu"}
+    ]
+  },
+  "hrnecku-var": {
+    "styl": "lidova",
+    "kulisa": [{"od":0,"id":null},{"od":2,"id":"les-den"},{"od":6,"id":null},{"od":13,"id":"namesti"}],
+    "fx": [
+      {"p":5,"at":"Kdo by řekl, že je kouzelný?","fx":"trpyt","kdy":"po"},
+      {"p":6,"at":"Hrneček zabublal","fx":"kase-bublani","kdy":"po"},
+      {"p":7,"at":"všichni olizovali až po lokty","fx":"mlaskani","kdy":"po"},
+      {"p":10,"at":"A kolem šel soused Bručoun","fx":"kroky-plizeni","kdy":"spolu"},
+      {"p":13,"at":"Blub, blub, blub!","fx":"kase-bublani","kdy":"pred"},
+      {"p":14,"at":"Psi v ní plavali","fx":"pes-stekot","kdy":"po"},
+      {"p":15,"at":"Hasiči vyjeli s houkačkou","fx":"sirena","kdy":"spolu"},
+      {"p":21,"at":"Hrneček udělal poslední blub","fx":"xylofon-dolu","kdy":"po"},
+      {"p":23,"at":"Pak vyšla celá obec s lžícemi","fx":"nadobi","kdy":"spolu"}
+    ]
+  },
+  "hvezdicka": {
+    "styl": "ukolebavka",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":1,"at":"Cink!","fx":"cink","kdy":"pred"},
+      {"p":2,"at":"pípla hvězdička","fx":"trpyt","kdy":"pred"},
+      {"p":5,"at":"Hvězdička se zachvěla","fx":"kouzlo","kdy":"pred"},
+      {"p":6,"at":"pod peřinou tmy","fx":"sova","kdy":"po"}
+    ]
+  },
+  "hvezdicka-v-jablicku": {
+    "styl": "vanoce-noc",
+    "kulisa": "krb-vanoce",
+    "fx": [
+      {"p":5,"at":"Jablko se rozpadlo na dvě půlky","fx":"kousnuti-jablko","kdy":"pred"},
+      {"p":6,"at":"svítila hvězdička","fx":"trpyt","kdy":"po"},
+      {"p":14,"at":"Pyžamo, bačkory a hurá do kuchyně","fx":"kroky-beh","kdy":"po"},
+      {"p":15,"at":"Hvězdička nikde.","fx":"smutny-trombon","kdy":"po"},
+      {"p":16,"at":"Druhé jablko se rozkrojilo napříč","fx":"cink","kdy":"po"},
+      {"p":19,"at":"položila na talířek","fx":"nadobi","kdy":"po"},
+      {"p":20,"at":"do hrnečku s hlínou","fx":"zahrada-krtek","kdy":"po"}
+    ]
+  },
+  "hvezdne-tolary": {
+    "styl": "hvezdy",
+    "kulisa": [{"od":1,"id":"les-noc"},{"od":20,"id":null}],
+    "fx": [
+      {"p":2,"at":"tráva tiše šustila","fx":"listi","kdy":"po"},
+      {"p":5,"at":"A jedna hvězda nad loukou zablikala.","fx":"trpyt","kdy":"po"},
+      {"p":6,"at":"Vítr mu odfoukl čepici","fx":"vitr","kdy":"spolu"},
+      {"p":11,"at":"i sova na buku zaposlouchala","fx":"sova","kdy":"po"},
+      {"p":12,"at":"ježčí maminka se třemi ježečky","fx":"jezek","kdy":"po"},
+      {"p":13,"at":"A zablikala další hvězda.","fx":"zvonecky","kdy":"po"},
+      {"p":15,"at":"Jedna, dvě, deset, sto.","fx":"padajici-hvezda","kdy":"pred"},
+      {"p":17,"at":"Cink, cink, cink.","fx":"cink","kdy":"pred"},
+      {"p":18,"at":"z měsíčního světla","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "jak-chytit-jeziska": {
+    "styl": "vanoce",
+    "kulisa": null,
+    "fx": [
+      {"p":2,"at":"jen tiché oddechování","fx":"chrapani","kdy":"po"},
+      {"p":5,"at":"velký papír a pastelky","fx":"papir","kdy":"po"},
+      {"p":6,"at":"Nahoru se velkými písmeny napsalo","fx":"psani","kdy":"po"},
+      {"p":13,"at":"Za chvilku se v mouce objevila první stopa","fx":"kroky-drevo","kdy":"pred"},
+      {"p":16,"at":"zvoneček cinkne","fx":"cink","kdy":"po"},
+      {"p":20,"at":"záhadně zmizely dva vanilkové rohlíčky","fx":"mlaskani","kdy":"po"},
+      {"p":22,"at":"Jednou kolem proběhla moucha","fx":"moucha","kdy":"pred"},
+      {"p":24,"at":"Na plotně se smažil kapr","fx":"smazeni","kdy":"spolu"},
+      {"p":28,"at":"rozsvítila první hvězda","fx":"trpyt","kdy":"po"},
+      {"p":32,"at":"Lžíce cinkaly o talíře","fx":"nadobi","kdy":"spolu"},
+      {"p":33,"at":"Uprostřed večeře se z obýváku ozvalo","fx":"zvonecky","kdy":"pred"},
+      {"p":36,"at":"ke dveřím jako raketa","fx":"svist","kdy":"po"},
+      {"p":38,"at":"otisk malé hvězdičky","fx":"kouzlo","kdy":"po"},
+      {"p":46,"at":"Papír šustil, mašle létaly vzduchem","fx":"darek","kdy":"spolu"},
+      {"p":52,"at":"Veselé Vánoce","fx":"rolnicky","kdy":"pred"}
+    ]
+  },
+  "jedna-lopatka": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"hriste"},{"od":26,"id":null}],
+    "fx": [
+      {"p":0,"at":"Ráno svítilo sluníčko","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":5,"at":"Lopatka se kroutila a skřípala","fx":"hracka-pisk","kdy":"po"},
+      {"p":7,"at":"Lopatka žuchla do písku","fx":"bum-mekke","kdy":"pred"},
+      {"p":11,"at":"Pět lopatiček písku do kyblíčku","fx":"zahrada-krtek","kdy":"spolu"},
+      {"p":13,"at":"čekání bylo trochu dlouhé","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":15,"at":"Plác, plác, plác.","fx":"polstar","kdy":"pred"},
+      {"p":18,"at":"Vyrostl hrad.","fx":"trpyt","kdy":"po"},
+      {"p":21,"at":"tři kapky do příkopu poctivě nakapal","fx":"kapka","kdy":"po"}
+    ]
+  },
+  "jednorozci-hvezdna-louka": {
+    "styl": "hvezdy",
+    "kulisa": [{"od":0,"id":"noc-okno"},{"od":10,"id":null},{"od":21,"id":"kouzelne-trpyt"},{"od":50,"id":"noc-okno"}],
+    "fx": [
+      {"p":2,"at":"Jen hodiny v kuchyni tikaly","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":3,"at":"se za oknem něco zalesklo","fx":"trpyt","kdy":"po"},
+      {"p":4,"at":"Na parapetu stála jednorožka","fx":"jednorozec","kdy":"po"},
+      {"p":10,"at":"Pak se lehce odrazila od parapetu","fx":"harfa","kdy":"po"},
+      {"p":12,"at":"kokrhl potichoučku","fx":"kohout","kdy":"po"},
+      {"p":17,"at":"Vítr jim šeptal do uší","fx":"vitr","kdy":"spolu"},
+      {"p":19,"at":"seděla sova a mrkala","fx":"sova","kdy":"pred"},
+      {"p":22,"at":"zvonečky, které tiše cinkaly","fx":"zvonecky","kdy":"po"},
+      {"p":27,"at":"Uprostřed louky tekl potůček","fx":"potok","kdy":"spolu"},
+      {"p":34,"at":"Jen kýchla","fx":"kychnuti","kdy":"po"},
+      {"p":36,"at":"A pak zívla tak sladce","fx":"zivnuti","kdy":"po"},
+      {"p":37,"at":"Cink. Cink.","fx":"cink","kdy":"po"},
+      {"p":40,"at":"každá hvězda trošku brouká","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "jednorozec-duhanek": {
+    "styl": "hvezdy",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":0,"at":"Jmenuje se Duhánek","fx":"jednorozec","kdy":"po"},
+      {"p":1,"at":"růžek, který jemně cinká","fx":"zvonecky","kdy":"po"},
+      {"p":7,"at":"Ta je přece vždycky teplá","fx":"pusa","kdy":"pred"},
+      {"p":10,"at":"řekla kachnička a pustila","fx":"kachna","kdy":"pred"},
+      {"p":11,"at":"Šup nahoru, šup dolů","fx":"cisteni-zubu","kdy":"spolu"},
+      {"p":12,"at":"jeho růžek zacinkal","fx":"cink","kdy":"po"},
+      {"p":14,"at":"stočila do hřívy jako malý potůček","fx":"trpyt","kdy":"po"},
+      {"p":19,"at":"A večer ji vrátil","fx":"harfa","kdy":"po"},
+      {"p":20,"at":"Duhánek byl zase duhový","fx":"jednorozec","kdy":"po"}
+    ]
+  },
+  "jednorozec-narozeniny": {
+    "styl": "oslava",
+    "kulisa": "kouzelne-trpyt",
+    "fx": [
+      {"p":3,"at":"kýchla i lampička","fx":"kychnuti","kdy":"po"},
+      {"p":5,"at":"Po duze se jde docela snadno.","fx":"xylofon-nahoru","kdy":"pred"},
+      {"p":6,"at":"poskočil tak vysoko","fx":"jednorozec","kdy":"po"},
+      {"p":8,"at":"protože si pořád zpívala","fx":"kachna","kdy":"po"},
+      {"p":13,"at":"kouzlo se trochu popletlo","fx":"kouzlo","kdy":"po"},
+      {"p":17,"at":"spokojeně zamlaskal","fx":"mlaskani","kdy":"po"},
+      {"p":19,"at":"místo foukání kýchl","fx":"kychnuti","kdy":"po"},
+      {"p":20,"at":"Z nosu mu vyletěl celý oblak třpytek","fx":"trpyt","kdy":"pred"},
+      {"p":24,"at":"Pak kýchl i ježek","fx":"kychnuti","kdy":"po"},
+      {"p":25,"at":"Všichni se rozesmáli","fx":"smich-deti","kdy":"po"},
+      {"p":31,"at":"na polštáři něco zablýsklo","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "jezek-mazlik": {
+    "styl": "ukolebavka",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":0,"at":"pod hromádkou suchého listí","fx":"listi","kdy":"po"},
+      {"p":3,"at":"vylezl Pichlík z listí","fx":"jezek","kdy":"po"},
+      {"p":5,"at":"vyšplhala až do koruny","fx":"veverka","kdy":"po"},
+      {"p":6,"at":"odletěl na střechu","fx":"kridla-ptak","kdy":"po"},
+      {"p":9,"at":"po špičkách","fx":"kroky-plizeni","kdy":"pred"},
+      {"p":15,"at":"Plác! Ježek má bodlinky","fx":"polstar","kdy":"pred"},
+      {"p":16,"at":"kvákla žába","fx":"zaba","kdy":"po"},
+      {"p":18,"at":"Pusa přeletěla zahradou","fx":"pusa","kdy":"po"}
+    ]
+  },
+  "jeziskova-posta": {
+    "styl": "vanoce",
+    "kulisa": [{"od":0,"id":"krb-vanoce"},{"od":5,"id":"snih-ticho"},{"od":56,"id":null},{"od":60,"id":"krb-vanoce"}],
+    "fx": [
+      {"p":2,"at":"Psalo se pastelkami","fx":"psani","kdy":"pred"},
+      {"p":5,"at":"V noci se zvedl vítr","fx":"vitr","kdy":"spolu"},
+      {"p":7,"at":"Cink, cink, padaly na parapet","fx":"cink","kdy":"pred"},
+      {"p":8,"at":"Okno se pootevřelo","fx":"okno","kdy":"pred"},
+      {"p":10,"at":"a já kýchl","fx":"kychnuti","kdy":"po"},
+      {"p":14,"at":"Bunda přes pyžamo","fx":"zip","kdy":"pred"},
+      {"p":15,"at":"Vichřík se zatočil, zavířil","fx":"teleport","kdy":"pred"},
+      {"p":17,"at":"hvězda na špičce se zhoupla","fx":"trpyt","kdy":"po"},
+      {"p":26,"at":"z komína vyvalil obláček","fx":"pufnuti","kdy":"po"},
+      {"p":29,"at":"Z boudy se ozvalo","fx":"pes-stekot","kdy":"pred"},
+      {"p":32,"at":"Třetí dopis ležel v závěji","fx":"kroky-snih","kdy":"pred"},
+      {"p":37,"at":"se ozvalo krákání","fx":"vrana","kdy":"pred"},
+      {"p":40,"at":"Tam něco zašustilo","fx":"papir","kdy":"po"},
+      {"p":41,"at":"papírek si odnesla do hnízda","fx":"kridla-ptak","kdy":"po"},
+      {"p":49,"at":"pršely třpytky","fx":"trpyt","kdy":"po"},
+      {"p":54,"at":"vyletěl s ním vysoko","fx":"svist","kdy":"po"},
+      {"p":55,"at":"tichounce cinkl zvoneček","fx":"zvonecky","kdy":"po"},
+      {"p":59,"at":"vyletěli vrabci","fx":"vrabci","kdy":"po"},
+      {"p":60,"at":"se zazvonilo u paní Vlasty","fx":"zvonek-dvere","kdy":"pred"},
+      {"p":63,"at":"předl jako motorek","fx":"kocka-predeni","kdy":"po"},
+      {"p":65,"at":"Pak vytáhla krabici","fx":"krabice","kdy":"pred"},
+      {"p":70,"at":"cinkl zvoneček","fx":"zvonecky","kdy":"pred"},
+      {"p":72,"at":"zafoukal do okna malý vítr","fx":"vitr","kdy":"pred"}
+    ]
+  },
+  "kamarad-pres-plot": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"zahrada-den"},{"od":48,"id":null}],
+    "fx": [
+      {"p":0,"at":"zadní dveře dokořán","fx":"auto-dvere","kdy":"po"},
+      {"p":2,"at":"přes plot z trampolíny","fx":"pruzina","kdy":"pred"},
+      {"p":4,"at":"se na střeše lekl holub","fx":"kridla-ptak","kdy":"po"},
+      {"p":5,"at":"Prásk, zavřely se dveře.","fx":"dvere-bouchnuti","kdy":"pred"},
+      {"p":9,"at":"jako ptáčci u krmítka","fx":"vrabci","kdy":"po"},
+      {"p":14,"at":"skládaly se kamínky do komínku","fx":"kamen","kdy":"po"},
+      {"p":17,"at":"Jen zašustila tráva.","fx":"listi","kdy":"pred"},
+      {"p":18,"at":"srolovaný papírek","fx":"papir","kdy":"po"},
+      {"p":22,"at":"Odpověď se kreslila celé dopoledne","fx":"psani","kdy":"spolu"},
+      {"p":24,"at":"Jednoho dne pršelo","fx":"dest-zacina","kdy":"spolu"},
+      {"p":37,"at":"tichý chichot","fx":"smich-deti","kdy":"po"},
+      {"p":38,"at":"Druhé ucho mu snědla pračka.","fx":"pracka","kdy":"po"},
+      {"p":41,"at":"Branka v plotě zavrzala","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":44,"at":"Deset, devět, osm… start!","fx":"raketa-start","kdy":"po"}
+    ]
+  },
+  "kapitan-nocni-svetlo": {
+    "styl": "hvezdy",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":0,"at":"Celý dům už spal","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":3,"at":"až k nosu","fx":"perina","kdy":"po"},
+      {"p":6,"at":"Hvězdoplášť letí!","fx":"kouzlo","kdy":"po"},
+      {"p":7,"at":"Baterka se rozsvítila","fx":"baterka","kdy":"pred"},
+      {"p":9,"at":"gumový dinosaurus Bručík","fx":"hracka-pisk","kdy":"po"},
+      {"p":15,"at":"Jenže pak to tiše cinklo","fx":"zvonecky","kdy":"pred"},
+      {"p":20,"at":"ptáčka, který mával křídly","fx":"kridla-ptak","kdy":"po"},
+      {"p":21,"at":"zatleskal svými malými tlapkami","fx":"tleskani","kdy":"po"},
+      {"p":22,"at":"který štěkal palcem","fx":"pejsek-stekot","kdy":"po"},
+      {"p":24,"at":"s hihňáním pod peřinou","fx":"smich-deti","kdy":"po"},
+      {"p":30,"at":"Byl teplý a měkký","fx":"perina","kdy":"pred"},
+      {"p":34,"at":"Tu nejtišší písničku","fx":"hudebni-skrinka","kdy":"pred"},
+      {"p":38,"at":"Baterka svítila čím dál slaběji","fx":"harfa","kdy":"pred"},
+      {"p":39,"at":"Žirafa zívla","fx":"zivnuti","kdy":"po"},
+      {"p":41,"at":"Někde venku zahoukala sova","fx":"sova","kdy":"po"},
+      {"p":42,"at":"Baterka zhasla","fx":"baterka","kdy":"pred"}
+    ]
+  },
+  "kapka-kapicka": {
+    "styl": "voda",
+    "kulisa": [{"od":0,"id":"dest"},{"od":13,"id":"potok"},{"od":24,"id":"more"},{"od":39,"id":null}],
+    "fx": [
+      {"p":3,"at":"Jedna malá kapka předjela","fx":"kapka","kdy":"pred"},
+      {"p":11,"at":"Lup!","fx":"zmenseni","kdy":"pred"},
+      {"p":12,"at":"Šup do okapu","fx":"skluzavka","kdy":"pred"},
+      {"p":19,"at":"Po řece se plavila loď","fx":"lod-houkani","kdy":"po"},
+      {"p":20,"at":"tři žabky, žbluňk","fx":"splouchnuti","kdy":"po"},
+      {"p":21,"at":"kolotoč z pěny","fx":"skok-do-vody","kdy":"po"},
+      {"p":24,"at":"Vlny se zvedaly","fx":"vlny","kdy":"pred"},
+      {"p":29,"at":"Šplouch, šplouch, šplouch","fx":"splouchnuti","kdy":"pred"},
+      {"p":32,"at":"Sůl!","fx":"cink","kdy":"po"},
+      {"p":35,"at":"A najednou nebyla vidět vůbec","fx":"kouzlo","kdy":"po"},
+      {"p":38,"at":"za Kapičkou nahoru","fx":"balonek-nafukovani","kdy":"po"},
+      {"p":42,"at":"Skrz mrak zrovna proletělo letadlo","fx":"letadlo","kdy":"pred"},
+      {"p":43,"at":"Vítr hnal mrak od moře","fx":"vitr","kdy":"spolu"},
+      {"p":49,"at":"Déšť zabubnoval na střechy","fx":"dest-zacina","kdy":"spolu"},
+      {"p":50,"at":"se rozzářila duha","fx":"trpyt","kdy":"po"},
+      {"p":52,"at":"Lup!","fx":"balonek-prasknuti","kdy":"pred"},
+      {"p":57,"at":"Voda tekla a tekla","fx":"kohoutek","kdy":"spolu"},
+      {"p":59,"at":"A teď jí stačilo jediné žbluňk","fx":"kapka","kdy":"po"},
+      {"p":61,"at":"Zuby se dají čistit","fx":"cisteni-zubu","kdy":"pred"},
+      {"p":64,"at":"Kapky ťukaly na okno","fx":"kapky-okno","kdy":"spolu"}
+    ]
+  },
+  "kapr-bublinka": {
+    "styl": "vanoce",
+    "kulisa": [{"od":0,"id":null},{"od":35,"id":"snih-ticho"},{"od":44,"id":"krb-vanoce"}],
+    "fx": [
+      {"p":0,"at":"šplouch, šplouch","fx":"splouchnuti","kdy":"po"},
+      {"p":5,"at":"Napustila se studená voda","fx":"kohoutek","kdy":"po"},
+      {"p":6,"at":"na hladinu vypustil bublinu","fx":"bubliny","kdy":"po"},
+      {"p":14,"at":"žlutou gumovou kachničku","fx":"hracka-pisk","kdy":"po"},
+      {"p":18,"at":"Blub, odpověděl kapr.","fx":"bubliny","kdy":"pred"},
+      {"p":19,"at":"vznikl Bublinkův portrét","fx":"psani","kdy":"po"},
+      {"p":30,"at":"Kap. Kap.","fx":"kapka","kdy":"pred"},
+      {"p":34,"at":"do kbelíku s vodou. Šplouch.","fx":"splouchnuti","kdy":"po"},
+      {"p":36,"at":"u kraje se třpytil tenký led","fx":"led","kdy":"po"},
+      {"p":38,"at":"Pak plácl ocasem","fx":"ryba-plesk","kdy":"po"},
+      {"p":39,"at":"vypustil tři bubliny","fx":"bubliny","kdy":"po"},
+      {"p":44,"at":"ve vaně něco zalesklo","fx":"trpyt","kdy":"po"},
+      {"p":48,"at":"A po večeři cinkl zvoneček.","fx":"zvonecky","kdy":"po"},
+      {"p":49,"at":"Dárky se rozbalovaly","fx":"darek","kdy":"spolu"},
+      {"p":51,"at":"Pusou bubliny.","fx":"vana","kdy":"po"}
+    ]
+  },
+  "karneval-masek": {
+    "styl": "oslava",
+    "kulisa": null,
+    "fx": [
+      {"p":1,"at":"Celý týden se doma stříhalo","fx":"nuzky","kdy":"pred"},
+      {"p":4,"at":"smál se tak, že mu nos svítil","fx":"hracka-pisk","kdy":"po"},
+      {"p":5,"at":"Malá víla mávala hůlkou","fx":"trpyt","kdy":"po"},
+      {"p":13,"at":"Pak Konfetík zatleskal","fx":"tleskani","kdy":"pred"},
+      {"p":14,"at":"světla zhasla","fx":"vypinac","kdy":"po"},
+      {"p":16,"at":"Světla se rozsvítila","fx":"xylofon-nahoru","kdy":"pred"},
+      {"p":19,"at":"zelenou čepici s velkými listy","fx":"virbl","kdy":"pred"},
+      {"p":26,"at":"Listy na čepici se třepetaly","fx":"pruzina","kdy":"pred"},
+      {"p":27,"at":"Pak se zasmál jinak, vesele","fx":"smich-deti","kdy":"po"},
+      {"p":29,"at":"Hrajte kedlubnovou!","fx":"fanfara","kdy":"po"},
+      {"p":30,"at":"hehe-hik, hehe-hik","fx":"koza","kdy":"po"},
+      {"p":40,"at":"brrr-hihi, brrr-hihi","fx":"smich-deti","kdy":"po"},
+      {"p":42,"at":"vyhlašoval Konfetík ceny","fx":"virbl","kdy":"pred"},
+      {"p":43,"at":"tleskal ze všech nejhlasitěji","fx":"tleskani","kdy":"po"},
+      {"p":46,"at":"konfety se sypaly odevšad","fx":"trpyt","kdy":"po"},
+      {"p":49,"at":"V koupelně se z tváří smyly vousky","fx":"kohoutek","kdy":"pred"}
+    ]
+  },
+  "kartackovy-rytir": {
+    "styl": "sranda",
+    "kulisa": null,
+    "fx": [
+      {"p":1,"at":"Zuby? Dneska?","fx":"zivnuti","kdy":"pred"},
+      {"p":2,"at":"Vtom to v kelímku zacinkalo","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":3,"at":"„Hlásím poplach,“ řekl vážně.","fx":"pistalka","kdy":"po"},
+      {"p":4,"at":"tenounké pištění","fx":"mys-pipani","kdy":"po"},
+      {"p":9,"at":"Šrk, šrk, šrk!","fx":"cisteni-zubu","kdy":"pred"},
+      {"p":10,"at":"Jenže z hradu se ozval chichot","fx":"mys-pipani","kdy":"po"},
+      {"p":14,"at":"„Za čisté zuby! Vpřed!“","fx":"fanfara","kdy":"po"},
+      {"p":15,"at":"Šrk, šrk.","fx":"cisteni-zubu","kdy":"pred"},
+      {"p":18,"at":"odpluly v bílé pěně do odtoku","fx":"kohoutek","kdy":"po"}
+    ]
+  },
+  "kdo-prohraje-vyhraje": {
+    "styl": "domov",
+    "kulisa": [{"od":0,"id":null},{"od":5,"id":"hriste"},{"od":44,"id":null}],
+    "fx": [
+      {"p":1,"at":"Běhalo se do schodů","fx":"kroky-schody","kdy":"po"},
+      {"p":2,"at":"Na kuchyňských hodinách se měřil čas.","fx":"hodiny-tikani","kdy":"po"},
+      {"p":4,"at":"Hlavně při čištění zubů","fx":"cisteni-zubu","kdy":"pred"},
+      {"p":7,"at":"házelo míčkem do kbelíku","fx":"mic","kdy":"po"},
+      {"p":9,"at":"Pí-í-í!","fx":"pistalka","kdy":"pred"},
+      {"p":11,"at":"vítr svištěl kolem uší","fx":"svist","kdy":"po"},
+      {"p":13,"at":"zamávala na lavičku","fx":"tleskani","kdy":"po"},
+      {"p":25,"at":"Po-sled-ní dis-ci-plí-na!","fx":"virbl","kdy":"pred"},
+      {"p":33,"at":"Hned první skok skončil v trávě.","fx":"bum-mekke","kdy":"po"},
+      {"p":34,"at":"lidé na lavičkách tleskali","fx":"tleskani","kdy":"po"},
+      {"p":35,"at":"Z trávy se ozval smích.","fx":"smich-deti","kdy":"po"},
+      {"p":36,"at":"pytel začal skákat jako klokan","fx":"pruzina","kdy":"po"},
+      {"p":40,"at":"zapískala sama od sebe","fx":"pistalka","kdy":"po"},
+      {"p":41,"at":"dostali všichni stejně","fx":"fanfara","kdy":"po"}
+    ]
+  },
+  "kdo-to-dela": {
+    "styl": "auto",
+    "kulisa": "auto",
+    "fx": [
+      {"p":1,"at":"První hádanka!","fx":"virbl","kdy":"pred"},
+      {"p":3,"at":"Kráva! Správně!","fx":"krava","kdy":"po"},
+      {"p":5,"at":"Kočička! Výborně.","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":7,"at":"Kohout! Přesně tak.","fx":"kohout","kdy":"po"},
+      {"p":9,"at":"Žába! Správně.","fx":"zaba","kdy":"po"},
+      {"p":11,"at":"Pejsek! No jasně.","fx":"pes-stekot","kdy":"po"},
+      {"p":13,"at":"Ovečka! Ano.","fx":"ovce","kdy":"po"},
+      {"p":15,"at":"Kachna! Správně.","fx":"kachna","kdy":"po"},
+      {"p":17,"at":"Ježek! Ten byl těžký, co?","fx":"jezek","kdy":"po"},
+      {"p":19,"at":"Prasátko!","fx":"prasatko","kdy":"po"},
+      {"p":21,"at":"Sova! Správně.","fx":"sova","kdy":"po"},
+      {"p":24,"at":"Posádka hádala skvěle","fx":"tleskani","kdy":"po"}
+    ]
+  },
+  "kohoutek-a-slepicka": {
+    "styl": "lidova",
+    "kulisa": "statek",
+    "fx": [
+      {"p":0,"at":"kokrhal tak hlasitě","fx":"kohout","kdy":"po"},
+      {"p":1,"at":"hrabali v listí","fx":"slepice","kdy":"po"},
+      {"p":4,"at":"udělal jen chrrr","fx":"smutny-trombon","kdy":"po"},
+      {"p":6,"at":"Studánka zabublala","fx":"potok","kdy":"pred"},
+      {"p":9,"at":"Švec ťukal kladívkem","fx":"kladivo","kdy":"pred"},
+      {"p":11,"at":"smutně chrochtalo","fx":"prasatko","kdy":"po"},
+      {"p":16,"at":"Kohoutek se napil","fx":"piti","kdy":"pred"},
+      {"p":16,"at":"Tak hlasitě ještě nikdy nezakokrhal","fx":"kohout","kdy":"pred"},
+      {"p":20,"at":"Oříšek rozlouskli kamínkem","fx":"orech","kdy":"po"}
+    ]
+  },
+  "kouzelne-promin": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"mesto-den"},{"od":22,"id":null}],
+    "fx": [
+      {"p":1,"at":"Po dešti stála na chodníku velká louže","fx":"kapka","kdy":"po"},
+      {"p":3,"at":"Jenže pak přiletěl vítr","fx":"vitr","kdy":"po"},
+      {"p":4,"at":"Chňap, škub, a… rup.","fx":"papir-trh","kdy":"po"},
+      {"p":13,"at":"složil noviny","fx":"papir","kdy":"po"},
+      {"p":17,"at":"A byla tu loďka!","fx":"cink","kdy":"po"},
+      {"p":18,"at":"Vždyť to vypadá jako vidlička!","fx":"smich-deti","kdy":"po"},
+      {"p":20,"at":"Vidlička a Hrábě pak závodily","fx":"splouchnuti","kdy":"spolu"}
+    ]
+  },
+  "kouzelnik-ucen": {
+    "styl": "sranda",
+    "kulisa": "namesti",
+    "fx": [
+      {"p":2,"at":"Hepčí!","fx":"kychnuti","kdy":"pred"},
+      {"p":8,"at":"a z klobouku vykoukl krtek","fx":"pufnuti","kdy":"pred"},
+      {"p":12,"at":"Hudry hudry!","fx":"krocan","kdy":"pred"},
+      {"p":17,"at":"a z klobouku vypadla kropicí konev","fx":"bum-mekke","kdy":"po"},
+      {"p":19,"at":"ouška se změnila v kytici ředkviček","fx":"pufnuti","kdy":"po"},
+      {"p":20,"at":"kousl do ředkvičky","fx":"kousnuti-jablko","kdy":"po"},
+      {"p":27,"at":"večer poprvé celý bílý králík","fx":"kouzlo","kdy":"pred"},
+      {"p":28,"at":"Cink, cink, cink.","fx":"zvonecky","kdy":"pred"},
+      {"p":33,"at":"Holubice zatleskala křídly","fx":"kridla-ptak","kdy":"pred"},
+      {"p":36,"at":"Náměstí bylo plné lidí","fx":"hudebni-skrinka","kdy":"spolu"},
+      {"p":40,"at":"Hudry hudry!","fx":"krocan","kdy":"pred"},
+      {"p":41,"at":"Lidé se rozesmáli","fx":"smutny-trombon","kdy":"po"},
+      {"p":42,"at":"Pokus se zastavil","fx":"virbl","kdy":"pred"},
+      {"p":44,"at":"udělal ve vzduchu kotrmelec","fx":"trpyt","kdy":"po"},
+      {"p":45,"at":"Náměstí vybuchlo potleskem","fx":"tleskani","kdy":"pred"},
+      {"p":47,"at":"Hepčí!","fx":"kychnuti","kdy":"po"}
+    ]
+  },
+  "lampionovy-pruvod": {
+    "styl": "hvezdy",
+    "kulisa": [{"od":0,"id":"podzim"},{"od":24,"id":null}],
+    "fx": [
+      {"p":0,"at":"pod nohama šustí listí","fx":"kroky-listi","kdy":"po"},
+      {"p":5,"at":"Fff!","fx":"zapalka","kdy":"pred"},
+      {"p":7,"at":"Vpředu šel pán s bubínkem","fx":"virbl","kdy":"po"},
+      {"p":8,"at":"Celá ulice se houpala ve světle","fx":"trpyt","kdy":"po"},
+      {"p":9,"at":"Z chodníku se kutálely kaštany","fx":"kamen","kdy":"po"},
+      {"p":10,"at":"Fíí!","fx":"vitr","kdy":"pred"},
+      {"p":17,"at":"Blik!","fx":"zvonecky","kdy":"pred"},
+      {"p":20,"at":"Světlo putovalo od lampionu","fx":"trpyt","kdy":"spolu"},
+      {"p":23,"at":"Domů se šlo pomalu.","fx":"kroky-listi","kdy":"spolu"}
+    ]
+  },
+  "lednice": {
+    "styl": "sranda",
+    "kulisa": "kuchyn-noc",
+    "fx": [
+      {"p":1,"at":"a uvnitř nesvítilo světýlko","fx":"lednice","kdy":"pred"},
+      {"p":2,"at":"Po poličkách jezdily tramvaje z okurek","fx":"tramvaj","kdy":"po"},
+      {"p":5,"at":"podezřelé chroupání","fx":"mlaskani","kdy":"po"},
+      {"p":6,"at":"Byla to myška","fx":"mys-pipani","kdy":"pred"},
+      {"p":7,"at":"Co kdybys díry vrátila","fx":"cink","kdy":"pred"},
+      {"p":8,"at":"Sýr měl zase díry","fx":"trpyt","kdy":"pred"}
+    ]
+  },
+  "lez-ktera-rostla": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"dest"},{"od":11,"id":null}],
+    "fx": [
+      {"p":1,"at":"Jen jednou a jen malinko.","fx":"mic","kdy":"po"},
+      {"p":2,"at":"Z parapetu spadl květináč","fx":"kvetinac-rozbiti","kdy":"pred"},
+      {"p":6,"at":"čerstvě narozená lež","fx":"pufnuti","kdy":"po"},
+      {"p":9,"at":"kulička na koberci se nafoukla","fx":"zvetseni","kdy":"po"},
+      {"p":16,"at":"narostla zase o kousek","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":20,"at":"Pak jako míč, ten samý","fx":"zvetseni","kdy":"po"},
+      {"p":22,"at":"Po večeři zazvonila sousedka","fx":"zvonek-dvere","kdy":"pred"},
+      {"p":25,"at":"vana byla najednou strašně malá","fx":"vana","kdy":"po"},
+      {"p":29,"at":"Spát se nedalo.","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":34,"at":"bouchala do zdí","fx":"bum-mekke","kdy":"po"},
+      {"p":36,"at":"se ozvalo: pfffff!","fx":"balonek-vyfouknuti","kdy":"po"},
+      {"p":37,"at":"najednou bylo lehko","fx":"harfa","kdy":"po"},
+      {"p":41,"at":"hrst čerstvé hlíny","fx":"zahrada-krtek","kdy":"po"},
+      {"p":44,"at":"A míč šel ven.","fx":"mic","kdy":"po"},
+      {"p":47,"at":"peřina lehká jako obláček","fx":"perina","kdy":"po"}
+    ]
+  },
+  "lodicky-ze-skorapek": {
+    "styl": "vanoce-noc",
+    "kulisa": "krb-vanoce",
+    "fx": [
+      {"p":0,"at":"už byly dárky rozbalené","fx":"darek","kdy":"po"},
+      {"p":4,"at":"Louskáček dělal křup, křup.","fx":"orech","kdy":"pred"},
+      {"p":8,"at":"Svíčky zapálila","fx":"zapalka","kdy":"pred"},
+      {"p":9,"at":"zhasla velké světlo","fx":"vypinac","kdy":"po"},
+      {"p":10,"at":"Tik, tak. Tik, tak.","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":12,"at":"Raz, dva, tři.","fx":"splouchnuti","kdy":"po"},
+      {"p":21,"at":"jako by se držely za ruce","fx":"trpyt","kdy":"po"},
+      {"p":23,"at":"stromeček tiše blikal","fx":"zvonecky","kdy":"po"}
+    ]
+  },
+  "mali-hasici": {
+    "styl": "hrdinove",
+    "kulisa": [{"od":40,"id":"hriste"},{"od":45,"id":null}],
+    "fx": [
+      {"p":0,"at":"otevřela velká červená vrata","fx":"dvere-vrzani","kdy":"po"},
+      {"p":5,"at":"Na střeše zbrojnice je siréna.","fx":"sirena","kdy":"po"},
+      {"p":12,"at":"Šup!","fx":"svist","kdy":"pred"},
+      {"p":12,"at":"Žuch.","fx":"bum-mekke","kdy":"pred"},
+      {"p":23,"at":"Crrr, ozvalo se ze sluchátka.","fx":"telefon","kdy":"pred"},
+      {"p":27,"at":"Cink.","fx":"cink","kdy":"pred"},
+      {"p":29,"at":"Vtom se zvenku ozvalo tenounké","fx":"kote-mnoukani","kdy":"po"},
+      {"p":31,"at":"Asi tam vylezlo za ptáčkem","fx":"vrabci","kdy":"po"},
+      {"p":33,"at":"zamňoukalo, tentokrát spokojeně","fx":"kote-mnoukani","kdy":"po"},
+      {"p":37,"at":"Na konci dostal každý odznak.","fx":"trpyt","kdy":"po"},
+      {"p":38,"at":"zmáčknout houkačku","fx":"auto-troubeni","kdy":"po"},
+      {"p":40,"at":"Cesta domů vedla kolem hřiště","fx":"houpacka","kdy":"spolu"},
+      {"p":45,"at":"jako by i","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "maly-jako-mravenec": {
+    "styl": "zvidave",
+    "kulisa": "zahrada-den",
+    "fx": [
+      {"p":3,"at":"na prst přistála beruška","fx":"kridla-vila","kdy":"pred"},
+      {"p":7,"at":"Tráva rostla, rostla a rostla","fx":"zmenseni","kdy":"pred"},
+      {"p":8,"at":"Měkké přistání","fx":"bum-mekke","kdy":"pred"},
+      {"p":13,"at":"A dá se z ní pít","fx":"kapka","kdy":"po"},
+      {"p":25,"at":"Formička se ani nehnula","fx":"smutny-trombon","kdy":"po"},
+      {"p":28,"at":"Někdo, kdo se umí podívat shora","fx":"cink","kdy":"po"},
+      {"p":29,"at":"a vzlétla","fx":"kridla-vila","kdy":"po"},
+      {"p":37,"at":"Za chvilku vedl přes louži most","fx":"trpyt","kdy":"po"},
+      {"p":40,"at":"Krok za krokem, po stříbrném mostě","fx":"kroky-plizeni","kdy":"pred"},
+      {"p":43,"at":"Nad hlavami jim přeletěl čmelák","fx":"vcela","kdy":"spolu"},
+      {"p":44,"at":"U kamene se najednou zvedla hlína","fx":"zahrada-krtek","kdy":"pred"},
+      {"p":47,"at":"Vtom se země zatřásla","fx":"obri-kroky","kdy":"pred"},
+      {"p":54,"at":"Tečka vzlétla","fx":"svist","kdy":"po"},
+      {"p":60,"at":"To je mravenčí děkuju","fx":"zvonecky","kdy":"po"},
+      {"p":63,"at":"A zahrada se zase zatočila","fx":"zvetseni","kdy":"pred"},
+      {"p":70,"at":"se hned svinula do kuličky","fx":"xylofon-dolu","kdy":"po"},
+      {"p":74,"at":"cedulka, kreslená fixami","fx":"psani","kdy":"po"},
+      {"p":75,"at":"Ke svačině bylo to nejlepší jídlo","fx":"mlaskani","kdy":"po"}
+    ]
+  },
+  "mesicni-lodka": {
+    "styl": "ukolebavka",
+    "kulisa": "reka-noc",
+    "fx": [
+      {"p":4,"at":"Lodička se zhoupla","fx":"harfa","kdy":"pred"},
+      {"p":7,"at":"Chytal na udici padající hvězdy","fx":"padajici-hvezda","kdy":"po"},
+      {"p":8,"at":"pípl ze spaní","fx":"kurata","kdy":"po"},
+      {"p":10,"at":"Plesk. Plesk.","fx":"ryba-plesk","kdy":"po"},
+      {"p":12,"at":"jako by v ní plaval cukr","fx":"trpyt","kdy":"po"},
+      {"p":14,"at":"Pak se z vody vynořila velryba","fx":"velryba","kdy":"spolu"},
+      {"p":18,"at":"tichounké zabublání","fx":"bubliny","kdy":"po"},
+      {"p":21,"at":"A pak zívla i lodička","fx":"zivnuti","kdy":"po"}
+    ]
+  },
+  "mesto-bez-smichu": {
+    "styl": "sranda",
+    "kulisa": [{"od":0,"id":"mesto-den"},{"od":18,"id":null},{"od":30,"id":"namesti"},{"od":40,"id":null}],
+    "fx": [
+      {"p":2,"at":"Řidič autobusu troubil","fx":"auto-troubeni","kdy":"po"},
+      {"p":7,"at":"Ani koutek se nepohnul","fx":"smutny-trombon","kdy":"po"},
+      {"p":10,"at":"Tedy ne.","fx":"virbl","kdy":"po"},
+      {"p":12,"at":"Kde jinde začít než v pekárně","fx":"cink","kdy":"pred"},
+      {"p":15,"at":"V knihovně bylo ticho, jako v každé knihovně","fx":"kniha","kdy":"po"},
+      {"p":16,"at":"Pekařka v poledne","fx":"psani","kdy":"pred"},
+      {"p":17,"at":"jako kachna s rýmou","fx":"kachna","kdy":"po"},
+      {"p":19,"at":"Schodů bylo sto dvacet","fx":"kroky-schody","kdy":"pred"},
+      {"p":20,"at":"Nahoře, mezi ozubenými koly","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":28,"at":"Smál se jako vrzající houpačka","fx":"houpacka","kdy":"po"},
+      {"p":29,"at":"jako hejno vrabců","fx":"vrabci","kdy":"po"},
+      {"p":31,"at":"Chrocht!","fx":"prasatko","kdy":"po"},
+      {"p":33,"at":"Kohout na plotě konečně zakokrhal","fx":"kohout","kdy":"pred"},
+      {"p":38,"at":"když velké hodiny odbíjely poledne","fx":"hodiny-odbijeni","kdy":"spolu"},
+      {"p":41,"at":"smálo se u stolu tak","fx":"smich-deti","kdy":"po"}
+    ]
+  },
+  "mesto-usina": {
+    "styl": "ukolebavka",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":3,"at":"zamkla dveře","fx":"klic-zamek","kdy":"po"},
+      {"p":5,"at":"otevře dveře a vydechne","fx":"autobus-dvere","kdy":"po"},
+      {"p":7,"at":"Na hřišti se ještě chvilku houpe houpačka","fx":"houpacka","kdy":"spolu"},
+      {"p":8,"at":"Na nejvyšší anténě sedí kos","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":10,"at":"Slepice sedí na bidýlku","fx":"slepice","kdy":"po"},
+      {"p":11,"at":"až mu cvaknou zuby","fx":"zivnuti","kdy":"pred"},
+      {"p":12,"at":"Jen kočka se protáhne a vyjde ven","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":14,"at":"Někde v dálce odbíjejí hodiny","fx":"hodiny-odbijeni","kdy":"pred"},
+      {"p":17,"at":"Cvak, cvak.","fx":"vypinac","kdy":"po"}
+    ]
+  },
+  "miminko-u-nas": {
+    "styl": "klavir",
+    "kulisa": null,
+    "fx": [
+      {"p":3,"at":"Uvnitř to zabublalo","fx":"bubliny","kdy":"po"},
+      {"p":6,"at":"Zpívala se každý večer","fx":"hudebni-skrinka","kdy":"pred"},
+      {"p":16,"at":"krabice plenek tak velká","fx":"krabice","kdy":"po"},
+      {"p":20,"at":"Odpoledne se jelo na návštěvu.","fx":"auto-dvere","kdy":"pred"},
+      {"p":24,"at":"před dveřmi stála fronta","fx":"zvonek-dvere","kdy":"pred"},
+      {"p":25,"at":"Teta přinesla dupačky.","fx":"darek","kdy":"po"},
+      {"p":31,"at":"ani pračka, když zrovna pípala","fx":"pracka","kdy":"po"},
+      {"p":35,"at":"z miminkovštiny","fx":"cink","kdy":"po"}
+    ]
+  },
+  "narozeninove-prani": {
+    "styl": "oslava",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":14,"id":"dest"},{"od":20,"id":null}],
+    "fx": [
+      {"p":0,"at":"tiše zavrzaly dveře","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":6,"at":"Ríp! Papír letěl doleva.","fx":"darek","kdy":"pred"},
+      {"p":7,"at":"Knížka se prolistovala za tři","fx":"kniha","kdy":"po"},
+      {"p":8,"at":"A pak bylo najednou ticho.","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":13,"at":"Uvnitř byla první chvilka","fx":"sklenice-cvak","kdy":"pred"},
+      {"p":14,"at":"Kapky bubnovaly do okna","fx":"kapky-okno","kdy":"spolu"},
+      {"p":17,"at":"Uvnitř byla tma, baterka","fx":"baterka","kdy":"po"},
+      {"p":19,"at":"Druhá chvilka.","fx":"sklenice-cvak","kdy":"pred"},
+      {"p":21,"at":"Šplouch!","fx":"splouchnuti","kdy":"pred"},
+      {"p":22,"at":"tvářil uraženě až do večera","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":23,"at":"Crrr! Přišli kamarádi.","fx":"zvonek-dvere","kdy":"pred"},
+      {"p":32,"at":"Čtvrtá chvilka.","fx":"sklenice-cvak","kdy":"pred"},
+      {"p":36,"at":"Pak se zatáhly závěsy","fx":"zaves","kdy":"pred"},
+      {"p":41,"at":"Svíčky zhasly všechny najednou","fx":"tleskani","kdy":"po"},
+      {"p":44,"at":"Víčko cvaklo","fx":"sklenice-cvak","kdy":"pred"}
+    ]
+  },
+  "noc-v-lese": {
+    "styl": "ukolebavka",
+    "kulisa": [{"od":0,"id":"les-den"},{"od":28,"id":"les-noc"}],
+    "fx": [
+      {"p":2,"at":"pod nohama křupaly šišky","fx":"kroky-listi","kdy":"po"},
+      {"p":4,"at":"Ptáci zpívali čím dál tišeji","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":8,"at":"byla veverka","fx":"veverka","kdy":"pred"},
+      {"p":11,"at":"Fu, fu, fu.","fx":"jezek","kdy":"pred"},
+      {"p":13,"at":"ťukal datel","fx":"datel","kdy":"po"},
+      {"p":14,"at":"skládal si křidélka","fx":"kridla-vila","kdy":"po"},
+      {"p":19,"at":"se ozvalo tiché zívnutí","fx":"zivnuti","kdy":"pred"},
+      {"p":25,"at":"se ještě houpaly kachny","fx":"kachna","kdy":"pred"},
+      {"p":28,"at":"jako když někdo rozsype třpytky","fx":"trpyt","kdy":"po"},
+      {"p":30,"at":"A vtom se z vysoké borovice ozvalo","fx":"sova","kdy":"pred"},
+      {"p":34,"at":"Cestou zpátky jim svítily světlušky","fx":"zvonecky","kdy":"po"},
+      {"p":35,"at":"Kousek od cesty zurčel potůček","fx":"potok","kdy":"spolu"},
+      {"p":37,"at":"Les za nimi byl tichý a tmavý","fx":"cvrcek","kdy":"spolu"}
+    ]
+  },
+  "nocnikova-vyprava": {
+    "styl": "sranda",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":25,"id":null}],
+    "fx": [
+      {"p":1,"at":"Kvák! Vítej na palubě!","fx":"zaba","kdy":"po"},
+      {"p":3,"at":"Cinky cink!","fx":"cink","kdy":"pred"},
+      {"p":4,"at":"A vtom: cinky cink!","fx":"zvonecky","kdy":"pred"},
+      {"p":6,"at":"Přes koberec, kolem gauče","fx":"kroky-beh","kdy":"spolu"},
+      {"p":9,"at":"Z koupelny se ozvalo","fx":"zaba","kdy":"pred"},
+      {"p":12,"at":"Hadr udělal šup","fx":"svist","kdy":"po"},
+      {"p":15,"at":"A vtom: cinky cink!","fx":"zvonecky","kdy":"pred"},
+      {"p":17,"at":"Tututů!","fx":"vlak-pisk","kdy":"po"},
+      {"p":21,"at":"„Kvák, kvák, hurá!“","fx":"fanfara","kdy":"pred"},
+      {"p":22,"at":"Šššš!","fx":"splachnuti","kdy":"pred"}
+    ]
+  },
+  "nula-dulezita": {
+    "styl": "zvidave",
+    "kulisa": [{"od":2,"id":"kuchyn-noc"},{"od":45,"id":null}],
+    "fx": [
+      {"p":2,"at":"čísla se probudí","fx":"trpyt","kdy":"po"},
+      {"p":5,"at":"nafukovala bříško","fx":"zvetseni","kdy":"po"},
+      {"p":6,"at":"natáhla se do výšky","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":14,"at":"odkutálela se po lince","fx":"xylofon-dolu","kdy":"po"},
+      {"p":16,"at":"jednička bez nikoho je pořád jenom jedna","fx":"smutny-trombon","kdy":"po"},
+      {"p":21,"at":"Voda totiž mrzne právě na nule","fx":"led","kdy":"po"},
+      {"p":25,"at":"Na kuchyňských hodinách?","fx":"hodiny-tikani","kdy":"po"},
+      {"p":26,"at":"A to žluté se třáslo.","fx":"cink","kdy":"pred"},
+      {"p":33,"at":"Nula se vykutálela z autíčka","fx":"kamen","kdy":"po"},
+      {"p":35,"at":"Čísla jásala a tleskala","fx":"tleskani","kdy":"po"},
+      {"p":37,"at":"každé bylo najednou desetkrát větší","fx":"zvetseni","kdy":"po"},
+      {"p":40,"at":"nula! Start!","fx":"raketa-start","kdy":"po"}
+    ]
+  },
+  "o-smolickovi": {
+    "styl": "lidova",
+    "kulisa": [{"od":0,"id":"les-den"},{"od":22,"id":null}],
+    "fx": [
+      {"p":1,"at":"tiše zvonily: cink, cink","fx":"zvonecky","kdy":"po"},
+      {"p":5,"at":"Jednou zaťukaly na dveře.","fx":"klepani","kdy":"pred"},
+      {"p":6,"at":"Odsunul závoru, jen na kratičko.","fx":"dvere-vrzani","kdy":"po"},
+      {"p":7,"at":"Přiběhl jako vítr","fx":"kopyta","kdy":"po"},
+      {"p":11,"at":"na dveře zase někdo zaťukal","fx":"klepani","kdy":"pred"},
+      {"p":17,"at":"Smolíček se smál","fx":"smich-deti","kdy":"po"},
+      {"p":18,"at":"Vtom se lesem ozvalo cink, cink.","fx":"zvonecky","kdy":"po"}
+    ]
+  },
+  "od-zrnicka-k-chlebu": {
+    "styl": "lidova",
+    "kulisa": null,
+    "fx": [
+      {"p":4,"at":"Patka se nafoukla","fx":"zvetseni","kdy":"po"},
+      {"p":7,"at":"Traktor táhl secí stroj","fx":"traktor","kdy":"spolu"},
+      {"p":11,"at":"Nad námi zpíval skřivánek","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":12,"at":"Když foukal vítr","fx":"vitr","kdy":"pred"},
+      {"p":13,"at":"Kombajn je obrovský stroj","fx":"kombajn","kdy":"spolu"},
+      {"p":17,"at":"odvezl do mlýna","fx":"auto-start","kdy":"po"},
+      {"p":18,"at":"Dřív stávaly mlýny u potoka","fx":"mlyn-kolo","kdy":"spolu"},
+      {"p":21,"at":"mám mouku za ušima","fx":"kychnuti","kdy":"po"},
+      {"p":23,"at":"Zívl tak","fx":"zivnuti","kdy":"pred"},
+      {"p":25,"at":"Bublinky těsto nafouknou","fx":"kase-bublani","kdy":"po"},
+      {"p":29,"at":"hup do horké pece","fx":"ohen","kdy":"po"},
+      {"p":32,"at":"Jen co se otevřely dveře","fx":"cink","kdy":"pred"},
+      {"p":48,"at":"Ráno z tebe bude topinka!","fx":"smazeni","kdy":"po"}
+    ]
+  },
+  "odvazny-ochutnavac": {
+    "styl": "sranda",
+    "kulisa": null,
+    "fx": [
+      {"p":4,"at":"ozvalo se od stolu dřív","fx":"smutny-trombon","kdy":"po"},
+      {"p":9,"at":"A tak vznikl odznak","fx":"nuzky","kdy":"pred"},
+      {"p":17,"at":"Hryz.","fx":"kousnuti-jablko","kdy":"pred"},
+      {"p":19,"at":"Do sešitu se nakreslila brokolice","fx":"psani","kdy":"pred"},
+      {"p":21,"at":"lžička odvahy putovala přes stůl","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":27,"at":"utíká ze lžičky","fx":"xylofon-dolu","kdy":"po"},
+      {"p":28,"at":"Ale smíchu u stolu bylo","fx":"smich-deti","kdy":"po"},
+      {"p":29,"at":"Oči zaslzely, nos kýchl","fx":"kychnuti","kdy":"po"},
+      {"p":30,"at":"Syrová mrkev křupala jako veverka","fx":"mlaskani","kdy":"po"},
+      {"p":33,"at":"Sešit se plnil","fx":"kniha","kdy":"pred"},
+      {"p":36,"at":"Desátá lžička.","fx":"virbl","kdy":"pred"},
+      {"p":38,"at":"Mňam","fx":"cink","kdy":"po"},
+      {"p":39,"at":"Celá kuchyň zatleskala","fx":"tleskani","kdy":"pred"},
+      {"p":46,"at":"Ale odvahy se do ní vejde hodně","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "oskliva-kachna": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"statek"},{"od":14,"id":null},{"od":24,"id":"snih-ticho"},{"od":30,"id":null}],
+    "fx": [
+      {"p":0,"at":"Kvákaly v něm žáby","fx":"zaba","kdy":"po"},
+      {"p":4,"at":"šest chmýřových knoflíčků","fx":"kurata","kdy":"po"},
+      {"p":6,"at":"Až k večeru velké vejce prasklo","fx":"skorapka","kdy":"pred"},
+      {"p":7,"at":"podivila se kachňátka","fx":"kachna","kdy":"pred"},
+      {"p":10,"at":"Slepice kdákaly","fx":"slepice","kdy":"pred"},
+      {"p":18,"at":"Umíš dělat hrb a příst?","fx":"kocka-predeni","kdy":"po"},
+      {"p":21,"at":"potápělo se","fx":"splouchnuti","kdy":"po"},
+      {"p":22,"at":"přeletěli nad jezerem nádherní ptáci","fx":"kridla-ptak","kdy":"po"},
+      {"p":24,"at":"Pak přišla zima.","fx":"vanice","kdy":"spolu"},
+      {"p":26,"at":"Najednou se z rákosí ozvalo slabounké pípnutí","fx":"kurata","kdy":"po"},
+      {"p":30,"at":"Led kolem rákosí praskl","fx":"led","kdy":"pred"},
+      {"p":33,"at":"mlaskalo nad miskou","fx":"mlaskani","kdy":"po"},
+      {"p":34,"at":"v kamnech praská oheň","fx":"krb","kdy":"spolu"},
+      {"p":35,"at":"přibyla tužkou čárka","fx":"psani","kdy":"po"},
+      {"p":36,"at":"knížku o ptácích","fx":"kniha","kdy":"po"}
+    ]
+  },
+  "pejsek-z-utulku": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":7,"id":null}],
+    "fx": [
+      {"p":1,"at":"Dřív než kos za oknem","fx":"ptaci-zpev","kdy":"po"},
+      {"p":3,"at":"psí seznam","fx":"psani","kdy":"pred"},
+      {"p":7,"at":"Už u brány bylo slyšet","fx":"pes-stekot","kdy":"pred"},
+      {"p":9,"at":"ležel starý pán pes a chrápal","fx":"chrapani","kdy":"po"},
+      {"p":17,"at":"Opatrně očichala prsty","fx":"pes-funeni","kdy":"pred"},
+      {"p":19,"at":"zachrastili míčkem s rolničkou","fx":"rolnicky","kdy":"po"},
+      {"p":27,"at":"pod stolem zívala pořád","fx":"zivnuti","kdy":"po"},
+      {"p":30,"at":"Kapky bubnovaly na okno","fx":"kapky-okno","kdy":"spolu"},
+      {"p":34,"at":"vrtěla celým zadkem v kaluži","fx":"splouchnuti","kdy":"po"},
+      {"p":35,"at":"Ponožka se třásla, ale vydržela","fx":"pes-knuceni","kdy":"po"}
+    ]
+  },
+  "pirati-z-vany": {
+    "styl": "sranda",
+    "kulisa": null,
+    "fx": [
+      {"p":0,"at":"Když se večer napustí vana","fx":"vana","kdy":"spolu"},
+      {"p":6,"at":"zakvákala Kvakuška","fx":"kachna","kdy":"pred"},
+      {"p":12,"at":"Vyklouzlo a odplavalo","fx":"splouchnuti","kdy":"pred"},
+      {"p":15,"at":"Mýdlo bylo v síti","fx":"xylofon-nahoru","kdy":"pred"},
+      {"p":16,"at":"Poklad je náš!","fx":"fanfara","kdy":"pred"},
+      {"p":17,"at":"Pěna rostla a rostla","fx":"bubliny","kdy":"po"},
+      {"p":23,"at":"Hi hi hi!","fx":"smich-deti","kdy":"po"},
+      {"p":24,"at":"Kvakuška zkontrolovala jednu jeskyni","fx":"cink","kdy":"po"},
+      {"p":32,"at":"Šplouch! A ještě jednou","fx":"splouchnuti","kdy":"pred"},
+      {"p":35,"at":"Vtom se z vedlejšího pokoje","fx":"telefon","kdy":"pred"},
+      {"p":40,"at":"Glo glo glo","fx":"odtok","kdy":"po"},
+      {"p":44,"at":"zasalutovala křídlem","fx":"kachna","kdy":"po"}
+    ]
+  },
+  "polstarova-zeme": {
+    "styl": "ukolebavka",
+    "kulisa": [{"od":0,"id":"noc-okno"},{"od":14,"id":"kouzelne-trpyt"},{"od":64,"id":"noc-okno"}],
+    "fx": [
+      {"p":3,"at":"Jednou, dvakrát, pořádně","fx":"polstar","kdy":"pred"},
+      {"p":5,"at":"z dírky vykoukla hlavička","fx":"trpyt","kdy":"po"},
+      {"p":14,"at":"Svět se zhoupl, zatočil","fx":"harfa","kdy":"pred"},
+      {"p":16,"at":"Puf, puf, puf","fx":"bum-mekke","kdy":"pred"},
+      {"p":17,"at":"Hop, puf, hop, puf!","fx":"pruzina","kdy":"pred"},
+      {"p":23,"at":"Polštářové zemi poprvé zívlo","fx":"zivnuti","kdy":"po"},
+      {"p":26,"at":"Hupy, hup. Hupy, hup.","fx":"vlny","kdy":"spolu"},
+      {"p":27,"at":"Pod hladinou se mihla","fx":"velryba","kdy":"spolu"},
+      {"p":34,"at":"A maják se rozsvítil jinak","fx":"cink","kdy":"po"},
+      {"p":35,"at":"pár bublinek z peří","fx":"bubliny","kdy":"po"},
+      {"p":37,"at":"Ani jedna nespala","fx":"ovce","kdy":"po"},
+      {"p":50,"at":"Hodiny poprvé po dlouhé době","fx":"hodiny-tikani","kdy":"pred"},
+      {"p":51,"at":"To je hajací zvonění","fx":"zvonecky","kdy":"pred"},
+      {"p":54,"at":"vykartáčovali úsměv","fx":"cisteni-zubu","kdy":"po"},
+      {"p":57,"at":"přes ně přetáhne teplá peřina","fx":"perina","kdy":"po"}
+    ]
+  },
+  "ponorka-pod-rybnikem": {
+    "styl": "voda",
+    "kulisa": [{"od":0,"id":null},{"od":9,"id":"pod-vodou"},{"od":63,"id":null}],
+    "fx": [
+      {"p":0,"at":"houpou kachny","fx":"kachna","kdy":"po"},
+      {"p":7,"at":"Cvak. Uvnitř to vonělo","fx":"dvere-zavreni","kdy":"pred"},
+      {"p":8,"at":"„Kuňk,“ řekla.","fx":"zaba","kdy":"pred"},
+      {"p":9,"at":"Blub, blub, blub.","fx":"bubliny","kdy":"pred"},
+      {"p":14,"at":"kdy smějí plavat přes cestu","fx":"pistalka","kdy":"po"},
+      {"p":16,"at":"odplavala k leknínu","fx":"splouchnuti","kdy":"po"},
+      {"p":21,"at":"vyletěly bublinky","fx":"bubliny","kdy":"po"},
+      {"p":25,"at":"obracel kameny","fx":"kamen","kdy":"po"},
+      {"p":26,"at":"knoflík s nápisem mluvítko","fx":"pocitac","kdy":"po"},
+      {"p":28,"at":"pomalu se snášel zpátky","fx":"xylofon-dolu","kdy":"po"},
+      {"p":35,"at":"Ponorka rozsvítila světla","fx":"baterka","kdy":"pred"},
+      {"p":38,"at":"Pak připluli ke staré loďce","fx":"sonar","kdy":"pred"},
+      {"p":44,"at":"lesklo něco zlatého","fx":"trpyt","kdy":"po"},
+      {"p":46,"at":"To je přece ten klíč!","fx":"cink","kdy":"po"},
+      {"p":51,"at":"roztočil dokola","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":54,"at":"pak otočit","fx":"klic-zamek","kdy":"po"},
+      {"p":55,"at":"Do rybníka se vlila čerstvá voda","fx":"potok","kdy":"spolu"},
+      {"p":56,"at":"začala rozsvěcet světélka","fx":"kouzlo","kdy":"po"},
+      {"p":59,"at":"vodník tleskal","fx":"tleskani","kdy":"po"},
+      {"p":63,"at":"Ponorka vyplula nahoru","fx":"bubliny","kdy":"pred"},
+      {"p":70,"at":"Šumělo v ní tiše a hluboce","fx":"vlny","kdy":"po"}
+    ]
+  },
+  "ponozkozrout": {
+    "styl": "sranda",
+    "kulisa": null,
+    "fx": [
+      {"p":1,"at":"A jejich kamarádky? Pryč.","fx":"smutny-trombon","kdy":"po"},
+      {"p":4,"at":"nakreslila ponožka","fx":"psani","kdy":"po"},
+      {"p":5,"at":"podezření na vysavač","fx":"vysavac","kdy":"po"},
+      {"p":6,"at":"Vrrr, vrrr.","fx":"kocka-predeni","kdy":"pred"},
+      {"p":11,"at":"Po špičkách.","fx":"kroky-plizeni","kdy":"pred"},
+      {"p":12,"at":"Pračka zrovna prala.","fx":"pracka","kdy":"spolu"},
+      {"p":13,"at":"Chroup, chroup, ponožka hup!","fx":"mlaskani","kdy":"po"},
+      {"p":14,"at":"Světlo baterky posvítilo","fx":"baterka","kdy":"pred"},
+      {"p":21,"at":"Mňam, mňam!","fx":"mlaskani","kdy":"po"},
+      {"p":31,"at":"Všechny ponožky byly v párech!","fx":"cink","kdy":"pred"},
+      {"p":33,"at":"Chroup, chroup, ponožka hup!","fx":"mlaskani","kdy":"po"}
+    ]
+  },
+  "popelka": {
+    "styl": "lidova",
+    "kulisa": [{"od":1,"id":"statek"},{"od":23,"id":null},{"od":49,"id":"statek"},{"od":61,"id":null}],
+    "fx": [
+      {"p":5,"at":"„Vrkú, vrkú,“ děkovali holoubci","fx":"holub-vrkani","kdy":"pred"},
+      {"p":9,"at":"přijel na statek posel ze zámku","fx":"kopyta","kdy":"pred"},
+      {"p":12,"at":"nasedly do kočáru a odjely","fx":"kopyta","kdy":"po"},
+      {"p":13,"at":"se otevřely dveře","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":17,"at":"Popelka otevřela okno","fx":"okno","kdy":"pred"},
+      {"p":18,"at":"Z dvora se snesla celá hejna holoubků","fx":"kridla-ptak","kdy":"pred"},
+      {"p":20,"at":"„Vrkú,“ zavrkal.","fx":"holub-vrkani","kdy":"pred"},
+      {"p":22,"at":"Křup! Z oříšku","fx":"orech","kdy":"pred"},
+      {"p":22,"at":"šaty jako měsíční světlo","fx":"trpyt","kdy":"po"},
+      {"p":27,"at":"sklenice se rozkutálely po parketách","fx":"nadobi","kdy":"po"},
+      {"p":29,"at":"Bim, bam, odbil zvon desátou.","fx":"zvon","kdy":"pred"},
+      {"p":35,"at":"Holoubci všechno přebrali","fx":"kridla-ptak","kdy":"po"},
+      {"p":36,"at":"zlaté jako slunce","fx":"kouzlo","kdy":"po"},
+      {"p":39,"at":"Bim, bam, desátá","fx":"zvon","kdy":"pred"},
+      {"p":40,"at":"uvařila jí heřmánkový čaj","fx":"konvice","kdy":"po"},
+      {"p":42,"at":"Šaty z něj se třpytily","fx":"trpyt","kdy":"pred"},
+      {"p":45,"at":"Pak zvon odbil desátou","fx":"zvon","kdy":"pred"},
+      {"p":48,"at":"Koni už se pletly nohy","fx":"kun-rehtani","kdy":"po"},
+      {"p":53,"at":"z okna se ozvali holoubci","fx":"holub-vrkani","kdy":"pred"},
+      {"p":54,"at":"Střevíček padl","fx":"cink","kdy":"po"},
+      {"p":65,"at":"zavrkali holoubci na střeše naposledy","fx":"holub-vrkani","kdy":"po"}
+    ]
+  },
+  "princezna-ktera-se-nesmala": {
+    "styl": "lidova",
+    "kulisa": [{"od":8,"id":"les-den"},{"od":25,"id":null},{"od":33,"id":"namesti"},{"od":42,"id":null}],
+    "fx": [
+      {"p":2,"at":"jak mouchy kreslí do vzduchu kolečka","fx":"moucha","kdy":"po"},
+      {"p":3,"at":"Když se kotě zamotalo do klubka","fx":"kote-mnoukani","kdy":"po"},
+      {"p":5,"at":"louskali oříšky","fx":"orech","kdy":"po"},
+      {"p":6,"at":"Bum, bum, bum!","fx":"virbl","kdy":"pred"},
+      {"p":12,"at":"hepčí, hepčí!","fx":"kychnuti","kdy":"pred"},
+      {"p":13,"at":"nerozesměješ ani slepici","fx":"slepice","kdy":"po"},
+      {"p":18,"at":"stalo něco zvláštního","fx":"kouzlo","kdy":"po"},
+      {"p":20,"at":"než se nadáli, byl pryč","fx":"pufnuti","kdy":"po"},
+      {"p":21,"at":"„Gá, gá,“ zakejhala","fx":"husa","kdy":"pred"},
+      {"p":26,"at":"kout u kamen na spaní","fx":"krb","kdy":"po"},
+      {"p":28,"at":"V noci se k huse připlížila","fx":"kroky-plizeni","kdy":"pred"},
+      {"p":36,"at":"Prrrr!","fx":"pistalka","kdy":"pred"},
+      {"p":37,"at":"„Mééé,“ stěžovala si koza","fx":"koza","kdy":"pred"},
+      {"p":38,"at":"„Haf, haf,“ štěkal","fx":"pes-stekot","kdy":"pred"},
+      {"p":39,"at":"běžely děti, tleskaly a zpívaly","fx":"tleskani","kdy":"po"},
+      {"p":41,"at":"na prázdný džbánek","fx":"virbl","kdy":"pred"},
+      {"p":45,"at":"Gá, gá!","fx":"husa","kdy":"pred"},
+      {"p":47,"at":"„Hepčí!“","fx":"kychnuti","kdy":"pred"},
+      {"p":48,"at":"A pak se rozesmála tak","fx":"smich-deti","kdy":"po"},
+      {"p":49,"at":"žuchli na hromadu do trávy","fx":"bum-mekke","kdy":"po"},
+      {"p":53,"at":"smála se i zlatá husa","fx":"husa","kdy":"po"},
+      {"p":57,"at":"Za čas byla svatba","fx":"zvon","kdy":"po"}
+    ]
+  },
+  "proc-spime": {
+    "styl": "hvezdy",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":1,"at":"Ale to se nepočítá","fx":"zivnuti","kdy":"pred"},
+      {"p":5,"at":"velké světlo","fx":"vypinac","kdy":"pred"},
+      {"p":7,"at":"Slyšela jsem dobře?","fx":"sova","kdy":"pred"},
+      {"p":11,"at":"malé zlaté kukátko","fx":"trpyt","kdy":"po"},
+      {"p":13,"at":"Pak se kukátko stočilo k moři","fx":"vlny","kdy":"spolu"},
+      {"p":16,"at":"spokojeně oddechoval","fx":"chrapani","kdy":"po"},
+      {"p":19,"at":"spal ježek","fx":"jezek","kdy":"po"},
+      {"p":22,"at":"Spí s otevřenýma očima","fx":"bubliny","kdy":"po"},
+      {"p":26,"at":"Jako když se přes noc nabíjí baterka","fx":"pocitac","kdy":"po"},
+      {"p":29,"at":"Při tom uklízení","fx":"harfa","kdy":"pred"},
+      {"p":37,"at":"A já letím do práce","fx":"kridla-ptak","kdy":"po"}
+    ]
+  },
+  "prvni-den-ve-skolce": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":13,"id":"hriste"},{"od":45,"id":null}],
+    "fx": [
+      {"p":1,"at":"Za oknem už zpívali kosi","fx":"ptaci-zpev","kdy":"po"},
+      {"p":7,"at":"Potom se do batůžku balilo","fx":"zip","kdy":"po"},
+      {"p":9,"at":"Haf, haf, pozdravil","fx":"pejsek-stekot","kdy":"pred"},
+      {"p":14,"at":"Odněkud se ozýval smích","fx":"nadobi","kdy":"po"},
+      {"p":20,"at":"A dveře se zavřely","fx":"dvere-zavreni","kdy":"po"},
+      {"p":29,"at":"Celá se rozsypala","fx":"kostky-pad","kdy":"po"},
+      {"p":30,"at":"Smích je nakažlivý","fx":"smich-deti","kdy":"pred"},
+      {"p":34,"at":"Všichni u toho tleskali","fx":"tleskani","kdy":"po"},
+      {"p":35,"at":"Na lžíci připlavalo A","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":36,"at":"za oknem šuměl strom","fx":"listi","kdy":"spolu"},
+      {"p":39,"at":"A pak cinkl zvonek u dveří","fx":"zvonek-dvere","kdy":"po"}
+    ]
+  },
+  "pusa-vetrem": {
+    "styl": "klavir",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":8,"at":"Okno se pootevřelo","fx":"okno","kdy":"pred"},
+      {"p":11,"at":"Pořádná, mlaskavá","fx":"pusa","kdy":"po"},
+      {"p":12,"at":"A pusa letěla","fx":"vitr","kdy":"spolu"},
+      {"p":14,"at":"Nad lesem ji pozdravila sova","fx":"sova","kdy":"po"},
+      {"p":16,"at":"jako když dosedne motýl","fx":"kridla-vila","kdy":"po"},
+      {"p":18,"at":"otevřela ji k oknu a fffú","fx":"vitr","kdy":"po"},
+      {"p":20,"at":"Pusa přistála na","fx":"pusa","kdy":"pred"}
+    ]
+  },
+  "pyzamova-party": {
+    "styl": "ukolebavka",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":4,"at":"Jen na škvírku","fx":"dvere-zavreni","kdy":"pred"},
+      {"p":7,"at":"A pak se něco pohnulo","fx":"trpyt","kdy":"pred"},
+      {"p":8,"at":"Spí jako medvěd v zimě","fx":"medved","kdy":"po"},
+      {"p":13,"at":"Teda spíš puf","fx":"polstar","kdy":"po"},
+      {"p":14,"at":"Nejdřív přišla na řadu tichá diskotéka","fx":"hudebni-skrinka","kdy":"po"},
+      {"p":15,"at":"skákal do peřiny","fx":"perina","kdy":"po"},
+      {"p":18,"at":"A Bééla zdvořile upíjela","fx":"lzicka-hrnek","kdy":"pred"},
+      {"p":21,"at":"Rexík kýchl tak tiše","fx":"kychnuti","kdy":"pred"},
+      {"p":22,"at":"Pod peřinou se něco zavrtělo","fx":"postel-vrzani","kdy":"pred"},
+      {"p":30,"at":"Plyšáci obdivně vydechli","fx":"trpyt","kdy":"po"},
+      {"p":31,"at":"V předsíni tiše cinkly hodiny","fx":"hodiny-odbijeni","kdy":"pred"},
+      {"p":32,"at":"Jen Rexík pořád poskakoval","fx":"pruzina","kdy":"po"},
+      {"p":39,"at":"Brumla zívl a poslal zívnutí Béele","fx":"zivnuti","kdy":"pred"}
+    ]
+  },
+  "raketou-na-mesic": {
+    "styl": "vesmir",
+    "kulisa": [{"od":0,"id":null},{"od":13,"id":"vesmir"},{"od":71,"id":"noc-okno"}],
+    "fx": [
+      {"p":0,"at":"ležela veliká hromada krabic","fx":"krabice","kdy":"po"},
+      {"p":5,"at":"baterku, aby bylo v raketě světlo","fx":"baterka","kdy":"po"},
+      {"p":6,"at":"Ťuk na křídla, drží","fx":"kladivo","kdy":"pred"},
+      {"p":11,"at":"A začalo odpočítávání","fx":"pocitac","kdy":"pred"},
+      {"p":13,"at":"Krabice se zatřásla","fx":"raketa-start","kdy":"pred"},
+      {"p":15,"at":"holubi překvapeně zatřepali křídly","fx":"kridla-ptak","kdy":"po"},
+      {"p":16,"at":"zalil si boty","fx":"splouchnuti","kdy":"po"},
+      {"p":18,"at":"Kolem proletělo letadlo","fx":"letadlo","kdy":"spolu"},
+      {"p":19,"at":"posílá dolů na Zemi","fx":"robot-pipani","kdy":"pred"},
+      {"p":21,"at":"Všechno se vznáší jako bublinky","fx":"bubliny","kdy":"po"},
+      {"p":25,"at":"Kousek od rakety proplula kometa","fx":"padajici-hvezda","kdy":"po"},
+      {"p":28,"at":"dosedla na měsíční prach","fx":"bum-mekke","kdy":"po"},
+      {"p":31,"at":"Hop, a jsi nad kamenem","fx":"pruzina","kdy":"pred"},
+      {"p":43,"at":"anténky se maličko","fx":"cink","kdy":"po"},
+      {"p":46,"at":"místo předení tiše cinkala","fx":"zvonecky","kdy":"po"},
+      {"p":51,"at":"Celá obloha se třpytila","fx":"trpyt","kdy":"po"},
+      {"p":53,"at":"Blikovy anténky se rozsvítily","fx":"kouzlo","kdy":"po"},
+      {"p":54,"at":"zvolal Blik a radostí udělal kotrmelec","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":57,"at":"tleskal všema čtyřma ručičkama","fx":"tleskani","kdy":"po"},
+      {"p":58,"at":"Mlaskal, olizoval se","fx":"mlaskani","kdy":"pred"},
+      {"p":64,"at":"Raketa se zatřásla a vzlétla","fx":"raketa-start","kdy":"pred"},
+      {"p":71,"at":"tiše přistála na zahradě","fx":"bum-mekke","kdy":"po"},
+      {"p":74,"at":"se zívnutím","fx":"zivnuti","kdy":"po"},
+      {"p":75,"at":"Jednou, dvakrát.","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "robot-na-namesti": {
+    "styl": "hrdinove",
+    "kulisa": [{"od":0,"id":"namesti"},{"od":74,"id":null}],
+    "fx": [
+      {"p":2,"at":"z krabice vystoupil robot","fx":"robot-chuze","kdy":"po"},
+      {"p":4,"at":"Lidé tleskali.","fx":"tleskani","kdy":"pred"},
+      {"p":5,"at":"si sedl do louže","fx":"splouchnuti","kdy":"po"},
+      {"p":7,"at":"Pes byl nadšený.","fx":"pes-stekot","kdy":"pred"},
+      {"p":8,"at":"zdvořile pípl","fx":"robot-pipani","kdy":"po"},
+      {"p":9,"at":"nejlepší jízda jeho života","fx":"smich-deti","kdy":"po"},
+      {"p":10,"at":"vytáhl všechny dopisy","fx":"papir","kdy":"po"},
+      {"p":11,"at":"Kostelní zvon odbil dvanáct","fx":"zvon","kdy":"pred"},
+      {"p":13,"at":"pomalu zmodralo","fx":"xylofon-dolu","kdy":"po"},
+      {"p":15,"at":"hvězdou cinklo","fx":"cink","kdy":"po"},
+      {"p":19,"at":"Otřepal se a štěkl","fx":"pes-stekot","kdy":"po"},
+      {"p":20,"at":"Hvězdoplášť letí","fx":"fanfara","kdy":"po"},
+      {"p":38,"at":"Cink-cvak-cink","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":45,"at":"Šplouch. Kytky se napily.","fx":"splouchnuti","kdy":"pred"},
+      {"p":46,"at":"skákal radostí","fx":"pejsek-stekot","kdy":"po"},
+      {"p":48,"at":"napotřetí už pípl správně","fx":"robot-pipani","kdy":"po"},
+      {"p":52,"at":"Pomalu a opatrně, cvak","fx":"robot-chuze","kdy":"pred"},
+      {"p":59,"at":"spokojeně brnklo","fx":"trpyt","kdy":"po"},
+      {"p":63,"at":"zasadil celou řadu","fx":"zahrada-krtek","kdy":"po"},
+      {"p":70,"at":"rozsvítilo nádherně zeleně","fx":"kouzlo","kdy":"po"},
+      {"p":71,"at":"tiché, teplé brnknutí","fx":"harfa","kdy":"po"},
+      {"p":72,"at":"lampy se rozzářily","fx":"vypinac","kdy":"po"},
+      {"p":73,"at":"z oken tleskali","fx":"tleskani","kdy":"po"},
+      {"p":76,"at":"hrdě cvakl","fx":"robot-pipani","kdy":"po"}
+    ]
+  },
+  "rozbitky": {
+    "styl": "vanoce",
+    "kulisa": [{"od":0,"id":null},{"od":35,"id":"krb-vanoce"}],
+    "fx": [
+      {"p":0,"at":"je jasné, že se blíží Vánoce","fx":"rolnicky","kdy":"po"},
+      {"p":3,"at":"na stůl recepty","fx":"kniha","kdy":"po"},
+      {"p":6,"at":"Proto se nejdřív umyly ruce","fx":"kohoutek","kdy":"pred"},
+      {"p":9,"at":"Třetí rohlíček","fx":"orech","kdy":"po"},
+      {"p":18,"at":"nalepila cedulka","fx":"papir","kdy":"po"},
+      {"p":22,"at":"Mňam. Rozbitý rohlíček","fx":"mlaskani","kdy":"pred"},
+      {"p":24,"at":"Vykrajovátka cvakala","fx":"nadobi","kdy":"spolu"},
+      {"p":26,"at":"Prst se k ní pomaloučku blížil","fx":"kroky-plizeni","kdy":"pred"},
+      {"p":29,"at":"Smála se celá kuchyně","fx":"smich-deti","kdy":"pred"},
+      {"p":32,"at":"Jeden perníkový panáček ale přišel o nohu","fx":"orech","kdy":"po"},
+      {"p":37,"at":"Jako první zazvonila","fx":"zvonek-dvere","kdy":"pred"},
+      {"p":41,"at":"slavnostně prohlásila","fx":"fanfara","kdy":"po"},
+      {"p":53,"at":"kdy cinkl zvoneček","fx":"zvonecky","kdy":"po"}
+    ]
+  },
+  "rytir-bez-mece": {
+    "styl": "zamek",
+    "kulisa": [{"od":4,"id":"hrad"},{"od":17,"id":"les-den"},{"od":21,"id":null},{"od":64,"id":"hrad"}],
+    "fx": [
+      {"p":0,"at":"Po cestách se jezdilo na koních","fx":"kopyta","kdy":"po"},
+      {"p":2,"at":"neťuklo do hlavy","fx":"bum-mekke","kdy":"po"},
+      {"p":4,"at":"Vrz, vrz.","fx":"brneni","kdy":"pred"},
+      {"p":7,"at":"přicválal na hrádek posel","fx":"kopyta","kdy":"po"},
+      {"p":9,"at":"Hep… hep… HEPČÍ!","fx":"kychnuti","kdy":"po"},
+      {"p":16,"at":"až mu zavrzalo brnění","fx":"brneni","kdy":"po"},
+      {"p":18,"at":"Klap, klap, přes les","fx":"kopyta","kdy":"pred"},
+      {"p":19,"at":"nehnul se, dokud nedostal jablko","fx":"kun-rehtani","kdy":"po"},
+      {"p":25,"at":"Chrup, chrup.","fx":"kousnuti-jablko","kdy":"pred"},
+      {"p":26,"at":"až se zatřásly listy","fx":"listi","kdy":"po"},
+      {"p":42,"at":"u mlýna hučí kolo","fx":"mlyn-kolo","kdy":"po"},
+      {"p":43,"at":"Husy u toho kejhaly","fx":"husa","kdy":"po"},
+      {"p":44,"at":"U kovárny buší kladivo","fx":"kladivo","kdy":"po"},
+      {"p":57,"at":"odlomil z jabloně malou suchou větvičku","fx":"vetvicka","kdy":"po"},
+      {"p":59,"at":"Pasuji","fx":"fanfara","kdy":"po"},
+      {"p":62,"at":"spokojeně chroupal","fx":"mlaskani","kdy":"po"},
+      {"p":64,"at":"seděl rytíř Vilém u krbu","fx":"krb","kdy":"spolu"},
+      {"p":66,"at":"až mu vrzlo v zádech","fx":"brneni","kdy":"po"}
+    ]
+  },
+  "semafor-blikalek": {
+    "styl": "auto",
+    "kulisa": [{"od":0,"id":"mesto-den"},{"od":14,"id":"auto"},{"od":20,"id":null}],
+    "fx": [
+      {"p":4,"at":"U přechodu má Blikálek i tlačítko pro chodce","fx":"pocitac","kdy":"po"},
+      {"p":8,"at":"Pozor… červená!","fx":"pistalka","kdy":"po"},
+      {"p":10,"at":"A pak naskočil zelený panáček","fx":"semafor-pipani","kdy":"pred"},
+      {"p":16,"at":"Cvak, drží.","fx":"klic-zamek","kdy":"pred"},
+      {"p":18,"at":"Naskočila zelená a auto se rozjelo","fx":"auto-start","kdy":"spolu"},
+      {"p":20,"at":"Blik, blik.","fx":"blinkr","kdy":"spolu"}
+    ]
+  },
+  "seminko-nespechalo": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":null},{"od":20,"id":"noc-okno"}],
+    "fx": [
+      {"p":1,"at":"A trošku vody.","fx":"kapka","kdy":"po"},
+      {"p":4,"at":"s baterkou","fx":"baterka","kdy":"po"},
+      {"p":10,"at":"mokrý papírový ubrousek","fx":"papir","kdy":"po"},
+      {"p":13,"at":"praskla slupka","fx":"skorapka","kdy":"po"},
+      {"p":15,"at":"rozevřel dva lístky","fx":"trpyt","kdy":"po"},
+      {"p":20,"at":"Fazolka ve tmě složila lístky dolů","fx":"listi","kdy":"po"}
+    ]
+  },
+  "sipkova-ruzenka": {
+    "styl": "zamek",
+    "kulisa": [{"od":1,"id":"hrad"},{"od":44,"id":"noc-okno"}],
+    "fx": [
+      {"p":2,"at":"Z vody vyskočila žabka, kvákla","fx":"zaba","kdy":"po"},
+      {"p":5,"at":"Jedenáct darů","fx":"trpyt","kdy":"po"},
+      {"p":6,"at":"Vtom se rozletěly dveře.","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":9,"at":"Ale můžu to zjemnit.","fx":"kouzlo","kdy":"po"},
+      {"p":11,"at":"Vozy plné vřeten jely","fx":"kopyta","kdy":"spolu"},
+      {"p":18,"at":"Cvak.","fx":"klic-zamek","kdy":"pred"},
+      {"p":19,"at":"Kolečko se točilo, vrrr, vrrr","fx":"kolovratek","kdy":"spolu"},
+      {"p":22,"at":"A v tu ránu zívla","fx":"zivnuti","kdy":"po"},
+      {"p":26,"at":"A kolem zámku začal růst šípek","fx":"listi","kdy":"spolu"},
+      {"p":27,"at":"V trní hnízdili kosi a drozdi","fx":"ptaci-zpev","kdy":"po"},
+      {"p":29,"at":"Uplynul rok, deset let","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":32,"at":"A tu šípek rozkvetl.","fx":"trpyt","kdy":"po"},
+      {"p":33,"at":"procházel zámkem po špičkách","fx":"kroky-plizeni","kdy":"po"},
+      {"p":37,"at":"koně zařehtali","fx":"kun-rehtani","kdy":"po"}
+    ]
+  },
+  "snek-postak": {
+    "styl": "les",
+    "kulisa": [{"od":0,"id":"les-den"},{"od":21,"id":"les-noc"}],
+    "fx": [
+      {"p":2,"at":"Fíí, a byla na druhém konci lesa","fx":"svist","kdy":"pred"},
+      {"p":10,"at":"vyskočila Fofrnice","fx":"veverka","kdy":"po"},
+      {"p":16,"at":"dal razítko s nápisem","fx":"razitko","kdy":"po"},
+      {"p":17,"at":"Ve středu pršelo","fx":"dest-zacina","kdy":"spolu"},
+      {"p":18,"at":"Ty se ale vlečeš","fx":"vrana","kdy":"po"},
+      {"p":20,"at":"zaťukal ulitou na dveře","fx":"klepani","kdy":"po"},
+      {"p":22,"at":"S pozvánkou v tlapce","fx":"zaba","kdy":"po"},
+      {"p":23,"at":"Lucernička svítila do prázdna","fx":"cvrcek","kdy":"po"},
+      {"p":32,"at":"Fofrnice začichala","fx":"pes-funeni","kdy":"pred"},
+      {"p":35,"at":"běžela, až se jí ocas vlnil","fx":"svist","kdy":"po"},
+      {"p":37,"at":"myška se omluvila","fx":"mys-pipani","kdy":"po"},
+      {"p":38,"at":"Sova přiletěla moc ráda","fx":"sova","kdy":"po"},
+      {"p":40,"at":"Zajíc tleskal ze všech nejvíc","fx":"tleskani","kdy":"po"}
+    ]
+  },
+  "spaci-vlak": {
+    "styl": "ukolebavka",
+    "kulisa": [{"od":0,"id":"noc-okno"},{"od":11,"id":"vlak"},{"od":75,"id":"noc-okno"}],
+    "fx": [
+      {"p":3,"at":"Pak tiše cinkl zvoneček","fx":"zvonecky","kdy":"po"},
+      {"p":10,"at":"Cvak.","fx":"vypinac","kdy":"pred"},
+      {"p":13,"at":"Když se do ní člověk zabalil","fx":"perina","kdy":"pred"},
+      {"p":14,"at":"a vlak se rozjel","fx":"vlak-pisk","kdy":"po"},
+      {"p":15,"at":"Ťuky ťuk, ťuky ťuk","fx":"vlak-jizda","kdy":"spolu"},
+      {"p":16,"at":"jak si vítr v trávě zpívá","fx":"vitr","kdy":"po"},
+      {"p":18,"at":"Na lavičce tam seděl ježek","fx":"jezek","kdy":"po"},
+      {"p":26,"at":"Ježek spokojeně funěl","fx":"jezek","kdy":"po"},
+      {"p":31,"at":"hrnečky mléka s medem","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":36,"at":"Pod lampou čekala veverka","fx":"veverka","kdy":"po"},
+      {"p":42,"at":"Ježka přikryl dekou","fx":"perina","kdy":"po"},
+      {"p":44,"at":"houkala sova","fx":"sova","kdy":"po"},
+      {"p":45,"at":"Chrrr. Chrrr.","fx":"chrapani","kdy":"po"},
+      {"p":46,"at":"blikaly jako malé lampičky","fx":"trpyt","kdy":"po"},
+      {"p":53,"at":"Zajíček zívl tak velce","fx":"zivnuti","kdy":"po"},
+      {"p":59,"at":"až přestane kapat","fx":"kapka","kdy":"po"}
+    ]
+  },
+  "spani-u-babicky": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":null},{"od":12,"id":"statek"},{"od":22,"id":null},{"od":39,"id":"noc-okno"}],
+    "fx": [
+      {"p":7,"at":"Dědeček otevřel branku","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":9,"at":"na kamnech bublal hrnec","fx":"kase-bublani","kdy":"po"},
+      {"p":13,"at":"Šplouch na rajčata","fx":"splouchnuti","kdy":"pred"},
+      {"p":14,"at":"Ťuk, ťuk, ťuk.","fx":"kladivo","kdy":"pred"},
+      {"p":16,"at":"Slepice kdákaly","fx":"slepice","kdy":"pred"},
+      {"p":17,"at":"Hepčí!","fx":"kychnuti","kdy":"pred"},
+      {"p":21,"at":"Po večeři se koupalo","fx":"vana","kdy":"pred"},
+      {"p":26,"at":"Telefon chvíli vyzváněl","fx":"telefon","kdy":"pred"},
+      {"p":31,"at":"Mlask!","fx":"pusa","kdy":"pred"},
+      {"p":35,"at":"Načechrala ji, až se nafoukla","fx":"perina","kdy":"po"},
+      {"p":36,"at":"Na zdi tikaly staré hodiny","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":37,"at":"Dům občas zavrzal","fx":"postel-vrzani","kdy":"pred"},
+      {"p":38,"at":"vytáhl starou knížku s ohnutými rohy","fx":"kniha","kdy":"po"},
+      {"p":39,"at":"babička odhrnula záclonu","fx":"zaves","kdy":"pred"}
+    ]
+  },
+  "statecna-naplast": {
+    "styl": "klavir",
+    "kulisa": null,
+    "fx": [
+      {"p":0,"at":"Ve třetím šuplíku shora bydlí","fx":"suplik","kdy":"pred"},
+      {"p":2,"at":"se otevřely dveře ordinace","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":3,"at":"jako malý datel na stromě","fx":"datel","kdy":"po"},
+      {"p":6,"at":"Studené kolečko na hrudníčku","fx":"srdce","kdy":"pred"},
+      {"p":10,"at":"Autíčka, kytičky, rakety.","fx":"suplik","kdy":"pred"},
+      {"p":16,"at":"A bylo hotovo.","fx":"cink","kdy":"po"},
+      {"p":17,"at":"a držela! Napoprvé!","fx":"trpyt","kdy":"po"},
+      {"p":18,"at":"jako když zašustí papír","fx":"papir","kdy":"po"}
+    ]
+  },
+  "strazci-snu": {
+    "styl": "hvezdy",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":0,"at":"Jen sova na komíně","fx":"sova","kdy":"po"},
+      {"p":1,"at":"chodí po špičkách","fx":"kroky-plizeni","kdy":"po"},
+      {"p":3,"at":"Na okno někdo zaťukal","fx":"klepani","kdy":"pred"},
+      {"p":5,"at":"To už se totiž zdál sen","fx":"harfa","kdy":"pred"},
+      {"p":6,"at":"malou stříbrnou píšťalku","fx":"cink","kdy":"po"},
+      {"p":10,"at":"nad střechy","fx":"kridla-vila","kdy":"pred"},
+      {"p":13,"at":"Péťa se ve spánku převaloval","fx":"pes-knuceni","kdy":"po"},
+      {"p":17,"at":"Kýchl, protože ho to šimralo","fx":"kychnuti","kdy":"pred"},
+      {"p":18,"at":"Šedé okno se rozsvítilo zlatě","fx":"trpyt","kdy":"po"},
+      {"p":23,"at":"Ježci tleskali","fx":"tleskani","kdy":"po"},
+      {"p":24,"at":"A její okno se rozsvítilo zlatě","fx":"zvonecky","kdy":"po"},
+      {"p":25,"at":"Chrrr. Chrrr. CHRRR.","fx":"chrapani","kdy":"po"},
+      {"p":29,"at":"A třetí okno zezlátlo","fx":"trpyt","kdy":"po"},
+      {"p":32,"at":"vítr fičel","fx":"vitr","kdy":"spolu"},
+      {"p":35,"at":"Žbluňk!","fx":"splouchnuti","kdy":"pred"}
+    ]
+  },
+  "strom-ctyri-kabaty": {
+    "styl": "klavir",
+    "kulisa": null,
+    "fx": [
+      {"p":4,"at":"A bzučí, protože na návštěvu přiletěly včely","fx":"vcela","kdy":"pred"},
+      {"p":5,"at":"a zpívá u toho","fx":"ptaci-zpev","kdy":"po"},
+      {"p":7,"at":"A když zafoukal vítr","fx":"vitr","kdy":"spolu"},
+      {"p":8,"at":"Jabloň zašuměla","fx":"listi","kdy":"pred"},
+      {"p":13,"at":"Houpy hou, nahoru do listí","fx":"houpacka","kdy":"spolu"},
+      {"p":15,"at":"A když přišla letní bouřka","fx":"dest-zacina","kdy":"spolu"},
+      {"p":21,"at":"Jedno do košíku, jedno do pusy","fx":"kousnuti-jablko","kdy":"po"},
+      {"p":23,"at":"ďobe do nich zobákem","fx":"datel","kdy":"po"},
+      {"p":25,"at":"přišel ustlat ježek","fx":"jezek","kdy":"po"},
+      {"p":27,"at":"A pak přišla zima","fx":"vanice","kdy":"spolu"},
+      {"p":34,"at":"sýkorky z něj zobaly semínka","fx":"vrabci","kdy":"po"},
+      {"p":37,"at":"Ráno byly pod jabloní ve sněhu stopy","fx":"kroky-snih","kdy":"pred"}
+    ]
+  },
+  "stromecek-pro-ptacky": {
+    "styl": "vanoce-noc",
+    "kulisa": [{"od":0,"id":"snih-ticho"},{"od":12,"id":null},{"od":16,"id":"snih-ticho"}],
+    "fx": [
+      {"p":3,"at":"Po snídani se šlo ven","fx":"kroky-snih","kdy":"pred"},
+      {"p":4,"at":"jako malinká hvězdička","fx":"zvonecky","kdy":"po"},
+      {"p":6,"at":"Koule malá, koule větší","fx":"snih-pad","kdy":"po"},
+      {"p":8,"at":"třpytil se ozdobami","fx":"trpyt","kdy":"po"},
+      {"p":16,"at":"Pak se zdobilo","fx":"rolnicky","kdy":"pred"},
+      {"p":18,"at":"frr, frr!","fx":"kridla-ptak","kdy":"pred"},
+      {"p":19,"at":"čiřikali","fx":"vrabci","kdy":"po"}
+    ]
+  },
+  "sul-nad-zlato": {
+    "styl": "lidova",
+    "kulisa": [{"od":0,"id":null},{"od":6,"id":"hrad"},{"od":18,"id":"les-den"},{"od":20,"id":null},{"od":55,"id":"noc-okno"}],
+    "fx": [
+      {"p":5,"at":"dukáty počítal","fx":"mince","kdy":"po"},
+      {"p":17,"at":"zámeckou branou do světa","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":18,"at":"Ptáci zpívali","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":19,"at":"Na větvi seděla sova","fx":"sova","kdy":"po"},
+      {"p":20,"at":"U nohou jí předl černý kocour","fx":"kocka-predeni","kdy":"po"},
+      {"p":25,"at":"Stařenka předla na kolovrátku","fx":"kolovratek","kdy":"spolu"},
+      {"p":28,"at":"u kamen pod teplou houní","fx":"krb","kdy":"spolu"},
+      {"p":29,"at":"přiběhl kuchař celý bledý","fx":"kroky-beh","kdy":"pred"},
+      {"p":30,"at":"Jako by ji vítr odfoukl","fx":"vitr","kdy":"po"},
+      {"p":32,"at":"Král žvýkal, žvýkal","fx":"mlaskani","kdy":"po"},
+      {"p":34,"at":"Kravičky na pastvě smutně bučely","fx":"krava","kdy":"po"},
+      {"p":36,"at":"Poslové jeli na koních","fx":"kopyta","kdy":"spolu"},
+      {"p":39,"at":"Zlaté talíře, zlaté poháry","fx":"nadobi","kdy":"po"},
+      {"p":42,"at":"Celou noc nemohl spát","fx":"hodiny-odbijeni","kdy":"pred"},
+      {"p":45,"at":"kolem bublajícího potoka","fx":"potok","kdy":"spolu"},
+      {"p":46,"at":"všechny zvony na zámku se rozezněly","fx":"zvon","kdy":"po"},
+      {"p":50,"at":"v tu chvíli se stalo kouzlo","fx":"kouzlo","kdy":"po"}
+    ]
+  },
+  "super-uklid": {
+    "styl": "sranda",
+    "kulisa": null,
+    "fx": [
+      {"p":4,"at":"Hvězdoplášť letí!","fx":"fanfara","kdy":"po"},
+      {"p":6,"at":"ozvalo se zpod postele","fx":"smich-deti","kdy":"pred"},
+      {"p":8,"at":"pastelky rozsypal po koberci","fx":"xylofon-dolu","kdy":"po"},
+      {"p":11,"at":"Kachnička zapípala","fx":"hracka-pisk","kdy":"po"},
+      {"p":12,"at":"Hop! Vedle.","fx":"pruzina","kdy":"pred"},
+      {"p":16,"at":"přímo do krabice","fx":"cink","kdy":"po"},
+      {"p":17,"at":"A medvěd ze skříně přeletěl","fx":"svist","kdy":"pred"},
+      {"p":18,"at":"Brrm, brrm, parkujeme","fx":"auto-troubeni","kdy":"po"},
+      {"p":20,"at":"s velkým elegantním skokem","fx":"bum-mekke","kdy":"po"},
+      {"p":22,"at":"pod žlutou hvězdou to tiše cinklo","fx":"zvonecky","kdy":"po"}
+    ]
+  },
+  "superhrdina-laskavec": {
+    "styl": "hrdinove",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":8,"id":"hriste"},{"od":37,"id":null}],
+    "fx": [
+      {"p":1,"at":"V hrnku stydlo kakao","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":5,"at":"Po snídani vznik","fx":"nuzky","kdy":"po"},
+      {"p":6,"at":"jako když se rozsvítí lampička","fx":"cink","kdy":"po"},
+      {"p":8,"at":"bzučel jako raketa","fx":"svist","kdy":"po"},
+      {"p":9,"at":"srdce ví","fx":"fanfara","kdy":"po"},
+      {"p":15,"at":"Holčička se neusmála.","fx":"smutny-trombon","kdy":"po"},
+      {"p":21,"at":"až plášť zavlál","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":22,"at":"Kuba vyrazil jako blesk","fx":"kroky-beh","kdy":"po"},
+      {"p":31,"at":"celá a pyšná","fx":"tleskani","kdy":"po"},
+      {"p":32,"at":"jako když vrzne dveřní pant","fx":"dvere-vrzani","kdy":"po"},
+      {"p":35,"at":"bylo slyšet vrabce na plotě","fx":"vrabci","kdy":"po"},
+      {"p":36,"at":"slyšet na náměstí","fx":"fanfara","kdy":"po"},
+      {"p":43,"at":"Druhý den ráno někdo zazvonil.","fx":"zvonek-dvere","kdy":"pred"}
+    ]
+  },
+  "svetluska": {
+    "styl": "ukolebavka",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":0,"at":"cvrk, cvrk","fx":"cvrcek","kdy":"po"},
+      {"p":2,"at":"se rozsvěcovala malá světýlka","fx":"trpyt","kdy":"po"},
+      {"p":6,"at":"létala jedna úplně nejmenší","fx":"kridla-vila","kdy":"po"},
+      {"p":11,"at":"zablikaly a zajiskřily","fx":"zvonecky","kdy":"po"},
+      {"p":14,"at":"A blikla.","fx":"cink","kdy":"po"},
+      {"p":17,"at":"schovala se pod lísteček","fx":"listi","kdy":"po"},
+      {"p":18,"at":"zablikala docela hrdě","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "tablet-chtel-spat": {
+    "styl": "sranda",
+    "kulisa": null,
+    "fx": [
+      {"p":2,"at":"Zívání se načítá","fx":"pocitac","kdy":"pred"},
+      {"p":4,"at":"Já už nemůžu","fx":"robot-pipani","kdy":"po"},
+      {"p":5,"at":"Cupity, cupity","fx":"kroky-beh","kdy":"pred"},
+      {"p":7,"at":"Nic se nedá dělat","fx":"smutny-trombon","kdy":"po"},
+      {"p":10,"at":"Zato tam ležela stará krabice","fx":"krabice","kdy":"pred"},
+      {"p":11,"at":"Ta se zmenšila","fx":"zmenseni","kdy":"po"},
+      {"p":15,"at":"V lednici nebyl taky","fx":"lednice","kdy":"pred"},
+      {"p":20,"at":"Ve vaně seděla jen gumová kachna","fx":"hracka-pisk","kdy":"po"},
+      {"p":21,"at":"Fííí!","fx":"svist","kdy":"pred"},
+      {"p":22,"at":"Klika cvakla","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":23,"at":"Foukal vítr","fx":"vitr","kdy":"spolu"},
+      {"p":25,"at":"V trávě ležel míč","fx":"mic","kdy":"po"},
+      {"p":28,"at":"pes zamával ocasem","fx":"pes-stekot","kdy":"po"},
+      {"p":32,"at":"Trakař a trakař!","fx":"cink","kdy":"po"},
+      {"p":36,"at":"tiše oddechoval","fx":"chrapani","kdy":"po"},
+      {"p":44,"at":"Když zazvoní","fx":"budik","kdy":"pred"},
+      {"p":46,"at":"Ještě jednou bliklo zelené světýlko","fx":"pocitac","kdy":"pred"}
+    ]
+  },
+  "tajna-superschopnost": {
+    "styl": "hrdinove",
+    "kulisa": [{"od":0,"id":null},{"od":13,"id":"namesti"},{"od":41,"id":null}],
+    "fx": [
+      {"p":0,"at":"Venku foukal vítr","fx":"vitr","kdy":"spolu"},
+      {"p":1,"at":"v tu chvíli se otevřely dveře","fx":"dvere-vrzani","kdy":"po"},
+      {"p":7,"at":"Hvězdoplášť letí!","fx":"fanfara","kdy":"po"},
+      {"p":8,"at":"Plášť vlál jako vlajka","fx":"svist","kdy":"pred"},
+      {"p":9,"at":"Věž se zakývala a s rachotem spadla","fx":"kostky-pad","kdy":"po"},
+      {"p":14,"at":"přímo pod žlutou hvězdou, to tiše cinklo","fx":"cink","kdy":"po"},
+      {"p":21,"at":"tiché, teplé brnknutí","fx":"harfa","kdy":"po"},
+      {"p":25,"at":"U dětského hřiště to cinklo podruhé","fx":"zvonecky","kdy":"pred"},
+      {"p":27,"at":"Raz, dva, nahoru","fx":"houpacka","kdy":"spolu"},
+      {"p":30,"at":"když to cinklo znovu","fx":"cink","kdy":"po"},
+      {"p":31,"at":"Kňučel, přešlapoval","fx":"pes-knuceni","kdy":"pred"},
+      {"p":34,"at":"radostně štěkl","fx":"pejsek-stekot","kdy":"pred"},
+      {"p":35,"at":"Ale tentokrát úplně potichounku","fx":"trpyt","kdy":"po"},
+      {"p":44,"at":"Žlutá hvězda v šeru maličko svítila","fx":"kouzlo","kdy":"po"}
+    ]
+  },
+  "talir-pro-pocestneho": {
+    "styl": "vanoce",
+    "kulisa": "krb-vanoce",
+    "fx": [
+      {"p":3,"at":"Na plotně bublala rybí polévka","fx":"kase-bublani","kdy":"spolu"},
+      {"p":6,"at":"Na stůl přišel sváteční ubrus a na něj talíře","fx":"nadobi","kdy":"po"},
+      {"p":14,"at":"Sníh křupal pod botami","fx":"kroky-snih","kdy":"spolu"},
+      {"p":15,"at":"Škrt, škrt, škrtala lopata","fx":"lopata-snih","kdy":"pred"},
+      {"p":20,"at":"ptáčkům semínka","fx":"vrabci","kdy":"po"},
+      {"p":21,"at":"ulicí voněla smažená ryba","fx":"smazeni","kdy":"po"},
+      {"p":23,"at":"Jen kočka Mourka seděla za záclonou","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":27,"at":"do kuchyně","fx":"kroky-beh","kdy":"pred"},
+      {"p":31,"at":"Ťuk, ťuk, ťuk.","fx":"klepani","kdy":"pred"},
+      {"p":33,"at":"rozzářil se jako vánoční hvězda","fx":"trpyt","kdy":"po"},
+      {"p":38,"at":"Předla tak nahlas","fx":"kocka-predeni","kdy":"po"},
+      {"p":40,"at":"Rozbité chutnají nejlíp","fx":"mlaskani","kdy":"po"},
+      {"p":43,"at":"Najednou se z obýváku ozvalo cinknutí","fx":"zvonecky","kdy":"po"}
+    ]
+  },
+  "tovarna-v-brisku": {
+    "styl": "zvidave",
+    "kulisa": null,
+    "fx": [
+      {"p":2,"at":"Ham, polknout. Ham, polknout.","fx":"mlaskani","kdy":"po"},
+      {"p":3,"at":"Kruuuu. Blub. Kruuuu.","fx":"bricho-kruceni","kdy":"pred"},
+      {"p":4,"at":"Haló? Haló!","fx":"pocitac","kdy":"pred"},
+      {"p":9,"at":"Exkurze začíná… teď!","fx":"teleport","kdy":"po"},
+      {"p":11,"at":"A v hlavě se rozsvítila továrna","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":16,"at":"Klap!","fx":"dvere-zavreni","kdy":"pred"},
+      {"p":18,"at":"Šup, šup, šup.","fx":"xylofon-dolu","kdy":"po"},
+      {"p":20,"at":"z jídla hustá kaše","fx":"kase-bublani","kdy":"po"},
+      {"p":24,"at":"veliká bublina vzduchu","fx":"bricho-kruceni","kdy":"po"},
+      {"p":27,"at":"trávníčci zatleskali","fx":"tleskani","kdy":"po"},
+      {"p":34,"at":"odejde na záchod","fx":"splachnuti","kdy":"po"},
+      {"p":41,"at":"Ještě jedno malé zakručení.","fx":"bricho-kruceni","kdy":"po"},
+      {"p":44,"at":"jako kravička na pastvě","fx":"krava","kdy":"po"},
+      {"p":45,"at":"Sliny pracují!","fx":"cink","kdy":"po"},
+      {"p":48,"at":"jako kočka u kamen","fx":"kocka-predeni","kdy":"po"}
+    ]
+  },
+  "tri-zlate-vlasy": {
+    "styl": "lidova",
+    "kulisa": [{"od":1,"id":"potok"},{"od":16,"id":"les-den"},{"od":29,"id":null}],
+    "fx": [
+      {"p":1,"at":"Klap, klap, klap","fx":"mlyn-kolo","kdy":"pred"},
+      {"p":2,"at":"připlul k mlýnu po řece","fx":"splouchnuti","kdy":"po"},
+      {"p":5,"at":"krmit kachny","fx":"kachna","kdy":"po"},
+      {"p":17,"at":"Jednou je zastihl déšť","fx":"dest-zacina","kdy":"spolu"},
+      {"p":25,"at":"jen malý člun","fx":"splouchnuti","kdy":"po"},
+      {"p":29,"at":"Celý byl zlatý","fx":"trpyt","kdy":"po"},
+      {"p":32,"at":"Mávla vřetenem","fx":"kouzlo","kdy":"po"},
+      {"p":33,"at":"Dveře se otevřely","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":34,"at":"zívl a položil hlavu","fx":"zivnuti","kdy":"po"},
+      {"p":37,"at":"Cvrčci za pecí nastražili tykadla","fx":"cvrcek","kdy":"po"},
+      {"p":39,"at":"A usnul tak tvrdě","fx":"chrapani","kdy":"po"},
+      {"p":40,"at":"na celém světě začal nový den","fx":"kohout","kdy":"po"},
+      {"p":48,"at":"Sotva ropucha žbluňkla do vody","fx":"splouchnuti","kdy":"po"},
+      {"p":50,"at":"Jabloň se zachvěla, rozkvetla","fx":"kouzlo","kdy":"po"},
+      {"p":51,"at":"Rozsvítily celý trůnní sál.","fx":"trpyt","kdy":"po"},
+      {"p":54,"at":"už utíkal k řece","fx":"kroky-beh","kdy":"po"},
+      {"p":56,"at":"Byl volný!","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":58,"at":"Plaváček a princezna měli svatbu.","fx":"zvon","kdy":"po"}
+    ]
+  },
+  "utekla-pismenka": {
+    "styl": "zvidave",
+    "kulisa": null,
+    "fx": [
+      {"p":3,"at":"Stránky byly skoro prázdné","fx":"kniha","kdy":"pred"},
+      {"p":6,"at":"Vtom se pod postelí něco zašustilo","fx":"papir","kdy":"pred"},
+      {"p":8,"at":"Pod postelí pochodovala písmenka","fx":"kroky-plizeni","kdy":"spolu"},
+      {"p":12,"at":"Z bzučelo jako včela","fx":"vcela","kdy":"po"},
+      {"p":13,"at":"Tak to zní, když něco moc chutná","fx":"mlaskani","kdy":"pred"},
+      {"p":18,"at":"spadl z knížky","fx":"xylofon-dolu","kdy":"po"},
+      {"p":19,"at":"Háček si sedl na C","fx":"cink","kdy":"po"},
+      {"p":20,"at":"jako když někdo chrápe","fx":"chrapani","kdy":"po"},
+      {"p":22,"at":"v pokoji zavonělo jehličím","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":24,"at":"vrtěl ocasem","fx":"pes-stekot","kdy":"po"},
+      {"p":28,"at":"husami na návsi","fx":"husa","kdy":"po"},
+      {"p":39,"at":"Knížka zašustila","fx":"kniha","kdy":"pred"},
+      {"p":41,"at":"Myška na obrázku vyjekla","fx":"mys-pipani","kdy":"pred"},
+      {"p":43,"at":"Do nory! Přesně tak.","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":46,"at":"To je kouzlo čtení","fx":"kouzlo","kdy":"po"}
+    ]
+  },
+  "utekle-ovecky": {
+    "styl": "ukolebavka",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":3,"at":"celý udýchaný","fx":"pes-funeni","kdy":"po"},
+      {"p":8,"at":"Beee, ovečky, pojďte domů!","fx":"ovce","kdy":"po"},
+      {"p":9,"at":"Hop přes plůtek. Jedna.","fx":"pruzina","kdy":"pred"},
+      {"p":10,"at":"dělala, že je pěna","fx":"bubliny","kdy":"po"},
+      {"p":12,"at":"„Já jsem obláček,“ bečela","fx":"ovce","kdy":"po"},
+      {"p":15,"at":"chrrr, chrrr","fx":"chrapani","kdy":"po"},
+      {"p":16,"at":"Devátá jen zívla.","fx":"zivnuti","kdy":"po"},
+      {"p":18,"at":"čuchal pod postelí","fx":"pes-funeni","kdy":"po"},
+      {"p":21,"at":"se něco pohnulo pod peřinou","fx":"perina","kdy":"pred"},
+      {"p":24,"at":"Ovečka zívla.","fx":"zivnuti","kdy":"po"}
+    ]
+  },
+  "uz-tam-budem": {
+    "styl": "auto",
+    "kulisa": "auto",
+    "fx": [
+      {"p":0,"at":"auto vyjíždí","fx":"auto-start","kdy":"po"},
+      {"p":2,"at":"Cvak! Přihrádka se pootevřela","fx":"krabice","kdy":"pred"},
+      {"p":5,"at":"poklepala na batůžek","fx":"zip","kdy":"po"},
+      {"p":8,"at":"zahrajeme si na kufr","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":12,"at":"Ještěnka si na něj musí sednout","fx":"pruzina","kdy":"po"},
+      {"p":14,"at":"Až k moři.","fx":"vlny","kdy":"po"},
+      {"p":18,"at":"začněte v duchu počítat","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":19,"at":"Přesně deset vteřin.","fx":"cink","kdy":"po"},
+      {"p":27,"at":"to je přece kus auta","fx":"auto-troubeni","kdy":"po"},
+      {"p":32,"at":"hádej, kdo jsem","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":36,"at":"Slon! Výborně.","fx":"slon","kdy":"pred"},
+      {"p":38,"at":"Na dlouhé cestě se taky zastavuje","fx":"blinkr","kdy":"spolu"},
+      {"p":39,"at":"zívnout jako lev","fx":"lev","kdy":"po"},
+      {"p":43,"at":"Kolik hrnků by vypilo","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":44,"at":"Pátý korálek je navlečený","fx":"cink","kdy":"po"},
+      {"p":47,"at":"Připravit… vážně… teď!","fx":"virbl","kdy":"pred"},
+      {"p":48,"at":"Kdo se smál?","fx":"smich-deti","kdy":"pred"},
+      {"p":51,"at":"vymyslíme pohádku","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":53,"at":"Sedmý korálek.","fx":"zvonecky","kdy":"po"},
+      {"p":60,"at":"Pak Ještěnka zívla","fx":"zivnuti","kdy":"pred"},
+      {"p":63,"at":"Přihrádka se zavřela","fx":"dvere-zavreni","kdy":"pred"},
+      {"p":63,"at":"tiché chrupání","fx":"chrapani","kdy":"po"}
+    ]
+  },
+  "vcelka-medunka": {
+    "styl": "jaro",
+    "kulisa": [{"od":0,"id":"zahrada-den"},{"od":43,"id":null}],
+    "fx": [
+      {"p":0,"at":"Jednoho jarního rána","fx":"ptaci-zpev","kdy":"spolu"},
+      {"p":1,"at":"rovnou pod třešeň","fx":"kroky-beh","kdy":"po"},
+      {"p":2,"at":"Bzzz.","fx":"vcela","kdy":"pred"},
+      {"p":7,"at":"Fungovalo to!","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":14,"at":"pěkně rozmíchané","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":23,"at":"Kolem proletěl velký chlupatý brouk","fx":"cmelak","kdy":"po"},
+      {"p":30,"at":"zabzučela Medunka","fx":"vcela","kdy":"po"},
+      {"p":34,"at":"Vrt, vrt, oblouček.","fx":"pruzina","kdy":"pred"},
+      {"p":40,"at":"objevila cedulka","fx":"kladivo","kdy":"po"},
+      {"p":41,"at":"Bzzz!","fx":"vcela","kdy":"pred"},
+      {"p":43,"at":"Večer byl k čaji med.","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":45,"at":"tiše mává křídly","fx":"vcela","kdy":"spolu"}
+    ]
+  },
+  "velika-repa": {
+    "styl": "lidova",
+    "kulisa": "statek",
+    "fx": [
+      {"p":1,"at":"zasadil do hlíny malinké semínko","fx":"zahrada-krtek","kdy":"po"},
+      {"p":2,"at":"Rostla a rostla.","fx":"zvetseni","kdy":"pred"},
+      {"p":7,"at":"jako vítr","fx":"kroky-beh","kdy":"po"},
+      {"p":16,"at":"Pak přiběhl kocour Mourek.","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":19,"at":"A tu se ozvalo tenké pípnutí.","fx":"mys-pipani","kdy":"po"},
+      {"p":21,"at":"Raz… dva… tři!","fx":"virbl","kdy":"pred"},
+      {"p":23,"at":"a – PRÁSK!","fx":"zatka","kdy":"po"},
+      {"p":23,"at":"žuchli do trávy","fx":"bum-mekke","kdy":"po"},
+      {"p":24,"at":"Smáli se, až se za břicha popadali.","fx":"smich-deti","kdy":"po"},
+      {"p":27,"at":"táhnou… a PRÁSK!","fx":"zatka","kdy":"po"}
+    ]
+  },
+  "velryba-zpevacka": {
+    "styl": "voda",
+    "kulisa": [{"od":0,"id":null},{"od":4,"id":"more"},{"od":66,"id":"noc-okno"}],
+    "fx": [
+      {"p":3,"at":"Cink, ciri, cink.","fx":"velryba-zvonek","kdy":"po"},
+      {"p":4,"at":"kolem nebyl pokojíček","fx":"harfa","kdy":"pred"},
+      {"p":5,"at":"Kousek vpředu vystříkla","fx":"velryba-vydech","kdy":"pred"},
+      {"p":11,"at":"Hluboké, dlouhé a pomalé","fx":"velryba","kdy":"spolu"},
+      {"p":16,"at":"A zazpívala","fx":"velryba-zvonek","kdy":"po"},
+      {"p":18,"at":"Vyšlo z ní jen velké bublání","fx":"bubliny","kdy":"po"},
+      {"p":23,"at":"Kolem vyskakovaly létající ryby","fx":"ryba-plesk","kdy":"po"},
+      {"p":24,"at":"hvízdali na pozdrav","fx":"delfin","kdy":"po"},
+      {"p":26,"at":"dopadla zpátky","fx":"skok-do-vody","kdy":"pred"},
+      {"p":33,"at":"Tak hluboko a tak silně","fx":"velryba","kdy":"spolu"},
+      {"p":41,"at":"Šplouchání vln","fx":"vlny","kdy":"spolu"},
+      {"p":44,"at":"Plesk, plesk","fx":"splouchnuti","kdy":"pred"},
+      {"p":45,"at":"fňukal do vody malé bublinky","fx":"bubliny","kdy":"po"},
+      {"p":51,"at":"Zvonilka se zhluboka nadechla","fx":"velryba-zvonek","kdy":"po"},
+      {"p":57,"at":"dlouze a vděčně vydechla","fx":"velryba-vydech","kdy":"po"},
+      {"p":61,"at":"A zpíval ho i Hlubák","fx":"velryba-zvonek","kdy":"po"},
+      {"p":63,"at":"zamávala jím na rozloučenou","fx":"splouchnuti","kdy":"po"}
+    ]
+  },
+  "vila-rosicka": {
+    "styl": "hvezdy",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":2,"at":"Za oknem se totiž něco třpytilo","fx":"trpyt","kdy":"po"},
+      {"p":3,"at":"křidélka jako z mýdlové bubliny","fx":"kridla-vila","kdy":"po"},
+      {"p":8,"at":"Vítr mi dnes řekl","fx":"vitr","kdy":"pred"},
+      {"p":13,"at":"upletla malé stříbrné schůdky","fx":"kouzlo","kdy":"po"},
+      {"p":16,"at":"Jen cvrček cvrkal","fx":"cvrcek","kdy":"spolu"},
+      {"p":17,"at":"Kapičku na stéblo, kapičku na list.","fx":"kapka","kdy":"po"},
+      {"p":21,"at":"rozsvítila jedna malinká jiskřička","fx":"trpyt","kdy":"po"},
+      {"p":22,"at":"rozsvítila se druhá jiskřička","fx":"zvonecky","kdy":"po"},
+      {"p":23,"at":"rozsvítila se třetí jiskřička","fx":"trpyt","kdy":"po"},
+      {"p":24,"at":"„Děkuju,“ zacvrlikal.","fx":"cvrcek","kdy":"pred"},
+      {"p":29,"at":"v tu chvíli se Rosička rozzářila","fx":"kouzlo","kdy":"po"},
+      {"p":36,"at":"A odletěla.","fx":"kridla-vila","kdy":"po"},
+      {"p":37,"at":"pod peřinu","fx":"perina","kdy":"po"}
+    ]
+  },
+  "vylet-slunecni-soustavou": {
+    "styl": "vesmir",
+    "kulisa": [{"od":0,"id":"noc-okno"},{"od":11,"id":"vesmir"},{"od":56,"id":"noc-okno"}],
+    "fx": [
+      {"p":1,"at":"Vtom to nad střechou zahvízdalo","fx":"svist","kdy":"pred"},
+      {"p":2,"at":"Dvířka cvakla","fx":"klic-zamek","kdy":"po"},
+      {"p":3,"at":"řekl robot a uklonil se","fx":"robot-pipani","kdy":"pred"},
+      {"p":4,"at":"Kos na plotě přestal zpívat","fx":"ptaci-zpev","kdy":"pred"},
+      {"p":11,"at":"Pípal zmáčkl zelené tlačítko","fx":"raketa-start","kdy":"pred"},
+      {"p":13,"at":"zahlásil Pípal","fx":"pocitac","kdy":"pred"},
+      {"p":15,"at":"stáhl na okénka tmavé clony","fx":"zaves","kdy":"po"},
+      {"p":21,"at":"Kontrolky ani nemrkly","fx":"smutny-trombon","kdy":"po"},
+      {"p":28,"at":"fotilo kámen","fx":"robot-chuze","kdy":"po"},
+      {"p":30,"at":"První kontrolka bliknula","fx":"pocitac","kdy":"po"},
+      {"p":32,"at":"Pípal mezi nimi kličkoval","fx":"svist","kdy":"pred"},
+      {"p":35,"at":"A deka padala, a padala","fx":"zmenseni","kdy":"po"},
+      {"p":42,"at":"zamotala se Pípalovi kolem anténky","fx":"pruzina","kdy":"po"},
+      {"p":45,"at":"Na Neptunu foukají nejsilnější větry","fx":"vitr","kdy":"spolu"},
+      {"p":48,"at":"anténka mu smutně poklesla","fx":"xylofon-dolu","kdy":"po"},
+      {"p":54,"at":"rozsvítila první kontrolka","fx":"cink","kdy":"pred"},
+      {"p":55,"at":"radoval se Pípal","fx":"robot-pipani","kdy":"pred"},
+      {"p":56,"at":"Raketa tiše dosedla na zahradu","fx":"bum-mekke","kdy":"po"},
+      {"p":61,"at":"zmizela mezi hvězdami","fx":"padajici-hvezda","kdy":"po"}
+    ]
+  },
+  "vyprava": {
+    "styl": "les",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":2,"id":"auto"},{"od":3,"id":"les-den"}],
+    "fx": [
+      {"p":0,"at":"dnes se jede na výpravu","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":2,"at":"Bylo jich sedmnáct a půl","fx":"krava","kdy":"po"},
+      {"p":3,"at":"ležel zmuchlaný papírek","fx":"papir","kdy":"po"},
+      {"p":4,"at":"přes kořeny, kolem pařezu","fx":"kroky-listi","kdy":"spolu"},
+      {"p":5,"at":"Uvnitř stromu seděla veverka","fx":"veverka","kdy":"pred"},
+      {"p":6,"at":"Tak to je ten poklad","fx":"trpyt","kdy":"pred"}
+    ]
+  },
+  "vztekloun": {
+    "styl": "domov",
+    "kulisa": [{"od":0,"id":null},{"od":21,"id":"hriste"},{"od":32,"id":null}],
+    "fx": [
+      {"p":1,"at":"tiše chrupe","fx":"chrapani","kdy":"po"},
+      {"p":5,"at":"bouchla do dveří","fx":"bum-mekke","kdy":"po"},
+      {"p":6,"at":"trochu povyrostl","fx":"zvetseni","kdy":"po"},
+      {"p":9,"at":"vykoukl druhý Vztekloun","fx":"pruzina","kdy":"po"},
+      {"p":18,"at":"A Vztekloun se začal zmenšovat","fx":"zmenseni","kdy":"pred"},
+      {"p":19,"at":"Fungovalo to!","fx":"cink","kdy":"po"},
+      {"p":22,"at":"Z hradu zůstala hromádka písku","fx":"bum-mekke","kdy":"pred"},
+      {"p":28,"at":"Vztekloun zívl","fx":"zivnuti","kdy":"po"},
+      {"p":31,"at":"smáli se u toho všichni","fx":"smich-deti","kdy":"po"},
+      {"p":34,"at":"Velký jako skříň!","fx":"zvetseni","kdy":"po"},
+      {"p":35,"at":"nemohl ani dopředu, ani dozadu","fx":"smutny-trombon","kdy":"po"},
+      {"p":42,"at":"Pak udělal pfff","fx":"zmenseni","kdy":"pred"},
+      {"p":43,"at":"Kachničky volaly o pomoc","fx":"kachna","kdy":"po"}
+    ]
+  },
+  "zachrana-zviratka": {
+    "styl": "hrdinove",
+    "kulisa": "potok",
+    "fx": [
+      {"p":0,"at":"vítr si hrál s listím","fx":"vitr","kdy":"spolu"},
+      {"p":2,"at":"U potoka to najednou cinklo","fx":"zvonecky","kdy":"pred"},
+      {"p":7,"at":"Šplouch sem, šplouch tam","fx":"splouchnuti","kdy":"pred"},
+      {"p":11,"at":"Hvězdoplášť letí!","fx":"fanfara","kdy":"po"},
+      {"p":13,"at":"Nápad!","fx":"cink","kdy":"po"},
+      {"p":15,"at":"Společnými silami fošnu opatrně posunuli","fx":"prkno","kdy":"po"},
+      {"p":16,"at":"Teď byl most měkký","fx":"perina","kdy":"pred"},
+      {"p":18,"at":"Bylo na břehu","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":22,"at":"Vtom zašustilo křoví","fx":"listi","kdy":"pred"},
+      {"p":24,"at":"teplé brnknutí","fx":"harfa","kdy":"po"}
+    ]
+  },
+  "zajicek-malir": {
+    "styl": "jaro",
+    "kulisa": [{"od":0,"id":"jaro-rano"},{"od":4,"id":"noc-okno"}],
+    "fx": [
+      {"p":0,"at":"na střeše ozval kos","fx":"ptaci-zpev","kdy":"po"},
+      {"p":3,"at":"Vajíčka mu nosí slepičky","fx":"slepice","kdy":"po"},
+      {"p":13,"at":"Kaňka. Hadřík. A znovu","fx":"psani","kdy":"spolu"},
+      {"p":20,"at":"A pak plác!","fx":"kapka","kdy":"pred"},
+      {"p":25,"at":"proměnila v to nejhezčí","fx":"trpyt","kdy":"po"},
+      {"p":27,"at":"Kaňka je… začátek!","fx":"cink","kdy":"po"},
+      {"p":29,"at":"Pak se míchaly barvy","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":31,"at":"Voda v něm byla hnědá jako čaj","fx":"kase-bublani","kdy":"po"},
+      {"p":35,"at":"Barva potřebuje čas","fx":"hodiny-tikani","kdy":"pred"},
+      {"p":37,"at":"Z rybníka za zahradou","fx":"zaba","kdy":"pred"},
+      {"p":38,"at":"Vajíčko vyjelo z hrnce","fx":"splouchnuti","kdy":"po"},
+      {"p":42,"at":"Ani dvě nebyla stejná","fx":"zvonecky","kdy":"po"}
+    ]
+  },
+  "zelena-hlidka": {
+    "styl": "hrdinove",
+    "kulisa": [{"od":3,"id":"potok"},{"od":50,"id":null},{"od":61,"id":"potok"}],
+    "fx": [
+      {"p":11,"at":"Zelená hlídka vyráží!","fx":"fanfara","kdy":"po"},
+      {"p":16,"at":"tiché kuňkání","fx":"zaba","kdy":"pred"},
+      {"p":17,"at":"byla zpátky ve vodě","fx":"splouchnuti","kdy":"po"},
+      {"p":20,"at":"zafuněla","fx":"medved","kdy":"po"},
+      {"p":30,"at":"Lahev se nejdřív sešlápne","fx":"lahev-seslapnuti","kdy":"po"},
+      {"p":32,"at":"Modrá je na papír","fx":"papir","kdy":"po"},
+      {"p":34,"at":"Zelená je na sklo","fx":"nadobi","kdy":"po"},
+      {"p":36,"at":"v kompostu stane hlína","fx":"zahrada-krtek","kdy":"po"},
+      {"p":37,"at":"A teď chyták!","fx":"virbl","kdy":"pred"},
+      {"p":42,"at":"byl Haraburďák menší a lehčí","fx":"zmenseni","kdy":"po"},
+      {"p":48,"at":"a kelímek vyletěl ven","fx":"vitr","kdy":"pred"},
+      {"p":50,"at":"psala dopis","fx":"psani","kdy":"po"},
+      {"p":52,"at":"si dopis přečetl dvakrát","fx":"papir","kdy":"pred"},
+      {"p":54,"at":"nový koš s pevným víkem","fx":"xylofon-nahoru","kdy":"po"},
+      {"p":56,"at":"zmizelo ve žlutém kontejneru","fx":"pruzina","kdy":"po"},
+      {"p":57,"at":"odvezla auta na tříděný odpad","fx":"auto-start","kdy":"pred"},
+      {"p":58,"at":"zatloukla do země cedulku","fx":"kladivo","kdy":"po"},
+      {"p":60,"at":"Ruce voněly mýdlem","fx":"kohoutek","kdy":"pred"},
+      {"p":61,"at":"mihl se tam modrý blesk","fx":"kridla-ptak","kdy":"po"}
+    ]
+  },
+  "zlata-rybka": {
+    "styl": "lidova",
+    "kulisa": "more",
+    "fx": [
+      {"p":4,"at":"racky na kůlech u mola","fx":"racek","kdy":"po"},
+      {"p":5,"at":"něco se v síti zatřpytilo","fx":"trpyt","kdy":"po"},
+      {"p":6,"at":"V síti se mrskala malá rybka","fx":"ryba-plesk","kdy":"pred"},
+      {"p":10,"at":"zmizela ve vlnách","fx":"splouchnuti","kdy":"po"},
+      {"p":14,"at":"Z vln vykoukla zlatá hlavička","fx":"zvonecky","kdy":"pred"},
+      {"p":15,"at":"Před chaloupkou stály úplně nové necky","fx":"kouzlo","kdy":"pred"},
+      {"p":18,"at":"Na místě staré chaloupky stál nový dům","fx":"pufnuti","kdy":"pred"},
+      {"p":22,"at":"Moře bylo šedé a neklidné","fx":"vlny","kdy":"spolu"},
+      {"p":23,"at":"Doma stál zámek","fx":"kouzlo","kdy":"pred"},
+      {"p":27,"at":"Tentokrát bylo moře tmavé a vítr hvízdal","fx":"vitr","kdy":"spolu"},
+      {"p":35,"at":"Jen máchla ocáskem","fx":"ryba-plesk","kdy":"po"}
+    ]
+  },
+  "zlate-prasatko": {
+    "styl": "vanoce",
+    "kulisa": "krb-vanoce",
+    "fx": [
+      {"p":4,"at":"jen v kuchyni cinkalo nádobí","fx":"nadobi","kdy":"po"},
+      {"p":16,"at":"skořápka praskne","fx":"skorapka","kdy":"pred"},
+      {"p":21,"at":"Rozpustil se na jazyku","fx":"mlaskani","kdy":"pred"},
+      {"p":23,"at":"Kruč, kruč, zakručelo v bříšku","fx":"bricho-kruceni","kdy":"pred"},
+      {"p":24,"at":"hrst vlašských ořechů","fx":"orech","kdy":"po"},
+      {"p":26,"at":"Nahoru na špičku přišla hvězda","fx":"trpyt","kdy":"po"},
+      {"p":30,"at":"Venku sníh křupal pod botami","fx":"kroky-snih","kdy":"pred"},
+      {"p":32,"at":"padaly kapky do sněhu","fx":"kapka","kdy":"pred"},
+      {"p":36,"at":"Sýkorky hned přiletěly","fx":"vrabci","kdy":"po"},
+      {"p":37,"at":"Hodiny na stěně tikaly","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":44,"at":"Z kuchyně mezitím začalo syčet","fx":"smazeni","kdy":"spolu"},
+      {"p":45,"at":"Kruč, kruč, ozvalo se zase","fx":"bricho-kruceni","kdy":"pred"},
+      {"p":47,"at":"Bílý ubrus, sváteční talíře","fx":"nadobi","kdy":"pred"},
+      {"p":50,"at":"Malá, třpytivá","fx":"trpyt","kdy":"pred"},
+      {"p":56,"at":"A pak se zhasnulo velké světlo","fx":"vypinac","kdy":"pred"},
+      {"p":57,"at":"Po stěně přeběhlo něco malého a zlatého","fx":"zvonecky","kdy":"pred"}
+    ]
+  },
+  "zlatovlaska": {
+    "styl": "lidova",
+    "kulisa": [{"od":0,"id":"hrad"},{"od":16,"id":"les-den"},{"od":29,"id":"more"},{"od":34,"id":null}],
+    "fx": [
+      {"p":2,"at":"lovil v kuchyni myši","fx":"mys-pipani","kdy":"po"},
+      {"p":4,"at":"kousíček ploutvičky","fx":"kouzlo","kdy":"po"},
+      {"p":5,"at":"Za oknem se hádali dva vrabci","fx":"vrabci","kdy":"pred"},
+      {"p":8,"at":"Poklice zase cinkla","fx":"nadobi","kdy":"po"},
+      {"p":9,"at":"přiletěla k oknu holubička","fx":"kridla-ptak","kdy":"pred"},
+      {"p":15,"at":"osedlal nejrychlejšího koně","fx":"kun-rehtani","kdy":"po"},
+      {"p":16,"at":"Kůň klusal po cestě","fx":"kopyta","kdy":"spolu"},
+      {"p":18,"at":"U cesty doutnal starý pařez","fx":"ohen","kdy":"spolu"},
+      {"p":20,"at":"Pšššš!","fx":"splouchnuti","kdy":"pred"},
+      {"p":23,"at":"pípala dvě malá havraňátka","fx":"kurata","kdy":"pred"},
+      {"p":27,"at":"Vtom se přiřítili havraní rodiče","fx":"vrana","kdy":"pred"},
+      {"p":32,"at":"Rybka se zablýskla","fx":"ryba-plesk","kdy":"pred"},
+      {"p":34,"at":"cinkala ve větru jako zvoneček","fx":"zvonecky","kdy":"po"},
+      {"p":40,"at":"A v trávě to zašustilo","fx":"listi","kdy":"pred"},
+      {"p":44,"at":"Vtom se z vody vynořila zlatá rybka","fx":"bubliny","kdy":"pred"},
+      {"p":50,"at":"nad hlavou zašuměla křídla","fx":"kridla-ptak","kdy":"pred"},
+      {"p":52,"at":"keř se zazelenal","fx":"kouzlo","kdy":"po"},
+      {"p":55,"at":"Otevřely se dveře","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":56,"at":"V sále bylo slyšet jen tikání","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":58,"at":"Vtom kolem ucha zabzučela moucha","fx":"moucha","kdy":"pred"},
+      {"p":60,"at":"Celý sál se rozzářil","fx":"trpyt","kdy":"po"},
+      {"p":62,"at":"„No konečně,“ zamňoukal.","fx":"kocka-mnoukani","kdy":"po"},
+      {"p":67,"at":"A začal se zmenšovat","fx":"zmenseni","kdy":"po"},
+      {"p":68,"at":"malý král rozesmál","fx":"smich-deti","kdy":"po"},
+      {"p":73,"at":"zahouká sova nebo zacvrliká vrabec","fx":"sova","kdy":"po"}
+    ]
+  },
+  "zmrzlinovy-dest": {
+    "styl": "sranda",
+    "kulisa": [{"od":0,"id":"mesto-den"},{"od":43,"id":null}],
+    "fx": [
+      {"p":3,"at":"Pak udělal „blob“.","fx":"kapka","kdy":"pred"},
+      {"p":4,"at":"Plop, plop, plop!","fx":"zmrzlina-plop","kdy":"pred"},
+      {"p":7,"at":"Plesk!","fx":"bum-mekke","kdy":"pred"},
+      {"p":9,"at":"Hap! Hap!","fx":"pes-stekot","kdy":"po"},
+      {"p":12,"at":"Mňam!","fx":"mlaskani","kdy":"pred"},
+      {"p":14,"at":"sjel po ní jako po skluzavce","fx":"skluzavka","kdy":"po"},
+      {"p":15,"at":"odmítla odejít","fx":"kachna","kdy":"po"},
+      {"p":17,"at":"Přijeli i hasiči","fx":"sirena","kdy":"pred"},
+      {"p":20,"at":"budeme plavat jako lentilky","fx":"smutny-trombon","kdy":"po"},
+      {"p":22,"at":"Pak to přišlo. Nápad!","fx":"cink","kdy":"pred"},
+      {"p":23,"at":"Hrnky, misky, kastroly","fx":"nadobi","kdy":"po"},
+      {"p":27,"at":"spokojeně zakejhala","fx":"kachna","kdy":"po"},
+      {"p":28,"at":"Vrabci zobali drobečky","fx":"vrabci","kdy":"po"},
+      {"p":30,"at":"zatleskali lepkavýma rukama","fx":"tleskani","kdy":"po"},
+      {"p":32,"at":"Lidé přijížděli na kolech","fx":"kolo-zvonek","kdy":"pred"},
+      {"p":33,"at":"Mrazáky v celé obci se plnily","fx":"lednice","kdy":"po"},
+      {"p":37,"at":"mrak nad obcí najednou zakručel","fx":"hrom","kdy":"po"},
+      {"p":38,"at":"rozzářila duha","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "ztracene-souhvezdi": {
+    "styl": "hvezdy",
+    "kulisa": "noc-okno",
+    "fx": [
+      {"p":6,"at":"Vtom na plot usedla sova","fx":"kridla-ptak","kdy":"pred"},
+      {"p":7,"at":"„Hú, hú, dobrý večer,“","fx":"sova","kdy":"pred"},
+      {"p":8,"at":"Zpod křídla vytáhla malý sešit","fx":"kniha","kdy":"po"},
+      {"p":9,"at":"Za sovou se na plot vyškrábala","fx":"kurata","kdy":"po"},
+      {"p":14,"at":"Udělala na nebi čárku a zmizela","fx":"padajici-hvezda","kdy":"po"},
+      {"p":20,"at":"Hvězdy se pohnuly!","fx":"cink","kdy":"po"},
+      {"p":28,"at":"Sova zatleskala křídly","fx":"kridla-ptak","kdy":"po"},
+      {"p":30,"at":"vítr si tiše pobrukuje","fx":"vitr","kdy":"po"},
+      {"p":31,"at":"někde daleko štěkl pes","fx":"pes-stekot","kdy":"po"},
+      {"p":32,"at":"poprosila, ať baterku zhasnou","fx":"baterka","kdy":"po"},
+      {"p":35,"at":"přidupal ježek","fx":"jezek","kdy":"po"},
+      {"p":38,"at":"houkala sovíčata","fx":"sova","kdy":"po"},
+      {"p":46,"at":"přesně na Polárce","fx":"trpyt","kdy":"po"},
+      {"p":53,"at":"přetáhli ještě jednu","fx":"perina","kdy":"po"},
+      {"p":55,"at":"tiše zahoukala ukolébavku","fx":"sova","kdy":"po"}
+    ]
+  },
+  "ztraceny-v-obchode": {
+    "styl": "domov",
+    "kulisa": [{"od":0,"id":"obchod"},{"od":27,"id":null}],
+    "fx": [
+      {"p":0,"at":"vozíky cinkaly jako tramvaje","fx":"nakupni-vozik","kdy":"po"},
+      {"p":7,"at":"Bum, bum, bum.","fx":"srdce","kdy":"po"},
+      {"p":8,"at":"v hlavě ozvalo: Socha!","fx":"pistalka","kdy":"po"},
+      {"p":15,"at":"píp, píp, píp","fx":"kasa","kdy":"po"},
+      {"p":20,"at":"Paní Jarmila vzala mikrofon","fx":"rozhlas-gong","kdy":"pred"},
+      {"p":21,"at":"Uličkou se přiřítil ten známý vozík","fx":"nakupni-vozik","kdy":"pred"},
+      {"p":22,"at":"Objetí bylo pevné a dlouhé","fx":"pusa","kdy":"po"},
+      {"p":26,"at":"Píp, píp, píp.","fx":"kasa","kdy":"po"}
+    ]
+  },
+  "zubar": {
+    "styl": "klavir",
+    "kulisa": [{"od":0,"id":"domov-rano"},{"od":2,"id":null}],
+    "fx": [
+      {"p":1,"at":"Šup nahoru, šup dolů","fx":"cisteni-zubu","kdy":"spolu"},
+      {"p":3,"at":"ozvala se sestřička s úsměvem","fx":"dvere-vrzani","kdy":"pred"},
+      {"p":4,"at":"Zvedalo se nahoru","fx":"kreslo-zubar","kdy":"pred"},
+      {"p":5,"at":"To je ale krásná sbírka.","fx":"cink","kdy":"po"},
+      {"p":7,"at":"samolepku se lvem","fx":"trpyt","kdy":"po"}
+    ]
+  },
+  "zviratka-o-pulnoci": {
+    "styl": "vanoce-noc",
+    "kulisa": [{"od":0,"id":"krb-vanoce"},{"od":13,"id":"snih-ticho"},{"od":31,"id":"krb-vanoce"},{"od":53,"id":"snih-ticho"}],
+    "fx": [
+      {"p":2,"at":"tiše bublala rybí polévka","fx":"kase-bublani","kdy":"po"},
+      {"p":11,"at":"skleněné koule cinkaly o sebe","fx":"trpyt","kdy":"po"},
+      {"p":16,"at":"Sníh pod botami křupal","fx":"kroky-snih","kdy":"pred"},
+      {"p":21,"at":"něco ťukalo","fx":"datel","kdy":"po"},
+      {"p":30,"at":"seděla vrána a krákala","fx":"vrana","kdy":"po"},
+      {"p":31,"at":"hrnek horkého čaje s medem","fx":"lzicka-hrnek","kdy":"po"},
+      {"p":36,"at":"lojovou kouli pro sýkorky","fx":"vrabci","kdy":"po"},
+      {"p":37,"at":"shodila na ně trochu sněhu","fx":"snih-pad","kdy":"po"},
+      {"p":38,"at":"ozval zvoneček","fx":"zvonecky","kdy":"pred"},
+      {"p":40,"at":"Hodiny na stěně tikaly","fx":"hodiny-tikani","kdy":"spolu"},
+      {"p":41,"at":"Dárky se rozbalovaly","fx":"darek","kdy":"spolu"},
+      {"p":47,"at":"jenže taky zíval","fx":"zivnuti","kdy":"po"},
+      {"p":52,"at":"a pak už bylo jen ticho","fx":"harfa","kdy":"po"},
+      {"p":53,"at":"Z dálky z vesnice odbíjely zvony","fx":"zvon","kdy":"po"},
+      {"p":54,"at":"slétly sýkorky","fx":"kridla-ptak","kdy":"po"},
+      {"p":56,"at":"s plnou pusou","fx":"mlaskani","kdy":"po"},
+      {"p":57,"at":"zacvrlikala sýkorka","fx":"ptaci-zpev","kdy":"po"},
+      {"p":59,"at":"chlubila se veverka","fx":"veverka","kdy":"po"}
+    ]
+  }
+}
