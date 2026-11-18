@@ -384,8 +384,8 @@ const screens = {
       <button class="icon-btn" data-a="back" aria-label="Zpět">${I.close}</button>
     </div>
     <p class="note" style="margin:-8px 0 4px">Tohle všechno Ospalek používá v pohádkách.</p>
-    <div class="section-t">Děti</div>${peopleList('child')}
-    <div class="section-t">Rodiče a blízcí</div>${peopleList('parent')}
+    <div class="section-t">Hlavní hrdinové <span class="hint">– děti, o kterých pohádky jsou</span></div>${peopleList('child')}
+    <div class="section-t">Další postavy <span class="hint">– rodina a mazlíčci, kteří v pohádkách hrdinům pomáhají</span></div>${peopleList('parent')}
     <div class="section-t">Kde bydlíte</div>
     <div class="person"><div class="av mint">${I.home}</div><div class="nm"><b>${esc(S.family.home.town || 'Nevyplněno')}</b><span>${esc([...S.family.home.near, ...S.family.home.attr].join(', ') || 'Bez míst v okolí')}</span></div><button class="btn small ghost" data-a="editHome">Upravit</button></div>`,
 
@@ -484,7 +484,7 @@ function peopleList(kind) {
     <div class="person">
       ${avatar(p, kind, i)}
       <div class="nm"><b>${esc(kind === 'child' ? p.forms.nom : ROLES[p.role].label + (p.name ? ' ' + p.forms.nom : ''))}</b>
-      <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : inStories(p) ? 'v pohádkách: „' + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“' : 'do pohádek zatím ne'}</span></div>
+      <span>${kind === 'child' ? `${yrs(p.age)} · ${esc(p.food || '—')} · ${esc(p.animal || '—')}` : (inStories(p) ? 'v pohádkách: „' : 'v některých pohádkách: „') + esc(ROLES[p.role].forms.nom + (p.name ? ' ' + p.forms.nom : '')) + '“'}</span></div>
       <button class="btn small ghost" data-a="editPerson" data-kind="${kind}" data-id="${p.id}">Upravit</button>
     </div>`).join('')}</div>
     ${arr.length < (kind === 'child' ? kidsMax() : LIMIT.parents)
@@ -724,7 +724,9 @@ function personSheet(kind, id) {
 function roleNote(role) {
   const r = ROLES[role];
   return r.only
-    ? `${r.label} bude u vás v Rodině. Do pohádek sourozence a mazlíčky zatím nepřidáváme, chystáme to.`
+    ? (r.g && (role === 'bratr' || role === 'sestra')
+      ? `${r.label} se objeví v pohádkách, kde má hrdina sourozence. Hlavní hrdinové jsou jen děti nahoře v Rodině: když mají být pohádky i o ${role === 'bratr' ? 'něm' : 'ní'}, přidejte ${role === 'bratr' ? 'ho' : 'ji'} tam.`
+      : `${r.label} se objeví v pohádkách, kde má rodina zvířátko.`)
     : `V pohádce pak zazní třeba „${r.forms.nom} Petra“. Bez jména jen „${r.forms.nom}“.`.replace('Petra', r.g === 'f' ? 'Petra' : 'Honza');
 }
 function editGender() { return ui.edit.kind === 'child' ? ui.edit.gender || 'm' : ROLES[ui.edit.role].g; }
