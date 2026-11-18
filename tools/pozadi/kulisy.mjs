@@ -1,0 +1,33 @@
+// Kulisy (ruchy prostředí, smyčky 30 s v audio/pozadi/): id prostředí → [popis, soubor nebo zadání pro generátor].
+// Hotové smyčky vznikly pro konkrétní pohádku (soubor <pohádka>-kulisa.mp3), nové mají vlastní jméno.
+export default {
+  'noc-okno': ['letní noc za oknem, cvrčci', 'hvezdicka-kulisa.mp3'],
+  'les-den': ['les ve dne, ptáci, potůček', 'vyprava-kulisa.mp3'],
+  'auto': ['jízda autem', 'hadanky-kulisa.mp3'],
+  'jeskyne-noc': ['noc u jeskyně, kapky, sova', 'drak-kulisa.mp3'],
+  'kuchyn-noc': ['kuchyň v noci, lednička bzučí', 'lednice-kulisa.mp3'],
+  'domov-rano': ['ráno doma', 'zubar-kulisa.mp3'],
+  'reka-noc': ['řeka v noci', 'mesicni-lodka-kulisa.mp3'],
+  'vlak': ['ve vlaku', 'spaci-vlak-kulisa.mp3'],
+  'namesti': ['náměstí s fontánou', 'tajna-superschopnost-kulisa.mp3'],
+  'dest': ['déšť a vzdálený hrom', 'bourka-nebojsa-kulisa.mp3'],
+  'ohen-zima': ['oheň v zimním lese', 'dvanact-mesicku-kulisa.mp3'],
+  'vesmir': ['vesmír, raketa', 'raketou-na-mesic-kulisa.mp3'],
+  'pod-vodou': ['pod vodou', 'ponorka-pod-rybnikem-kulisa.mp3'],
+  'kouzelne-trpyt': ['kouzelné třpytky', 'jednorozec-narozeniny-kulisa.mp3'],
+  'statek': ['statek se slepicemi', 'velika-repa-kulisa.mp3'],
+  // nové
+  'snih-ticho': ['zimní ticho venku, sníh, slabý vítr', 'Quiet snowy winter landscape: very soft wind, occasional faint snow falling from branches, peaceful hush.'],
+  'krb-vanoce': ['vánoční obývák, oheň v krbu, tikání hodin', 'Cozy living room on a winter evening: fireplace crackling softly, a clock ticking quietly.'],
+  'louka-leto': ['letní louka ve dne, bzučení, cvrčci', 'Sunny summer meadow in the daytime: grasshoppers, distant bees humming, soft breeze in grass.'],
+  'more': ['moře, vlny na pláži, rackové v dálce', 'Calm seaside: gentle waves on a sandy beach, very distant seagulls.'],
+  'mesto-den': ['město ve dne, vzdálený provoz', 'A small town street in the daytime heard from a park: distant soft traffic, sparrows, faint footsteps.'],
+  'hriste': ['hřiště a školka, děti v dálce', 'A kindergarten playground heard from a distance: children playing far away, birds, no clear words.'],
+  'les-noc': ['les v noci, sova, slabý vítr', 'A forest at night: soft wind in the trees, an occasional distant owl, crickets.'],
+  'zahrada-den': ['zahrada ve dne, ptáci, včely', 'A family garden on a sunny day: songbirds, bees buzzing in flowers, soft breeze.'],
+  'potok': ['potok v lese', 'A gentle forest brook babbling over stones, birds far away.'],
+  'podzim': ['podzim, vítr v listí', 'An autumn park: wind rustling dry leaves, a few crows far away.'],
+  'obchod': ['velký obchod, tichý ruch', 'Inside a calm supermarket: soft murmur of people without clear words, carts rolling far away, gentle hum.'],
+  'jaro-rano': ['jarní ráno, ptáci', 'A spring morning in the countryside: many songbirds, a distant rooster, gentle breeze.'],
+  'hrad': ['hradní síň, ozvěna, vítr', 'An old stone castle hall: soft wind outside, distant echoes, a torch flickering.'],
+};

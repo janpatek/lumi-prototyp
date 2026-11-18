@@ -101,25 +101,38 @@
     missing: (plan) => lines(plan).filter((l) => !has(l)).length,
     // délka odstavce v sekundách (z rejstříku; věty bez nahrávky odhadem podle délky textu) – čas v přehrávači
     seconds: (para) => (para ? para.lines.reduce((a, l) => a + (has(l) && manifest.clips[l.key].d ? manifest.clips[l.key].d : l.t.length / 14), 0) + GAP * Math.max(0, para.lines.length - 1) : 0),
-    prefetch(para, fallback) { para && para.lines.forEach((l) => clip(l, fallback).catch(() => {})); },
-    // stejné rozhraní jako speak() v app.js: zavolá onend, vrací funkci pro zastavení
-    speak(para, onend, { fallback, onerror } = {}) {
+    prefetch(para, fallback, fx) {
+      para && para.lines.forEach((l) => clip(l, fallback).catch(() => {}));
+      (fx || []).forEach((f) => ambience.fxBuffer(f.fx).catch(() => {}));
+    },
+    // stejné rozhraní jako speak() v app.js: zavolá onend, vrací funkci pro zastavení.
+    // fx: efekty odstavce [{ line, kdy, fx }] (audio.js storyFx): pred = efekt, pak věta;
+    // po = po větě; spolu = tiše pod začátkem věty. soft = hlasitost efektů (uspávanky tišeji).
+    speak(para, onend, { fallback, onerror, fx = [], soft = 1 } = {}) {
       let stopped = false;
       const srcs = [];
       let timer = null;
       // jeden tichý pokus navíc (nepovedené věty se z mezipaměti smazaly, načtou se znovu)
       const load = () => Promise.all(para.lines.map((l) => clip(l, fallback)));
-      load().catch(() => new Promise((r) => setTimeout(r, 1500)).then(() => (stopped ? [] : load()))).then((bufs) => {
+      // efekt, který se nenačte, se vynechá (pohádka kvůli němu nečeká ani nespadne)
+      const fxLoad = Promise.all(fx.map((f) => ambience.fxBuffer(f.fx).then((buf) => ({ ...f, buf })).catch(() => null)));
+      Promise.all([load().catch(() => new Promise((r) => setTimeout(r, 1500)).then(() => (stopped ? [] : load()))), fxLoad]).then(([bufs, fxs]) => {
         if (stopped) return;
         const c = ctx();
         let t = c.currentTime + 0.05;
+        const lead = (b) => Math.min(b.duration, 1.6);
+        const at = (k, kdy) => fxs.filter((f) => f && f.line === k && f.kdy === kdy);
         bufs.forEach((b, k) => {
+          at(k, 'pred').forEach((f) => { srcs.push(ambience.playFx(f.buf, t, { soft, duckAt: t + lead(f.buf) + 0.2 })); t += lead(f.buf) + 0.2; });
+          at(k, 'spolu').forEach((f) => srcs.push(ambience.playFx(f.buf, t, { soft: soft * 0.6, duckAt: t + 0.3 })));
           const s = c.createBufferSource();
           s.buffer = b;
           s.connect(ambience.voice);
           s.start(t);
           srcs.push(s);
-          t += b.duration + (k < bufs.length - 1 ? GAP : 0);
+          t += b.duration;
+          at(k, 'po').forEach((f) => { t += 0.15; srcs.push(ambience.playFx(f.buf, t, { soft })); t += lead(f.buf); });
+          if (k < bufs.length - 1) t += GAP;
         });
         timer = setTimeout(() => { if (!stopped) onend(); }, (t - c.currentTime) * 1000);
       }).catch((e) => { if (!stopped) onerror ? onerror(e) : onend(); });

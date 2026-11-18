@@ -1,0 +1,50 @@
+{
+ "hrad": {
+  "file": "kulisa-hrad.mp3",
+  "body": 28.0
+ },
+ "hriste": {
+  "file": "kulisa-hriste.mp3",
+  "body": 28.0
+ },
+ "jaro-rano": {
+  "file": "kulisa-jaro-rano.mp3",
+  "body": 28.0
+ },
+ "krb-vanoce": {
+  "file": "kulisa-krb-vanoce.mp3",
+  "body": 28.0
+ },
+ "les-noc": {
+  "file": "kulisa-les-noc.mp3",
+  "body": 28.0
+ },
+ "mesto-den": {
+  "file": "kulisa-mesto-den.mp3",
+  "body": 28.0
+ },
+ "more": {
+  "file": "kulisa-more.mp3",
+  "body": 28.0
+ },
+ "obchod": {
+  "file": "kulisa-obchod.mp3",
+  "body": 28.0
+ },
+ "podzim": {
+  "file": "kulisa-podzim.mp3",
+  "body": 27.5
+ },
+ "potok": {
+  "file": "kulisa-potok.mp3",
+  "body": 28.0
+ },
+ "snih-ticho": {
+  "file": "kulisa-snih-ticho.mp3",
+  "body": 28.0
+ },
+ "zahrada-den": {
+  "file": "kulisa-zahrada-den.mp3",
+  "body": 28.0
+ }
+}

@@ -124,6 +124,8 @@ const OFFLINE = (() => {
   };
 
   const abs = (u) => new URL(u, location.href).href;
+  // hudba, kulisy a efekty: v mobilní aplikaci se ukládají do zařízení (remote.js)
+  const SOUND = /\/audio\/(hudba|pozadi|efekty)\//;
   const cacheFor = (u) => (/\.mp3(\?|$)/.test(u) ? AUDIO : APP);
 
   return {
@@ -135,12 +137,13 @@ const OFFLINE = (() => {
     keys: () => (fam ? fam.keys().catch(() => new Set()) : tx('readonly', (s) => s.getAllKeys()).then((k) => new Set(k)).catch(() => new Set())),
     remove: (ids) => (!ids.length ? Promise.resolve() : fam ? fam.remove(ids).catch(() => {}) : tx('readwrite', (s) => { ids.forEach((id) => s.delete(id)); }).catch(() => {})),
     // soubory aplikace a společné nahrávky
-    // v mobilní aplikaci: věty, které nejsou přibalené, se stahují do zařízení (remote.js); obálky a kulisy
-    // jsou přibalené, obálky novějších pohádek (z webu) bez internetu nahradí barevná záloha
+    // v mobilní aplikaci: věty, hudba a zvuky, které nejsou přibalené, se stahují do zařízení (remote.js);
+    // obálky jsou přibalené, obálky novějších pohádek (z webu) bez internetu nahradí barevná záloha
     async hasFile(u) {
       if (NATIVE) {
         const k = window.voiceLines && voiceLines.key(u);
-        return k ? REMOTE.hasClip(k) : true;
+        if (k) return REMOTE.hasClip(k);
+        return SOUND.test(u) ? REMOTE.hasAsset(u) : true;
       }
       if (!hasCaches) return false;
       return !!(await caches.match(abs(u)).catch(() => null));
@@ -149,6 +152,7 @@ const OFFLINE = (() => {
       if (NATIVE) {
         const k = window.voiceLines && voiceLines.key(u);
         if (k) await REMOTE.fetchClip(k);
+        else if (SOUND.test(u)) await REMOTE.fetchAsset(u);
         return;
       }
       if (!hasCaches) return;

@@ -12,11 +12,15 @@
 # přehrávač smyčkuje mezi PAD a PAD + délka těla, a obojí se posune stejně.
 # Délky těl doplní do audio/pozadi/index.json (ostatní pohádky v něm nechá). Pohádky ze sdilene.json
 # dostanou v indexu odkaz na smyčku jiné pohádky, takže se nic nekopíruje.
+#
+# S přepínačem --kulisy bere soubory kulisa-<id prostředí>.mp3 (tools/pozadi/kulisy.mjs), zapíše
+# audio/pozadi/kulisa-<id>.mp3 a délky do tools/pozadi/kulisy.json (index pak sestaví zvuky.mjs build).
 
 import json, os, re, subprocess, sys
 import numpy as np
 
 FF, SRC = sys.argv[1], sys.argv[2]
+KULISY = '--kulisy' in sys.argv[3:]
 OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'audio', 'pozadi')
 SR, PAD = 44100, 0.5
 XFADE = {'kulisa': 2.0, 'hudba': 3.0}
@@ -82,7 +86,12 @@ def normalize(x):
 
 
 INDEX = os.path.join(OUT, 'index.json')
-manifest = json.load(open(INDEX)) if os.path.exists(INDEX) else {'pad': PAD, 'clips': {}}
+KMAN = os.path.join(os.path.dirname(__file__), 'kulisy.json')
+if KULISY:
+    manifest = {'clips': {}}
+    kman = json.load(open(KMAN)) if os.path.exists(KMAN) else {}
+else:
+    manifest = json.load(open(INDEX)) if os.path.exists(INDEX) else {'pad': PAD, 'clips': {}}
 for name in sorted(os.listdir(SRC)):
     m = re.fullmatch(r'(kulisa|hudba)-([a-z][a-z-]*)\.mp3', name)
     if not m:
@@ -94,10 +103,18 @@ for name in sorted(os.listdir(SRC)):
     p = int(PAD * SR)
     full = np.concatenate([body[-p:], body, body[:p]]).astype(np.float32)
     os.makedirs(OUT, exist_ok=True)
-    out = os.path.join(OUT, f'{story}-{kind}.mp3')
+    fname = f'kulisa-{story}.mp3' if KULISY else f'{story}-{kind}.mp3'
+    out = os.path.join(OUT, fname)
     subprocess.run([FF, '-v', 'error', '-y', '-f', 'f32le', '-ac', '2', '-ar', str(SR), '-i', '-', '-c:a', 'libmp3lame', '-b:a', '96k', out], input=full.tobytes(), check=True)
-    manifest['clips'].setdefault(story, {})[kind] = {'file': f'{story}-{kind}.mp3', 'body': round(len(body) / SR, 4)}
+    if KULISY:
+        kman[story] = {'file': fname, 'body': round(len(body) / SR, 4)}
+    else:
+        manifest['clips'].setdefault(story, {})[kind] = {'file': fname, 'body': round(len(body) / SR, 4)}
     print(f'{out}: tělo {len(body) / SR:.2f} s')
+
+if KULISY:
+    json.dump(dict(sorted(kman.items())), open(KMAN, 'w'), indent=1)
+    sys.exit(0)
 
 shared = json.load(open(os.path.join(os.path.dirname(__file__), 'sdilene.json')))
 for story, kinds in shared.items():
