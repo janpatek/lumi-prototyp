@@ -4,5 +4,5 @@
 // Náhled, jak bude web vypadat s odkazy: přidejte k adrese ?obchody=nahled
 window.OSPALEK_OBCHODY = {
   appStoreUrl: '',
-  googlePlayUrl: '',
+  googlePlayUrl: 'https://play.google.com/store/apps/details?id=cz.ospalek.app',
 };
