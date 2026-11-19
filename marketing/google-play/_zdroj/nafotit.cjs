@@ -5,7 +5,7 @@
 //
 // Vstup je kopie mobile/www (npm run web v mobile/) BEZ databáze: v kopii přepiš config.js na prázdné
 // supabaseUrl a supabaseAnonKey, ať se ukázková rodina neposílá do ostré databáze. Ven pustí jen Google Fonts.
-// Skryje vývojářský přepínač hlasu „Prohlížeč“ a poznámku pod přehrávačem, které ve vydané verzi nebudou.
+// Skryje vývojářský přepínač hlasu „Prohlížeč“, poznámku pod přehrávačem a tlačítko „Podle polohy“ (aplikace pro Android polohu nemá).
 const puppeteer = require(process.env.TOOLS + '/puppeteer-core');
 const path = require('path');
 const DIR = process.argv[2], OUT = process.argv[3];
@@ -30,7 +30,7 @@ const SEED = `
   const shot = async (name, js, theme = 'light') => {
     await p.goto(url, { waitUntil: 'networkidle0' });
     await p.evaluate(`S.theme='${theme}'; save(); applyTheme(); ${js || 'render();'}`);
-    await p.addStyleTag({ content: '.chips.voices [data-v="browser"], .voicewarn { display: none !important; } ::-webkit-scrollbar { display: none; }' });
+    await p.addStyleTag({ content: '.chips.voices [data-v="browser"], .voicewarn, [data-a="useLocation"] { display: none !important; } #town { flex: 1 1 auto; } ::-webkit-scrollbar { display: none; }' });
     await p.evaluate(() => document.fonts.ready);
     await new Promise((r) => setTimeout(r, 900));
     await p.screenshot({ path: path.join(OUT, name + '.png') });

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- allowBackup="false": údaje o rodině (jména dětí, blízkých, obec) nejdou do zálohy telefonu na Disk Google.
          Přímý přenos ze starého telefonu do nového (kabelem nebo přes Wi-Fi) funguje od Androidu 12 dál. -->
@@ -62,9 +63,12 @@
     <!-- pohádka hraje i se zhasnutým displejem -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <!-- obec podle polohy při zadávání bydliště (jen přibližná poloha, jen na klepnutí) -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- poloha je jen pohodlnější zadání obce: bez ní se aplikace musí dát nainstalovat i na tablety bez GPS -->
-    <uses-feature android:name="android.hardware.location" android:required="false" />
-    <uses-feature android:name="android.hardware.location.network" android:required="false" />
+    <!-- Poloha v aplikaci pro Android není (od 1.25): Google Play u aplikací pro děti do 13 let nepovolí polohu na pozadí
+         a na Androidu 7–9 by se i přibližná poloha za polohu na pozadí počítala. Obec rodič napíše ručně.
+         tools:node="remove" pojistí, že oprávnění nepřidá ani žádný doplněk. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" tools:node="remove" />
+    <!-- Aplikace je zamčená na výšku, ale musí jít nainstalovat i na tablety a Chromebooky (tam běží na výšku v okně) -->
+    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
 </manifest>

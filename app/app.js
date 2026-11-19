@@ -601,12 +601,16 @@ function remindSettings() {
     ${on ? '<button class="btn small ghost" data-a="remindOff">Vypnout</button>' : `<button class="btn small" data-a="remindYes"${blocked ? ' disabled' : ''}>Zapnout</button>`}</div>`;
 }
 
+// Obec podle polohy: na iPhonu a na webu ano, v aplikaci pro Android ne (Google Play u aplikací pro děti polohu nepovolí,
+// manifest ji od verze 1.25 nemá, viz mobile/android/app/src/main/AndroidManifest.xml)
+const LOCATION_ON = !(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android');
+
 function homeForm() {
   const h = S.family.home;
   const chips = (opts, sel, kind) => opts.map((o, i) => `<button class="chip ${sel.includes(o) ? 'on' : ''}" data-a="toggleSpot" data-kind="${kind}" data-i="${i}">${esc(o)}</button>`).join('');
   return `
     <label for="town">Obec nebo město</label>
-    <div class="row"><input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small ghost" style="flex:0 0 auto" data-a="useLocation">${I.home} Podle polohy</button></div>
+    ${LOCATION_ON ? `<div class="row"><input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2"><button class="btn small ghost" style="flex:0 0 auto" data-a="useLocation">${I.home} Podle polohy</button></div>` : `<input id="town" maxlength="${LIMIT.place}" placeholder="např. Benešov" value="${esc(h.town)}" autocomplete="address-level2">`}
     <label for="inTown">Jak doma říkáte: „bydlíme …“</label>
     <input id="inTown" maxlength="${LIMIT.place + 4}" placeholder="v Benešově" value="${esc(h.inTown)}">
     <div id="spotsMsg" class="note" style="margin-top:8px"></div>
