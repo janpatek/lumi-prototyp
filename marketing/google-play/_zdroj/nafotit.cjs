@@ -40,7 +40,7 @@ const SEED = `
   await shot('knihovna-auto', "ui.shelf='auto'; go('lib');");
   await shot('prehravac', "go('lib'); openPlayer(STORIES.find(s=>s.id==='hvezdicka')); P.i=2; highlight(); document.querySelector('#ptext p.now').scrollIntoView({block:'center'});", 'dark');
   await shot('prehravac-den', "go('lib'); openPlayer(STORIES.find(s=>s.id==='zubar')); P.i=1; highlight(); document.querySelector('#ptext p.now').scrollIntoView({block:'center'});");
-  await shot('dite', "go('family'); personSheet('child','a'); document.querySelectorAll('#modal details').forEach(d=>d.open=true);");
+  await shot('dite', "go('family'); personSheet('child','a'); document.querySelectorAll('#modal details').forEach(d=>d.open=true); setTimeout(()=>document.querySelector('#modal details').scrollIntoView({block:'start'}),50);");
   await shot('deti', "ui.screen='onb'; ui.step=0; render();");
   await shot('bydliste', "ui.screen='onb'; ui.step=2; render();");
   await shot('rodina', "go('family');");
