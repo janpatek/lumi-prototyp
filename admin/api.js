@@ -33,6 +33,7 @@ const API = (() => {
     'analytics.read': 'Statistiky a přehledy',
     'ops.read': 'Provoz a náklady na hlas',
     'team.manage': 'Spravovat tým a role',
+    'app.release': 'Vynutit aktualizaci mobilní aplikace',
     'audit.read': 'Číst audit log',
   };
   const ALL = Object.keys(PERMS);

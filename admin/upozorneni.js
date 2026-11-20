@@ -133,6 +133,8 @@ function pagePush() {
       </tbody></table></div>` : '<p class="muted">Zatím se nic neposílalo.</p>'}
     </section>
 
+    ${releasePanel()}
+
     <div class="notice"><img src="../brand/maskot-3d/web/ospalek-spi.webp" alt=""><div>
       <b>Kdo upozornění dostane:</b> uživatelé, kteří v aplikaci připomínku zapnuli a povolili upozornění. Ptáme se v posledním kroku úvodního nastavení,
       ostatním jednou v knihovně. Vypnout jde v nastavení aplikace. Na iPhonu chodí upozornění jen z Ospalka přidaného na plochu (iOS 16.4 a novější).
@@ -140,6 +142,72 @@ function pagePush() {
     </div></div>`;
 }
 PAGES.upozorneni = pagePush;
+
+// ---------- Povinná aktualizace mobilní aplikace (app/update.js) ----------
+// Nejnižší podporované číslo sestavení (Android versionCode z Play Console, iPhone build z App Store Connect).
+// Starší aplikace ukáže místo všeho výzvu k aktualizaci. 0 = nikoho nenutit. V databázi app_release, mění jen vlastník.
+// O nové verzi aplikace sama nenápadně upozorní i bez tohohle nastavení (podle Google Play a App Store).
+const RELS = { state: 'idle', data: null, err: '' };
+const relDemo = {
+  load: async () => store.get('ospalek.admin.release.v1') || { android_min: 0, ios_min: 0 },
+  save: async (a, i) => store.set('ospalek.admin.release.v1', { android_min: a, ios_min: i, updated_at: new Date().toISOString(), by: API.me.name }),
+};
+const relApi = () => D.release || relDemo;
+function loadRelease(force) {
+  if (RELS.state === 'loading' || (RELS.state === 'ok' && !force)) return;
+  RELS.state = 'loading';
+  relApi().load().then((d) => { RELS.state = 'ok'; RELS.data = d || { android_min: 0, ios_min: 0 }; RELS.err = ''; },
+    (e) => { RELS.state = 'err'; RELS.err = /app_release|admin_release|404|PGRST/.test(e.message) ? 'V databázi chybí migrace supabase/migrations/20261120_verze_aplikace.sql.' : e.message; })
+    .then(() => { if (route() === 'upozorneni') render(); });
+}
+// verze, které uživatelé mají („android-1.26-28“; starší aplikace hlásily jen číslo webového kódu „android-70“)
+function releaseVersions(plat) {
+  const m = {};
+  D.families.forEach((f) => {
+    const v = String(f.appVer || '');
+    if (!v.startsWith(plat + '-')) return;
+    const x = v.slice(plat.length + 1).match(/^([0-9.]+)-(\d+)$/);
+    const k = x ? `${x[1]} (${x[2]})` : plat === 'android' ? 'starší než 1.26' : 'starší';
+    m[k] = m[k] || { n: 0, b: x ? Number(x[2]) : 0 };
+    m[k].n++;
+  });
+  return Object.entries(m).sort((a, b) => b[1].b - a[1].b);
+}
+function releasePanel() {
+  loadRelease();
+  const r = RELS.data || { android_min: 0, ios_min: 0 };
+  const canE = API.can('app.release');
+  const list = (plat, label) => {
+    const v = releaseVersions(plat);
+    const min = plat === 'android' ? r.android_min : r.ios_min;
+    return `<div><b>${label}</b>${v.length ? `<div class="chips-row" style="margin-top:6px">${v.map(([k, x]) => `<span class="tag ${min && x.b < min ? 'peach' : 'line'}">${esc(k)}: ${fmt(x.n)}</span>`).join(' ')}</div>` : '<p class="muted">Zatím nikdo.</p>'}</div>`;
+  };
+  return `<section class="panel"><div class="panel-head"><h2>Povinná aktualizace aplikace</h2>${RELS.data && RELS.data.updated_at && RELS.data.by ? `<span class="muted">naposledy ${esc(RELS.data.by)}</span>` : ''}</div>
+    ${RELS.state === 'err' ? `<p class="err">${esc(RELS.err)}</p>` : ''}
+    <p class="hint" style="margin-top:0">Na novou verzi aplikace upozorní uživatele sama, jakmile ji Google Play nebo App Store nabízí: dole v knihovně, nejvýš jednou za 3 dny, nikdy během pohádky. Android ji stáhne na pozadí a nabídne restart.
+      Tady jde nastavit <b>nejnižší podporované sestavení</b>: kdo má starší, uvidí místo aplikace jen výzvu k aktualizaci. Používejte jen výjimečně, třeba když stará verze přestane fungovat se serverem. 0 = nikoho nenutit.</p>
+    <div class="fields2">
+      <div><label for="relA">Android – nejnižší versionCode</label><input id="relA" type="number" min="0" step="1" value="${Number(r.android_min) || 0}"${canE ? '' : ' disabled'}></div>
+      <div><label for="relI">iPhone – nejnižší build</label><input id="relI" type="number" min="0" step="1" value="${Number(r.ios_min) || 0}"${canE ? '' : ' disabled'}></div>
+    </div>
+    <p class="hint">Číslo sestavení najdete v Play Console u vydání (např. 28 = verze 1.26). Na iPhonu se povinná aktualizace zapne, až bude aplikace v App Store (appStoreId v config.js).</p>
+    ${canE ? `<div class="row-acts" style="margin-top:12px;justify-content:flex-start;align-items:center"><button class="btn" data-a="relSave">Uložit</button><span class="err" id="relErr"></span></div>` : '<p class="muted">Měnit může jen vlastník.</p>'}
+    <div class="grid2" style="margin-top:16px">${list('android', 'Android – kdo má jakou verzi')}${list('ios', 'iPhone – kdo má jakou verzi')}</div>
+  </section>`;
+}
+Object.assign(ACTIONS, {
+  relSave: async () => {
+    const a = Number($('#relA').value), i = Number($('#relI').value);
+    if (![a, i].every((x) => Number.isInteger(x) && x >= 0 && x <= 1e6)) { $('#relErr').textContent = 'Zadejte celé číslo 0 nebo větší.'; return; }
+    const prev = RELS.data || {};
+    if ((a > (prev.android_min || 0) || i > (prev.ios_min || 0)) && !confirm(`Uživatelé se starší verzí aplikace${a ? ` (Android pod ${a})` : ''}${i ? ` (iPhone pod ${i})` : ''} ji nebudou moct používat, dokud ji neaktualizují. Pokračovat?`)) return;
+    try {
+      await relApi().save(a, i);
+      if (!D.live) API.log('app.release', 'Povinná aktualizace', `Nejnižší sestavení: Android ${a || 'bez omezení'}, iPhone ${i || 'bez omezení'}`);
+      toast('Uloženo'); RELS.state = 'idle'; loadRelease(true);
+    } catch (e) { $('#relErr').textContent = e.message; }
+  },
+});
 
 // ---------- Akce ----------
 async function pushRun(work, ok) {

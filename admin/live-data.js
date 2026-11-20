@@ -342,6 +342,11 @@ const LIVE = (() => {
       resetMfa: (id) => rpc('admin_reset_mfa', { uid: id }),
       list: async () => staffOf(await rpc('admin_staff')),
     };
+    // povinná aktualizace mobilní aplikace (admin/upozorneni.js); měnit smí jen vlastník
+    D.release = {
+      load: () => rpc('admin_release'),
+      save: (a, i) => rpc('admin_release_save', { a_min: a, i_min: i }),
+    };
     // pohádka dne a večerní upozornění (admin/upozorneni.js); spravuje vlastník a role Obsah
     D.push = {
       load: () => rpc('admin_push', { days: 28 }),

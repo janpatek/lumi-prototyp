@@ -25,7 +25,10 @@ const SYNC = (() => {
   const CAP = window.Capacitor;
   const PLATFORM = CAP && CAP.isNativePlatform && CAP.isNativePlatform() ? (CAP.getPlatform() === 'ios' ? 'iOS' : 'Android') : 'Web';
   const version = () => {
-    const v = ((document.querySelector('script[src*="/app.js"], script[src^="app.js"]')?.getAttribute('src') || '').match(/v=(\d+)/) || [, '?'])[1];
+    // mobilní aplikace: verze z obchodu „android-1.26-28“ (název-číslo sestavení, ukládá ji update.js)
+    const nv = PLATFORM !== 'Web' && get('ospalek.nver.v1');
+    if (nv && /^[0-9.]{1,8}-\d{1,6}$/.test(nv)) return PLATFORM.toLowerCase() + '-' + nv;
+    const v =((document.querySelector('script[src*="/app.js"], script[src^="app.js"]')?.getAttribute('src') || '').match(/v=(\d+)/) || [, '?'])[1];
     return (PLATFORM === 'Web' ? 'web-' : PLATFORM.toLowerCase() + '-') + v;
   };
 
