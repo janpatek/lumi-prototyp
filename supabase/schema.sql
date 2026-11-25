@@ -40,6 +40,7 @@ alter table public.families add column if not exists newsletter boolean not null
 alter table public.families add column if not exists newsletter_at timestamptz;
 alter table public.families add column if not exists analytics boolean not null default false;
 alter table public.families add column if not exists analytics_at timestamptz;
+alter table public.families add column if not exists test boolean;   -- testovací účet: true/false nastaví tým v administraci, null = automaticky (fam_is_test)
 alter table public.families add column if not exists settings jsonb;   -- nastavení aplikace bez osobních údajů (vzhled, připomínka, počty), posílá app/sync.js
 
 -- Variabilní náklady a změny po uživatelích a dnech (administrace → Uživatelé).
@@ -381,7 +382,8 @@ create or replace function public.admin_families() returns table (
   id uuid, seq bigint, created_at timestamptz, last_seen_at timestamptz, provider text, email text, town text, country text,
   platform text, app_version text, source text, onboarded boolean, premium boolean, analytics boolean, kids jsonb,
   plays bigint, seconds bigint, completed bigint, days bigint, plays30 bigint, seconds30 bigint, days30 bigint, last_day date, fav_category text,
-  newsletter boolean, newsletter_at timestamptz, analytics_at timestamptz, settings jsonb, push_devices bigint, usage jsonb
+  newsletter boolean, newsletter_at timestamptz, analytics_at timestamptz, settings jsonb, push_devices bigint, usage jsonb,
+  test boolean, test_manual boolean, code_until timestamptz, code_test boolean, store_prod bigint, store_test bigint
 ) language plpgsql stable security definer set search_path = public as $$
 declare today date := (now() at time zone 'Europe/Prague')::date; pii boolean;
 begin
@@ -403,7 +405,12 @@ begin
        'clips', sum(u.tts_clips), 'chars', sum(u.tts_chars),
        'changes30', sum(u.name_changes + u.kid_changes + u.town_changes) filter (where u.day > today - 30),
        'clips30', sum(u.tts_clips) filter (where u.day > today - 30), 'chars30', sum(u.tts_chars) filter (where u.day > today - 30))
-     from family_usage u where u.family_id = f.id)
+     from family_usage u where u.family_id = f.id),
+    fam_is_test(f.id), f.test,
+    (select max(g.until) from access_grants g where g.user_id = f.id),
+    coalesce((select bool_or(c.test) from access_grants g join access_codes c on c.id = g.code_id where g.user_id = f.id), false),
+    (select count(*) from store_subs s where s.family_id = f.id and s.env = 'Production'),
+    (select count(*) from store_subs s where s.family_id = f.id and s.env <> 'Production')
   from families f
   left join lateral (
     select sum(d.plays)::bigint plays, sum(d.seconds)::bigint seconds, sum(d.completed)::bigint completed, count(*)::bigint days,
@@ -425,13 +432,17 @@ begin
   return query
   select g.day::date,
     coalesce(fd.plays, 0) + coalesce(an.plays, 0), coalesce(fd.seconds, 0) + coalesce(an.seconds, 0), coalesce(fd.completed, 0) + coalesce(an.completed, 0), coalesce(fd.dau, 0),
-    (select count(*) from families f where (f.created_at at time zone 'Europe/Prague')::date = g.day::date),
-    (select count(*) from families f where f.premium and (f.created_at at time zone 'Europe/Prague')::date <= g.day::date),
-    coalesce((select jsonb_object_agg(dc.category, dc.plays) from daily_cat dc where dc.day = g.day::date), '{}'::jsonb)
+    (select count(*) from families f where (f.created_at at time zone 'Europe/Prague')::date = g.day::date and not fam_is_test(f.id)),
+    (select count(*) from families f where f.premium and (f.created_at at time zone 'Europe/Prague')::date <= g.day::date and not fam_is_test(f.id)),
+    -- kategorie: denní souhrn bez poslechů testovacích účtů (anonymní poslechy bez souhlasu odečíst nejde, ty zůstávají)
+    coalesce((select jsonb_object_agg(dc.category, greatest(0, dc.plays - coalesce(t.n, 0))) from daily_cat dc
+      left join (select p.category, count(*) n from plays p where p.family_id is not null and fam_is_test(p.family_id)
+        and (p.started_at at time zone 'Europe/Prague')::date = g.day::date group by 1) t on t.category = dc.category
+      where dc.day = g.day::date), '{}'::jsonb)
   from generate_series(today - (n - 1), today, interval '1 day') g(day)
   left join lateral (
     select sum(d.plays)::bigint plays, sum(d.seconds)::bigint seconds, sum(d.completed)::bigint completed, count(*) filter (where d.plays > 0)::bigint dau
-    from family_day d where d.day = g.day::date
+    from family_day d where d.day = g.day::date and not fam_is_test(d.family_id)
   ) fd on true
   left join daily_anon an on an.day = g.day::date
   order by 1;
@@ -444,7 +455,7 @@ begin
   return query
   with f as (
     select id, date_trunc('week', created_at at time zone 'Europe/Prague')::date cw from families
-    where created_at > now() - make_interval(weeks => weeks)
+    where created_at > now() - make_interval(weeks => weeks) and not fam_is_test(id)
   ), act as (
     select distinct d.family_id, date_trunc('week', d.day)::date aw from family_day d where d.plays > 0
   )
@@ -460,7 +471,7 @@ begin
   perform require_staff();
   return query
   select date_trunc('week', d.day)::date, count(distinct d.family_id) from family_day d
-  where d.plays > 0 and d.day > (now() at time zone 'Europe/Prague')::date - weeks * 7
+  where d.plays > 0 and d.day > (now() at time zone 'Europe/Prague')::date - weeks * 7 and not fam_is_test(d.family_id)
   group by 1 order by 1;
 end $$;
 
@@ -470,13 +481,13 @@ begin
   perform require_staff();
   return query
   select ((extract(isodow from p.started_at at time zone 'Europe/Prague'))::int - 1), extract(hour from p.started_at at time zone 'Europe/Prague')::int, count(*)
-  from plays p where p.started_at > now() - make_interval(days => n) group by 1, 2;
+  from plays p where p.started_at > now() - make_interval(days => n) and (p.family_id is null or not fam_is_test(p.family_id)) group by 1, 2;
 end $$;
 
 create or replace function public.admin_stories() returns table (story_id text, plays bigint, completed bigint, seconds bigint, families bigint) language plpgsql stable security definer set search_path = public as $$
 begin
   perform require_staff();
-  return query select p.story_id, count(*), count(*) filter (where p.completed), sum(p.listened_sec)::bigint, count(distinct p.family_id) from plays p group by 1;
+  return query select p.story_id, count(*), count(*) filter (where p.completed), sum(p.listened_sec)::bigint, count(distinct p.family_id) from plays p where p.family_id is null or not fam_is_test(p.family_id) group by 1;
 end $$;
 
 -- Hodnocení po pohádkách pro administraci (průměr 1–3 a počty jednotlivých odpovědí).
@@ -485,7 +496,7 @@ begin
   perform require_staff();
   return query select p.story_id, count(*), round(avg(p.rating)::numeric, 2),
     count(*) filter (where p.rating = 3), count(*) filter (where p.rating = 2), count(*) filter (where p.rating = 1)
-  from plays p where p.rating is not null group by 1;
+  from plays p where p.rating is not null and (p.family_id is null or not fam_is_test(p.family_id)) group by 1;
 end $$;
 
 -- Poslechy jedné rodiny (detail v administraci).
@@ -1084,10 +1095,12 @@ begin
   perform require_staff();
   return jsonb_build_object(
     'subs', coalesce((select jsonb_agg(jsonb_build_object('id', s.id, 'platform', s.platform, 'fam', f.seq, 'product', s.product, 'status', s.status, 'trial', s.trial,
-      'started', s.started_at, 'expires', s.expires_at, 'renew', s.will_renew, 'country', s.country, 'currency', s.currency, 'price', s.price, 'env', s.env) order by s.started_at)
+      'started', s.started_at, 'expires', s.expires_at, 'renew', s.will_renew, 'country', s.country, 'currency', s.currency, 'price', s.price, 'env', s.env,
+      'test', s.env <> 'Production' or (s.family_id is not null and fam_is_test(s.family_id))) order by s.started_at)
       from store_subs s left join families f on f.id = s.family_id where sandbox or s.env = 'Production'), '[]'::jsonb),
     'events', coalesce((select jsonb_agg(jsonb_build_object('id', e.id, 'sub', e.sub_id, 'fam', f.seq, 'platform', e.platform, 'type', e.type, 'at', e.at,
-      'start', e.period_start, 'end', e.period_end, 'amount', e.amount, 'currency', e.currency, 'czk', e.czk, 'country', e.country, 'env', e.env, 'detail', e.detail) order by e.at)
+      'start', e.period_start, 'end', e.period_end, 'amount', e.amount, 'currency', e.currency, 'czk', e.czk, 'country', e.country, 'env', e.env, 'detail', e.detail,
+      'test', e.env <> 'Production' or (e.family_id is not null and fam_is_test(e.family_id))) order by e.at)
       from store_events e left join families f on f.id = e.family_id where sandbox or e.env = 'Production'), '[]'::jsonb));
 end $$;
 
@@ -1120,6 +1133,28 @@ create table if not exists public.access_tries (
 alter table public.access_codes enable row level security;
 alter table public.access_grants enable row level security;
 alter table public.access_tries enable row level security;
+alter table public.access_codes add column if not exists test boolean not null default false;   -- kód pro recenzenty a testy: kdo ho použije, je testovací účet
+
+-- Testovací účet: nepočítá se do metrik v administraci (Přehled, Používání, Předplatné, náklady).
+-- Ručně nastavené families.test platí vždy; jinak automaticky: člen týmu, kód pro recenzenty (access_codes.test),
+-- účty testerů Google Play (pre-launch report, recenze) a dítě jménem „Test“.
+create or replace function public.fam_is_test(fid uuid) returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce((select f.test from families f where f.id = fid),
+    exists (select 1 from staff st where st.user_id = fid)
+    or exists (select 1 from access_grants g join access_codes c on c.id = g.code_id where g.user_id = fid and c.test)
+    or exists (select 1 from families f where f.id = fid and f.email ~* '(concentrix|wave[0-9]+batch|cloudtestlabaccounts|@google\.com$)')
+    or exists (select 1 from children c where c.family_id = fid and lower(trim(c.name)) in ('test', 'tester', 'testík')));
+$$;
+
+-- Ruční označení testovacího účtu z administrace (null = vrátit na automatické pravidlo).
+create or replace function public.admin_set_test(fseq bigint, val boolean) returns void language plpgsql security definer set search_path = public as $$
+begin
+  perform require_staff();
+  if (select role from staff where user_id = auth.uid()) not in ('owner', 'support') then raise exception 'forbidden' using errcode = '42501'; end if;
+  update families set test = val where seq = fseq;
+  insert into audit_log (actor, action, target, detail) values (auth.uid(), 'family.test', 'f' || lpad(fseq::text, 5, '0'),
+    case when val is null then 'Testovací účet: automaticky' when val then 'Označen jako testovací účet' else 'Označen jako skutečný uživatel' end);
+end $$;
 
 -- ---------- Kupóny (Kupony a partneři v administraci) ----------
 -- Kampaně z administrace (admin/kupony.js). Rodina kód napíše do stejného okna „Mám kód“ jako kód pro recenzenty:
@@ -1319,7 +1354,7 @@ revoke all on all tables in schema public from anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
 grant execute on function public.app_sync_family(jsonb), public.app_play(jsonb), public.app_delete_family(), public.app_tts_usage(int), public.app_tts_allow(int),
   public.app_daily(int), public.app_push_subscribe(jsonb), public.app_push_unsubscribe(text), public.app_redeem_code(text) to authenticated;
-grant execute on function public.admin_me(), public.admin_role(), public.admin_families(), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
+grant execute on function public.admin_me(), public.admin_role(), public.admin_families(), public.admin_set_test(bigint, boolean), public.admin_daily(int), public.admin_cohorts(int), public.admin_wau(int),
   public.admin_heat(int), public.admin_stories(), public.admin_family_plays(bigint, int), public.admin_family_usage(bigint), public.admin_staff(),
   public.admin_log(text, text, text), public.admin_audit(int), public.admin_delete_family(bigint),
   public.admin_set_role(uuid, text), public.admin_reset_mfa(uuid),

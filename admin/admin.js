@@ -58,6 +58,8 @@ const famMail = (f) => (!f?.email ? '' : API.can('families.pii') ? f.email : f.e
 const famLink = (f) => (f ? `<a class="link" href="#uzivatele/${f.id}">${esc(famName(f))}</a>` : '<span class="muted">Smazaný uživatel</span>');
 const SUB = { trial: ['Zkušební', 'honey'], active: ['Platí', 'mint'], past_due: ['Neuhrazeno', 'peach'], canceled: ['Zrušeno', 'line'], expired: ['Nepřevedeno', 'line'] };
 const subTag = (f) => {
+  if (f.test && !f.status) return '<span class="tag peach">Testovací</span>';
+  if (!f.status && f.plan === 'kód') return '<span class="tag honey" title="Odemčeno kódem, neplatí">Kód</span>';
   if (!f.status) return f.email ? '<span class="tag line">Zdarma</span>' : '<span class="tag line">Host</span>';
   const [l, c] = SUB[f.status];
   return `<span class="tag ${c}">${l}${f.plan === 'dárek' ? ' · dárek' : ''}</span>`;

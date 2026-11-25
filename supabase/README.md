@@ -115,6 +115,17 @@ Omezení API: nejde přidat hudbu z knihovny Instagramu ani označit lidi, přes
 
 Test funkce bez Supabase a bez Instagramu (podvržené odpovědi, Node 24): `node supabase/functions/instagram/test.mjs`
 
+### Testovací účty a testovací nákupy
+
+Do metrik v administraci (Přehled, Používání, Předplatné, náklady) se nepočítají:
+- testovací účty (`fam_is_test`): člen týmu, účet s kódem pro recenzenty (`access_codes.test`), testeři Google Play
+  (concentrix…, wave…batch…, cloudtestlabaccounts), dítě jménem „Test“, nebo účet ručně označený v administraci
+  (detail uživatele → Označit jako testovací; `families.test`, null = automaticky),
+- testovací nákupy: sandbox App Store, licenční testeři Google Play (`env` ≠ Production) a nákupy testovacích účtů.
+
+Testovací účty jsou v Uživatelé → Testovací, testovací nákupy dole na stránce Předplatné. Anonymní poslechy bez souhlasu
+(daily_anon) k účtu přiřadit nejde, ty v souhrnech zůstávají. Migrace: `migrations/20261125_testovaci_ucty.sql`.
+
 ### Uživatelé: nastavení a variabilní náklady na hlas
 
 Administrace → Uživatelé ukazuje u každého uživatele nastavení aplikace, souhlasy (novinky, statistiky, připomínka) a kolik nás stál hlas:

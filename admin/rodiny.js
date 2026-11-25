@@ -51,7 +51,7 @@ function pageFamilies() {
     ${demoBar()}
     ${localNote}
     ${costSummary()}
-    <div class="chips tight" style="margin-bottom:10px">${Object.entries(API.SEGMENTS).map(([k, v]) => `<button class="chip ${FAM.seg === k ? 'on' : ''}" data-a="famSeg" data-v="${k}">${v.label} <span class="n">${fmt(API.families.count(k))}</span></button>`).join('')}</div>
+    <div class="chips tight" style="margin-bottom:10px">${Object.entries(API.SEGMENTS).filter(([k]) => k !== 'test' || (D.live && D.testFamilies)).map(([k, v]) => `<button class="chip ${FAM.seg === k ? 'on' : ''}" data-a="famSeg" data-v="${k}">${v.label} <span class="n">${fmt(API.families.count(k))}</span></button>`).join('')}</div>
     <section class="panel">
       <div class="filters">
         <input type="search" data-f="famq" placeholder="Hledat jméno, e-mail, dítě, město nebo id" value="${esc(FAM.q)}" aria-label="Hledat uživatele">
@@ -144,10 +144,12 @@ function pageFamily(id) {
       <div class="head-actions">
         ${API.can('tickets.reply') && f.email ? `<button class="btn white sm" data-a="tNew">${I.chat}Nový ticket</button>` : ''}
         ${canGift && f.email ? `<button class="btn white sm" data-a="famGift" data-v="${esc(f.id)}">${I.gift}Darovat měsíc</button>` : ''}
+        ${D.live && D.setTest && API.can('families.edit') ? `<button class="btn white sm" data-a="famTest" data-v="${esc(f.id)}">${f.test ? 'Není testovací' : 'Označit jako testovací'}</button>` : ''}
         ${canDel ? `<button class="btn white sm" data-a="famExport" data-v="${esc(f.id)}">${I.down}Export dat (GDPR)</button><button class="btn danger sm" data-a="famDelete" data-v="${esc(f.id)}">Smazat uživatele</button>` : ''}
       </div>
     </div>
     ${demoBar(D.live ? '' : `Aktivita se dopočítala za ${dec(ms)} ms.`)}
+    ${f.test ? `<div class="locked-note">Testovací účet${f.testManual === true ? ' (označený ručně)' : ' (automaticky: člen týmu, kód pro recenzenty, tester obchodu nebo dítě „Test“)'}. Do metrik se nepočítá: přehled, používání, předplatné ani náklady.</div>` : ''}
     ${noStats ? '<div class="locked-note">Uživatel nedal souhlas se statistikami poslechu. Účet, děti a obec vidíš kvůli podpoře, poslechy jsou jen v anonymních souhrnech.</div>' : ''}
     <div class="tiles t8">
       ${tile('Přehrání celkem', fmt(a.plays), `${fmt(f.plays30)} za 30 dní`)}
@@ -266,6 +268,13 @@ let famT;
 Object.assign(ACTIONS, {
   famSeg: (v) => { FAM.seg = v; const h = 'uzivatele/segment-' + v; if (location.hash === '#' + h) render(); else go(h); },
   famCsv: () => { download('ospalek-uzivatele-ukazka.csv', '﻿' + famCsv(), 'text/csv'); API.log('family.export', 'seznam', `Export CSV (${FAM.seg})`); toast('CSV se stahuje'); },
+  famTest: (v) => {
+    const f = API.families.get(v); if (!f) return;
+    // ruční označení; zrušení u automaticky testovacího účtu ho ručně označí jako skutečného uživatele
+    const val = !f.test;
+    confirmBox(val ? 'Označit jako testovací účet?' : 'Vrátit mezi skutečné uživatele?', val ? 'Účet zmizí z metrik (přehled, používání, předplatné, náklady) a najdeš ho v Uživatelé → Testovací.' : 'Účet se zase započítá do metrik.', val ? 'Označit' : 'Vrátit', () =>
+      D.setTest(f, val).then(() => { toast(val ? 'Označeno jako testovací, načítám znovu…' : 'Vráceno mezi uživatele, načítám znovu…'); setTimeout(() => location.reload(), 600); }, (e) => toast('Nepovedlo se: ' + e.message)));
+  },
   famGift: (v) => confirmBox('Darovat měsíc předplatného?', 'V ukázce se jen zapíše do časové osy a audit logu. Skutečně by náš server uživateli zapnul dočasný přístup.', 'Darovat', () => { API.families.gift(v, 1); render(); toast('Dárek je zapsaný'); }),
   famExport: (v) => {
     const f = API.families.get(v), a = API.families.activity(v);

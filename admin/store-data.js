@@ -29,8 +29,13 @@
     const raw = D.storeRaw || { subs: [], events: [] };
     const bySeq = new Map(D.families.map((f) => [f.n, f.id]));
     const dt = (x) => (x ? new Date(x) : null);
-    subs = raw.subs.map((s) => ({ ...s, fam: bySeq.get(Number(s.fam)) || null, started: dt(s.started), expires: dt(s.expires), price: s.price == null ? null : Number(s.price) }));
-    events = raw.events.map((e) => ({ ...e, id: 'e' + e.id, fam: bySeq.get(Number(e.fam)) || null, at: dt(e.at), start: dt(e.start), end: dt(e.end), amount: Number(e.amount) || 0, czk: Number(e.czk) || 0 }));
+    // testovací účty jsou v D.testFamilies; jejich nákupy i nákupy v sandboxu (licenční testeři) jdou stranou do D.storeTest
+    (D.testFamilies || []).forEach((f) => bySeq.set(f.n, f.id));
+    const allSubs = raw.subs.map((s) => ({ ...s, fam: bySeq.get(Number(s.fam)) || null, started: dt(s.started), expires: dt(s.expires), price: s.price == null ? null : Number(s.price) }));
+    const allEvents = raw.events.map((e) => ({ ...e, id: 'e' + e.id, fam: bySeq.get(Number(e.fam)) || null, at: dt(e.at), start: dt(e.start), end: dt(e.end), amount: Number(e.amount) || 0, czk: Number(e.czk) || 0 }));
+    const isTest = (x) => x.test || x.env !== 'Production';
+    subs = allSubs.filter((x) => !isTest(x)); events = allEvents.filter((x) => !isTest(x));
+    D.storeTest = { subs: allSubs.filter(isTest), events: allEvents.filter(isTest) };
   } else {
     // ukázka: z rodin a plateb v demo-data.js (zkušební 3 dny, pak měsíční předplatné)
     const at = (i, h = 12) => { const d = D.dayAt(0); d.setDate(d.getDate() + Math.max(0, i)); d.setHours(h, (i * 37) % 60); return d; };

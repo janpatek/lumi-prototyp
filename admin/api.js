@@ -15,7 +15,8 @@ const API = (() => {
     set(k, v) { try { localStorage.setItem(nk(k), JSON.stringify(v)); } catch (e) { /* jen do obnovení stránky */ } },
   };
   const revive = (o) => JSON.parse(JSON.stringify(o), (k, v) => (typeof v === 'string' && /^\d{4}-\d\d-\d\dT/.test(v) ? new Date(v) : v));
-  const fam = new Map(D.families.map((f) => [f.id, f]));
+  // testovací účty (jen ostrý režim) jsou mimo D.families a metriky, ale detail a odkazy na ně fungují
+  const fam = new Map([...D.families, ...(D.testFamilies || [])].map((f) => [f.id, f]));
 
   // ---------- Role a oprávnění ----------
   const PERMS = {
@@ -161,6 +162,7 @@ const API = (() => {
     guests: { label: 'Hosté', test: (f) => !f.email },
     news: { label: 'Souhlas s novinkami', test: (f) => !!f.newsletter },
     changers: { label: 'Často mění údaje', test: (f) => !!f.usage && f.usage.changes30 >= 3 },
+    test: { label: 'Testovací', test: () => true, src: () => D.testFamilies || [] },
   };
   const FSORT = {
     created: (f) => f.created, last: (f) => f.lastSeen, plays30: (f) => f.plays30, min30: (f) => f.min30, days30: (f) => f.days30,
@@ -198,7 +200,7 @@ const API = (() => {
         const s = snapshot('families', p, () => {
           const q = norm(p.q || ''), seg = SEGMENTS[p.seg || 'all'].test;
           const out = [];
-          for (const f of D.families) {
+          for (const f of (SEGMENTS[p.seg || 'all'].src ? SEGMENTS[p.seg].src() : D.families)) {
             if (deleted.has(f.id) || !seg(f)) continue;
             if (p.country && p.country !== 'all' && f.country !== p.country) continue;
             if (p.platform && p.platform !== 'all' && f.platform !== p.platform) continue;
@@ -211,7 +213,7 @@ const API = (() => {
         });
         return page(s, cursor, limit);
       },
-      count: (seg) => D.families.reduce((n, f) => n + (!deleted.has(f.id) && SEGMENTS[seg].test(f) ? 1 : 0), 0),
+      count: (seg) => (SEGMENTS[seg].src ? SEGMENTS[seg].src() : D.families).reduce((n, f) => n + (!deleted.has(f.id) && SEGMENTS[seg].test(f) ? 1 : 0), 0),
       // v ostrém režimu vrací null, dokud se poslechy nenačtou (loadActivity)
       activity(id) {
         if (actCache.has(id)) return actCache.get(id);

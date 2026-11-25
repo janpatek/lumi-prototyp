@@ -90,10 +90,10 @@ function pageSubscriptions() {
   });
   const opt = (k, v, l) => `<option value="${v}" ${SUBS[k] === v ? 'selected' : ''}>${l}</option>`;
   const err = D.live && D.storeRaw && D.storeRaw.error;
-  const actions = `${D.live ? `<label class="check" style="margin:0 8px 0 0"><input type="checkbox" data-f="subSandbox" ${D.sandbox ? 'checked' : ''}> testovací nákupy</label>` : ''}${rangeSeg('subDays', n)}`;
+  const actions = rangeSeg('subDays', n);
   return `
     ${head('Předplatné', 'App Store a Google Play napřímo, bez RevenueCat. Měsíční předplatné s 3denní zkušební dobou.', actions)}
-    ${D.live ? `<div class="demo live"><b>Ostrá data</b><span>${err ? `Předplatné se nenačetlo (${esc(err)}). Je v databázi funkce admin_store? Viz supabase/README.md.` : `Události posílají obchody naší funkci store, ${fmt(S.events.length)} ${plural(S.events.length, 'událost', 'události', 'událostí')} od začátku${D.sandbox ? ' včetně testovacích nákupů' : ''}.`} Částky v eurech přepočtené kurzem ČNB ke dni platby. „Do kapsy“ = bez DPH (CZ 21 %, SK 23 %) a provize obchodu 15 %. <a class="link" href="#data">Napojení dat</a></span></div>`
+    ${D.live ? `<div class="demo live"><b>Ostrá data</b><span>${err ? `Předplatné se nenačetlo (${esc(err)}). Je v databázi funkce admin_store? Viz supabase/README.md.` : `Události posílají obchody naší funkci store, ${fmt(S.events.length)} ${plural(S.events.length, 'událost', 'události', 'událostí')} od začátku.`} Částky v eurech přepočtené kurzem ČNB ke dni platby. „Do kapsy“ = bez DPH (CZ 21 %, SK 23 %) a provize obchodu 15 %. <a class="link" href="#data">Napojení dat</a></span></div>`
       : `<div class="demo"><b>Ukázková data</b><span>Vymyšlení uživatelé a platby. Ve skutečnosti chodí události přímo z App Store a Google Play do naší databáze (supabase/functions/store). „Do kapsy“ = bez DPH (CZ 21 %, SK 23 %) a provize obchodu 15 %.</span></div>`}
     <div class="tiles t8">
       ${tile('MRR', kc(mrr), `${trend(mrr, dl.mrr[Math.max(0, L - 30)], 'za 30 dní')} · čisté ${kc(mrrNet)}`)}
@@ -143,7 +143,22 @@ function pageSubscriptions() {
         <select data-f="subPlat" aria-label="Obchod">${opt('plat', 'all', 'Oba obchody')}${opt('plat', 'ios', 'App Store')}${opt('plat', 'android', 'Google Play')}</select>
       </div>
       <div class="vt-host" id="subEvents" style="height:420px;min-height:0"></div>
-    </section>`;
+    </section>
+    ${testPurchases()}`;
+}
+// Testovací nákupy (sandbox App Store, licenční testeři Google Play, nákupy testovacích účtů): jen pro kontrolu, že nákup
+// v aplikaci funguje. Do žádných čísel na této stránce ani v Přehledu se nepočítají.
+function testPurchases() {
+  const T = D.storeTest;
+  if (!D.live || !T || !T.events.length) return '';
+  const pay = T.events.filter((e) => ['buy', 'convert', 'renew'].includes(e.type));
+  const rows = T.events.slice().sort((a, b) => b.at - a.at).slice(0, 15);
+  const who = (fam) => (fam ? famLink(API.families.get(fam)) : '<span class="muted">nespárováno</span>');
+  return `<section class="panel" style="margin-top:12px"><div class="panel-head"><h2>Testovací nákupy</h2><span class="hint">sandbox, licenční testeři a testovací účty · do metrik se nepočítají</span></div>
+    <p class="muted" style="margin:0 0 10px">${fmt(T.subs.length)} ${plural(T.subs.length, 'testovací předplatné', 'testovací předplatná', 'testovacích předplatných')}, ${fmt(pay.length)} ${plural(pay.length, 'zkušební platba', 'zkušební platby', 'zkušebních plateb')} (${kc(pay.reduce((a, e) => a + e.czk, 0))} jen naoko), poslední ${rows[0] ? ago(rows[0].at) : '–'}.</p>
+    <div class="table-wrap" style="max-height:320px;overflow-y:auto"><table><thead><tr><th>Kdy</th><th>Uživatel</th><th>Obchod</th><th>Událost</th><th class="r">Částka</th></tr></thead><tbody>
+    ${rows.map((e) => `<tr><td class="num">${fdate(e.at)}</td><td>${who(e.fam)}</td><td>${esc(D.store.STORE[e.platform] || e.platform)} <span class="tag line">test</span></td><td>${esc(TYPE_LABEL[e.type] || e.type)}</td><td class="r num">${e.czk ? kc(e.czk) : '–'}</td></tr>`).join('')}
+    </tbody></table></div></section>`;
 }
 PAGES.platby = pageSubscriptions;
 
@@ -151,6 +166,4 @@ Object.assign(ACTIONS, { subDays: (v) => { SUBS.days = Number(v); render(); } })
 document.addEventListener('change', (ev) => {
   const t = ev.target, f = t.dataset.f;
   if (f === 'subType' || f === 'subPlat') { SUBS[f === 'subType' ? 'type' : 'plat'] = t.value; SUBS.vt && SUBS.vt.reset(); }
-  // testovací nákupy (sandbox, licenční testeři): načte se znovu ze Supabase
-  if (f === 'subSandbox') { try { localStorage.setItem('ospalek.admin.sandbox', JSON.stringify(t.checked)); } catch (e) {} location.reload(); }
 });

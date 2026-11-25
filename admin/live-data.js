@@ -223,8 +223,8 @@ const LIVE = (() => {
       rpc('admin_heat', { n: DAYS }), rpc('admin_stories'), rpc('admin_staff'), rpc('admin_audit', { n: 2000 }),
     ]);
     // předplatné z obchodů (admin/store-data.js); bez nasazené funkce admin_store administrace funguje dál bez plateb
-    const sandbox = get('ospalek.admin.sandbox') === true;
-    const storeRaw = await rpc('admin_store', { sandbox }).catch((e) => ({ subs: [], events: [], error: e.message }));
+    // vždy i testovací nákupy (sandbox, licenční testeři); do metrik se nepočítají, store-data je dá stranou (D.storeTest)
+    const storeRaw = await rpc('admin_store', { sandbox: true }).catch((e) => ({ subs: [], events: [], error: e.message }));
     const fetchMs = performance.now() - t0;
     const day0 = new Date(); day0.setHours(0, 0, 0, 0);
     const dayAt = (i) => { const d = new Date(day0); d.setDate(d.getDate() - (DAYS - 1 - i)); return d; };
@@ -246,7 +246,7 @@ const LIVE = (() => {
       wau: new Float64Array(WEEKS), heat: new Float64Array(7 * 24),
       cohorts: Array.from({ length: WEEKS }, () => ({ size: 0, active: new Float64Array(WEEKS) })),
       stories: (window.STORIES || []).map((s) => ({ id: s.id, free: !!s.free, cat: s.cats[0], min: 9 })),
-      storeRaw, sandbox, storyAgg: {}, payments: [], vouchers: [], promos: [], tickets: [], ttsJobs: [],
+      storeRaw, storyAgg: {}, payments: [], vouchers: [], promos: [], tickets: [], ttsJobs: [],
       ticketCats: { platby: 'Platby', prehravani: 'Přehrávání', hlas: 'Hlas a výslovnost', ucet: 'Účet a přihlášení', obsah: 'Obsah a přání', gdpr: 'Osobní údaje (GDPR)', chyba: 'Chyba aplikace' },
       slaH: { urgent: 2, high: 8, normal: 24, low: 72 },
     };
@@ -269,18 +269,22 @@ const LIVE = (() => {
     D.families = fams.map((r) => {
       const created = new Date(r.created_at), ci = Math.max(0, idxOf(created));
       const lastI = r.last_day ? idxOf(pd(r.last_day)) : ci;
-      const premium = !!r.premium;
+      // příznak premium v databázi zapíná i kód (recenzenti) nebo testovací nákup: za platícího bereme jen předplatné
+      // z obchodu (doplní store-data.js), odemčení kódem je zvlášť (plan 'kód')
+      const codeOn = !!r.premium && !!r.code_until && new Date(r.code_until) > new Date();
+      const premium = false;
       const f = {
         id: 'f' + String(r.seq).padStart(5, '0'), uuid: r.id, n: N(r.seq),
         email: r.email, name: r.email ? r.email.split('@')[0] : null, provider: r.provider,
         created, ci, town: r.town || '–', country: r.country || '', source: r.source || 'Přímý přístup',
         platform: r.platform || 'Web', appVer: r.app_version || 'web',
         kids: (r.kids || []).map((k) => ({ name: k.name, g: k.g, age: k.age ?? 0 })),
-        plan: premium ? 'měsíc' : null, status: premium ? 'active' : null, trialI: -1, subI: -1, subEnd: -1, failed: false, premium: premium ? 'měsíc' : null,
+        plan: codeOn ? 'kód' : null, status: null, trialI: -1, subI: -1, subEnd: -1, failed: false, premium: codeOn ? 'kód' : null, codeUntil: r.code_until ? new Date(r.code_until) : null,
         plays: N(r.plays), minutes: N(r.seconds) / 60, days: N(r.days), plays30: N(r.plays30), min30: N(r.seconds30) / 60, days30: N(r.days30),
         lastSeen: new Date(r.last_seen_at), lastI, favCat: r.fav_category || 'noc', onboarded: r.onboarded, analytics: !!r.analytics, tags: [],
         newsletter: !!r.newsletter, newsletterAt: r.newsletter_at ? new Date(r.newsletter_at) : null, analyticsAt: r.analytics_at ? new Date(r.analytics_at) : null,
         settings: r.settings || null, push: N(r.push_devices || 0), usageDays: null,
+        test: !!r.test, testManual: r.test_manual ?? null, storeProd: N(r.store_prod || 0), storeTest: N(r.store_test || 0),
         usage: Object.fromEntries(['names', 'kids', 'towns', 'clips', 'chars', 'changes30', 'clips30', 'chars30'].map((k) => [k, N((r.usage || {})[k] || 0)])),
       };
       const idle = DAYS - 1 - lastI;
@@ -290,9 +294,14 @@ const LIVE = (() => {
       if (f.risk) f.tags.push('riziko odchodu');
       if (!f.onboarded) f.tags.push('nedokončená registrace');
       if (!f.analytics) f.tags.push('bez statistik');
+      if (codeOn) f.tags.push('odemčeno kódem');
+      if (f.storeTest) f.tags.push('testovací nákupy');
       f.haystack = deacc([f.id, f.email, f.town, ...f.kids.map((k) => k.name)].filter(Boolean).join(' '));
       return f;
     });
+    // testovací účty (fam_is_test v databázi) jsou mimo všechny metriky; administrace je ukáže jen v Uživatelé → Testovací
+    D.testFamilies = D.families.filter((f) => f.test);
+    D.families = D.families.filter((f) => !f.test);
     D.sources = [...new Set(D.families.map((f) => f.source))];
     const staffOf = (rows) => rows.map((s) => ({ id: s.user_id, name: s.name, role: s.role, email: s.email || '', twofa: !!s.twofa, last: s.last_sign_in_at ? new Date(s.last_sign_in_at) : null }));
     D.staff = staffOf(staff);
@@ -374,6 +383,8 @@ const LIVE = (() => {
       pause: (cid, pause) => rpc('admin_coupon_pause', { cid, pause }),
     };
     D.deleteFamily = (f) => rpc('admin_delete_family', { fseq: f.n });
+    // testovací účet: true/false ručně, null = automaticky podle pravidel v databázi (fam_is_test)
+    D.setTest = (f, val) => rpc('admin_set_test', { fseq: f.n, val });
     D.log = (action, target, detail) => rpc('admin_log', { action, target: String(target || ''), detail: String(detail || '') }).catch(() => {});
     return D;
   }
