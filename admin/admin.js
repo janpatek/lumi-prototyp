@@ -436,8 +436,8 @@ function pageRegistrations() {
     <section class="panel" style="margin-top:16px"><div class="panel-head"><h2>Registrace ${F.range.by === 'tyden' ? 'po týdnech' : 'po dnech'}</h2></div><div class="chart" id="chReg"></div></section>
     <section class="panel">
       <div class="panel-head"><h2>Seznam registrací</h2><span class="muted">${fmt(list.length)} uživatelů</span></div>
-      <div class="table-wrap"><table><thead><tr><th>Kdy</th><th>Účet</th><th class="r">Děti</th><th>Bydliště</th><th>Zdroj</th><th>Předplatné</th></tr></thead>
-      <tbody>${list.slice(F.regPage * per, (F.regPage + 1) * per).map((f) => `<tr><td class="num">${fdate(f.created)} <span class="muted">${f.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></td><td>${acct(f)}</td><td class="r num">${f.kids}</td><td>${esc(f.town)} <span class="muted">${esc(f.country)}</span></td><td class="muted">${esc(f.source)}</td><td>${planTag(f.premium)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">V tomhle období se nikdo neregistroval.</td></tr>'}</tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Kdy</th><th>Účet</th><th>Děti</th><th>Bydliště</th><th>Zdroj</th><th>Předplatné</th></tr></thead>
+      <tbody>${list.slice(F.regPage * per, (F.regPage + 1) * per).map((f) => `<tr><td class="num">${fdate(f.created)} <span class="muted">${f.created.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}</span></td><td>${acct(f)}</td><td>${kidsHtml(f) || '<span class="muted">–</span>'}</td><td>${esc(f.town)} <span class="muted">${esc(f.country)}</span></td><td class="muted">${esc(f.source)}</td><td>${planTag(f.premium)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">V tomhle období se nikdo neregistroval.</td></tr>'}</tbody></table></div>
       <div class="pager"><span>Strana ${F.regPage + 1} z ${pages}</span>
         <span class="head-actions"><button class="btn white sm" data-a="rpage" data-v="-1" ${F.regPage ? '' : 'disabled'}>Předchozí</button><button class="btn white sm" data-a="rpage" data-v="1" ${F.regPage < pages - 1 ? '' : 'disabled'}>Další</button></span></div>
     </section>`;
