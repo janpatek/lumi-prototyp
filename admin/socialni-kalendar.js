@@ -8,7 +8,7 @@ const CAL_KEY = 'ospalek.admin.social.plan.v1';
 const CAL = { state: 'idle', rows: [], err: '', mesic: null, busy: false };
 const CAL_SITE = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok' };
 const CAL_STAV = { naplanovano: ['Naplánováno', 'sky'], zpracovava: ['Zveřejňuje se', 'honey'], hotovo: ['Zveřejněno', 'mint'], chyba: ['Chyba', 'peach'] };
-const CAL_SIT_STAV = { ceka: 'čeká', zpracovava: 'Instagram zpracovává video', hotovo: 'zveřejněno', chyba: 'chyba', rucne: 'nahrát ručně' };
+const CAL_SIT_STAV = { ceka: 'čeká', zpracovava: 'Instagram zpracovává video', hotovo: 'zveřejněno', chyba: 'chyba', rucne: 'nahrát ručně', preskoceno: 'přeskočeno, už jednou vyšlo' };
 const CAL_DNY = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
 const CAL_MESICE = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 
@@ -210,7 +210,7 @@ function calForm(r, day) {
   };
   const res = r && r.stav !== 'naplanovano' ? `<div class="cal-res">${r.site.map((s) => {
     const v = (r.vysledky || {})[s] || { stav: 'ceka' };
-    return `<div><b>${esc(CAL_SITE[s])}:</b> ${esc(CAL_SIT_STAV[v.stav] || v.stav)}${v.odkaz && typeof v.odkaz === 'string' && safeUrl(v.odkaz) ? ` · <a href="${esc(safeUrl(v.odkaz))}" target="_blank" rel="noopener">otevřít ↗</a>` : ''}${v.chyba ? `<br><span class="err">${esc(v.chyba)}</span>` : ''}</div>`;
+    return `<div><b>${esc(CAL_SITE[s])}:</b> ${esc(CAL_SIT_STAV[v.stav] || v.stav)}${v.odkaz && typeof v.odkaz === 'string' && safeUrl(v.odkaz) ? ` · <a href="${esc(safeUrl(v.odkaz))}" target="_blank" rel="noopener">otevřít ↗</a>` : ''}${v.chyba ? `<br><span class="err">${esc(v.chyba)}</span>` : ''}${v.pozn ? `<br><span class="muted">${esc(v.pozn)}</span>` : ''}</div>`;
   }).join('')}</div>` : '';
   const rucne = r && r.vysledky && r.vysledky.tiktok && r.vysledky.tiktok.stav === 'rucne';
   const tik = rucne && it0 && it0.video ? `<a class="btn white" href="${socHref(it0.soubory[0])}" download="${esc(it0.soubory[0].nazev)}">${I.down}Video pro TikTok</a><button class="btn white" data-a="calCopyTik" data-v="${esc(r.id)}">${I.copy}Popisek pro TikTok</button><button class="btn" data-a="calTikDone" data-v="${esc(r.id)}">TikTok hotovo</button>` : '';
@@ -294,6 +294,11 @@ async function calSave(id) {
   if (isNaN(kdy)) return st('Zadejte datum a čas.');
   if (kdy.getTime() < Date.now() + 60e3) return st('Čas musí být v budoucnu. Hned zveřejnit jde tlačítkem v detailu materiálu.');
   const row = { polozka: $('#calItem').value, kdy: kdy.toISOString(), site: [...document.querySelectorAll('[name=calSite]:checked')].map((c) => c.value), popisek: $('#calText').value.trim() };
+  // pojistka proti duplicitám (server ji hlídá znovu při zveřejnění): stejný materiál jen jednou v kalendáři
+  const dup = CAL.rows.find((r) => r.polozka === row.polozka && r.id !== Number(id) && r.stav !== 'chyba');
+  if (dup) return st(`Tenhle materiál už je v kalendáři (${calWhen(dup.kdy)}). Upravte ten příspěvek, ať nevyjde dvakrát.`);
+  const prev = id && CAL.rows.find((r) => r.id === Number(id));
+  if (SOC.used[row.polozka] && !(prev && prev.polozka === row.polozka)) return st('Tenhle materiál je už označený jako použitý, znovu by vyšel dvakrát. Pokud nevyšel, zrušte v knihovně zaškrtnutí Použito.');
   CAL.busy = true; $('#calGo').disabled = true;
   try {
     if (id) await calPatch(Number(id), row);

@@ -202,18 +202,44 @@ async function fbPublish(c: Caller, a: J, it: J, message: string): Promise<strin
 // ---------- kalendář (tabulka socialni_plan) ----------
 // Každé volání si zamkne řádek na 3 minuty, takže se překrývající běhy cronu nepoperou o stejný příspěvek.
 // Stav po sítích je ve vysledky: ceka → (Instagram: zpracovava s kontejnerem) → hotovo | chyba; TikTok rovnou rucne.
-const FINAL = ['hotovo', 'chyba', 'rucne'];
+// Pojistka proti duplicitám: materiál, který už na dané síti vyšel (jiný řádek kalendáře, zveřejnění z detailu
+// nebo ruční zaškrtnutí Použito), se na ní znovu nezveřejní a dostane stav preskoceno.
+const FINAL = ['hotovo', 'chyba', 'rucne', 'preskoceno'];
+const SIT_KLIC: Record<string, string> = { instagram: 'ig', facebook: 'fb' };
+async function uzVyslo(c: Caller, row: J): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  const r = await storage(c, 'GET', `object/authenticated/marketing/stav.json?t=${Date.now()}`);
+  const u = r.ok ? ((await r.json().catch(() => ({}))).used || {})[row.polozka] : null;
+  if (u) {
+    const kdy = u.at ? new Date(u.at).toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague' }) : '';
+    for (const [sit, k] of Object.entries(SIT_KLIC)) {
+      // ruční zaškrtnutí Použito nemá odkaz ani síť, bereme ho jako zveřejněné všude
+      if (u[k] || (!u.ig && !u.fb)) out[sit] = `Materiál je už označený jako použitý${kdy ? ` (${kdy})` : ''}`;
+    }
+  }
+  const rows = await db('GET', `socialni_plan?select=id,kdy,vysledky&polozka=eq.${encodeURIComponent(row.polozka)}&id=neq.${row.id}`);
+  for (const x of rows || []) for (const sit of Object.keys(SIT_KLIC)) {
+    const v = (x.vysledky || {})[sit];
+    if (v && (v.stav === 'hotovo' || (v.stav === 'zpracovava' && v.kontejner))) out[sit] = `Stejný materiál už ${v.stav === 'hotovo' ? 'vyšel' : 'se zveřejňuje'} z kalendáře (příspěvek ${x.id})`;
+  }
+  return out;
+}
 const NA_ZPRACOVANI = 30 * 60e3; // video, které Instagram nezpracuje do půl hodiny od plánovaného času, se vzdá
 async function planStep(row: J, a: J | null, items: Record<string, J>): Promise<J> {
   const v: J = { ...(row.vysledky || {}) };
   const c = system(row.autor || 'Kalendář');
   const it = items[row.polozka];
   const late = Date.now() - Date.parse(row.kdy) > NA_ZPRACOVANI;
+  // před prvním pokusem o síť ověříme, že na ní stejný materiál ještě nevyšel
+  const zacne = (row.site as string[]).some((s) => SIT_KLIC[s] && !FINAL.includes(v[s]?.stav) && !v[s]?.kontejner);
+  const vyslo = zacne ? await uzVyslo(c, row).catch((e: Error) => ({ _chyba: e.message } as Record<string, string>)) : {};
   for (const sit of row.site as string[]) {
     const r = v[sit] = { ...(v[sit] || { stav: 'ceka' }) };
     if (FINAL.includes(r.stav)) continue;
     try {
       if (sit === 'tiktok') { r.stav = 'rucne'; continue; }
+      if (!r.kontejner && vyslo._chyba) throw fail(503, `Nepodařilo se ověřit, jestli materiál už nevyšel (${vyslo._chyba}). Zkuste to znovu.`);
+      if (!r.kontejner && vyslo[sit]) { r.stav = 'preskoceno'; r.pozn = `${vyslo[sit]}, proto se znovu nezveřejnil.`; r.at = new Date().toISOString(); continue; }
       if (!it) throw fail(404, 'Materiál v katalogu už není.');
       if (!it.ig) throw fail(400, 'Tenhle materiál nemá soubory pro zveřejnění.');
       if (!a) throw fail(409, 'Instagram není propojený nebo propojení vypršelo.');

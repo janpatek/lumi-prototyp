@@ -145,6 +145,10 @@ doporučení* vyplní kalendář podle doporučeného plánu z katalogu (Týden 
 Ta zveřejní na Instagram a na facebookovou stránku, se kterou je Instagram propojený, výsledek a odkazy zapíše k příspěvku
 a materiál označí jako použitý. TikTok veřejné API pro zveřejňování nemá, u něj se v daný čas objeví „TikTok nahrát ručně“.
 
+Pojistka proti duplicitám: stejný materiál jde do kalendáře jen jednou a materiál označený jako použitý naplánovat nejde.
+Funkce navíc těsně před zveřejněním ověří, jestli na dané síti už nevyšel (jiný řádek kalendáře, zveřejnění z detailu nebo
+ruční zaškrtnutí *Použito*). Když ano, síť přeskočí (stav `preskoceno`) a v detailu příspěvku napíše proč.
+
 Zapojení (jednou): SQL Editor → spustit `migrations/20261114_socialni_kalendar.sql` (tabulka, pravidla, pg_cron a pg_net),
 nasadit novou verzi `functions/instagram/index.ts` a v administraci jednou znovu *Propojit Instagram*, aby Facebook povolil
 i zveřejňování na stránce (`pages_manage_posts`). Plánovač jde zkontrolovat v Integrations → Cron (úloha `ospalek-socialni-plan`).

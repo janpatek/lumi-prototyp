@@ -47,6 +47,10 @@ globalThis.fetch = async (url, o = {}) => {
     const now = Date.now();
     const free = (r) => !r.zamek || Date.parse(r.zamek) < now;
     const live = (r) => ['naplanovano', 'zpracovava'].includes(r.stav);
+    if (m === 'GET' && u.searchParams.get('polozka')) {
+      const pol = eqv(u, 'polozka'), not = Number(u.searchParams.get('id').replace('neq.', ''));
+      return res(T.plan.filter((r) => r.polozka === pol && r.id !== not).map((r) => ({ id: r.id, kdy: r.kdy, vysledky: r.vysledky })));
+    }
     if (m === 'GET') return res(T.plan.filter((r) => live(r) && Date.parse(r.kdy) <= now && free(r)).map((r) => ({ id: r.id })));
     if (m === 'PATCH') {
       const id = Number(eqv(u, 'id')), r = T.plan.find((x) => x.id === id);
@@ -184,6 +188,7 @@ await assert.rejects(call('zverejnit', { id: 'ig-ahoj', popisek: 'Ahoj' }), /chy
 assert.equal(T.ucet[0].fb_page_id, '777'); assert.equal(T.ucet[0].fb_muze, true);
 assert.deepEqual((await call('stav')).facebook, { stranka: 'Ospalek.cz', muze: true });
 FILES.add('a/s1.jpg');
+T.stav = { used: {} }; // kalendář začíná s čistým stavem (zveřejnění výše by jinak blokovala duplicitní pojistka)
 const cron = () => handle(new Request(`${SB}/functions/v1/instagram/cron`, { method: 'POST' }), 'cron');
 const past = new Date(Date.now() - 60e3).toISOString(), future = new Date(Date.now() + 3600e3).toISOString();
 T.plan = [
@@ -217,6 +222,25 @@ T.plan.push({ id: 6, polozka: 'ig-ahoj', kdy: past, site: ['facebook'], popisek:
 await cron();
 assert.equal(P(6).stav, 'chyba'); assert.match(P(6).vysledky.facebook.chyba, /oprávnění/);
 T.ucet[0].fb_muze = true;
+// duplicity: stejný materiál podruhé nevyjde, ani když je v kalendáři dvakrát nebo je ručně označený jako použitý
+const pocet = () => calls.filter((x) => x.url.includes('graph.facebook.com') && x.m === 'POST').length;
+let pred = pocet();
+T.plan.push({ id: 7, polozka: 'reel-jmeno', kdy: past, site: ['instagram', 'facebook', 'tiktok'], popisek: 'Znovu', stav: 'naplanovano', vysledky: {}, autor: 'Jan' });
+await cron();
+assert.equal(P(7).stav, 'hotovo'); assert.equal(P(7).vysledky.instagram.stav, 'preskoceno'); assert.equal(P(7).vysledky.facebook.stav, 'preskoceno');
+assert.match(P(7).vysledky.instagram.pozn, /nezveřejnil/); assert.equal(P(7).vysledky.tiktok.stav, 'rucne');
+assert.equal(pocet(), pred);
+T.stav.used['ig-vecer'] = { at: new Date().toISOString(), by: 'Jan' }; // ruční zaškrtnutí Použito
+T.plan.push({ id: 8, polozka: 'ig-vecer', kdy: past, site: ['instagram', 'facebook'], popisek: 'x', stav: 'naplanovano', vysledky: {}, autor: 'Jan' });
+await cron();
+assert.equal(P(8).vysledky.instagram.stav, 'preskoceno'); assert.equal(P(8).vysledky.facebook.stav, 'preskoceno'); assert.match(P(8).vysledky.facebook.pozn, /použitý/);
+assert.equal(pocet(), pred);
+// jiný řádek už vyšel jen na Facebooku: Instagram se zveřejní, Facebook ne
+T.plan.push({ id: 9, polozka: 'ig-pred-a-po', kdy: past, site: ['instagram', 'facebook'], popisek: 'Karusel', stav: 'naplanovano', vysledky: {}, autor: 'Jan' });
+delete T.stav.used['ig-pred-a-po'];
+await cron();
+assert.equal(P(9).vysledky.facebook.stav, 'preskoceno'); assert.match(P(9).vysledky.facebook.pozn, /příspěvek 2/);
+assert.equal(P(9).vysledky.instagram.stav, 'hotovo');
 
 // 11) vypršelé propojení (90 dní)
 T.ucet[0].expires_at = new Date(Date.now() - 1000).toISOString();
