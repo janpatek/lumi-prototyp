@@ -94,16 +94,27 @@
   <script>
     (function () {
       var O = window.OSPALEK_OBCHODY || {};
-      var fromApp = new URLSearchParams(location.search).get('z') === 'app';
+      var Q = new URLSearchParams(location.search);
+      var fromApp = Q.get('z') === 'app';
+      // Kampaň (reklama, příspěvek): utm_* z adresy předáme Google Play jako referrer, ať Play Console
+      // ukáže, odkud instalace přišla. Nic se neukládá, jen se to přepíše do odkazu do obchodu.
+      var utm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content']
+        .filter(function (k) { return Q.get(k); })
+        .map(function (k) { return k + '=' + encodeURIComponent(Q.get(k).slice(0, 100)); }).join('&');
+      var storeUrl = function (store) {
+        var url = O[store + 'Url'];
+        if (!url || !utm || store !== 'googlePlay') return url;
+        return url + (url.indexOf('?') < 0 ? '?' : '&') + 'referrer=' + encodeURIComponent(utm);
+      };
       // iPad se hlásí jako Mac s dotykem, proto Android poznáváme první
       var platform = /Android/.test(navigator.userAgent) ? 'googlePlay'
         : /iPhone|iPod|iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'appStore' : '';
       // Naskenovaný QR kód: telefon rovnou do jeho obchodu
-      if (!fromApp && platform && O[platform + 'Url']) { location.replace(O[platform + 'Url']); return; }
+      if (!fromApp && platform && O[platform + 'Url']) { location.replace(storeUrl(platform)); return; }
 
       var live = false;
       document.querySelectorAll('[data-store]').forEach(function (a) {
-        var url = O[a.dataset.store + 'Url'];
+        var url = storeUrl(a.dataset.store);
         if (url) { a.href = url; a.classList.remove('is-soon'); a.removeAttribute('aria-disabled'); live = true; }
         else a.addEventListener('click', function (e) { e.preventDefault(); });
         if (platform && a.dataset.store === platform) a.parentNode.prepend(a);
